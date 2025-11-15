@@ -64,3 +64,15 @@ function fetchLocationData() {
       document.getElementById('aqi-display').classList.remove('hidden');
       document.getElementById('location-data').remove();
     }
+  );
+}
+
+// Helper: AQI to category (US EPA scale)
+function getAQICategory(aqi) {
+  if (aqi <= 50) return "Good";
+  if (aqi <= 100) return "Moderate";
+  if (aqi <= 150) return "Unhealthy for Sensitive Groups";
+  if (aqi <= 200) return "Unhealthy";
+  if (aqi <= 300) return "Very Unhealthy";
+  return "Hazardous";
+}

@@ -1,177 +1,49 @@
-/* Basic Reset and Variables */
 :root {
-    --primary-color: #0077B6; /* Blue for energy/water */
-    --secondary-color: #00B64C; /* Green for sustainability */
-    --text-color: #333;
-    --background-color: #f7f7f7;
-    --card-background: #ffffff;
-    --font-family: 'Arial', sans-serif;
+  --bg-color: rgb(10, 10, 10);
+  --text-color: #fff;
+  --blog-gray-color: rgb(180, 180, 180);
+  --background-image: linear-gradient(
+      90deg,
+      rgba(10, 10, 10, 0.3),
+      rgb(10, 10, 10, 1)
+    ),
+    url("{{{background}}}");
+  --background-background: linear-gradient(
+      0deg,
+      rgba(10, 10, 10, 1),
+      rgba(10, 10, 10, 0.6)
+    ),
+    url("{{{background}}}") center center fixed;
+  --height: 50vh;
 }
 
-body {
-    font-family: var(--font-family);
-    line-height: 1.6;
-    margin: 0;
-    padding: 0;
-    background-color: var(--background-color);
-    color: var(--text-color);
+#display h1 {
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: #fff;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+#blog-display h1 {
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: #fff;
 }
 
-/* Header & Navigation */
-.header {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 1rem 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.projects section {
+  background: rgb(20, 20, 20);
 }
 
-.header h1 {
-    margin: 0;
-    font-size: 1.5rem;
+#blog_section section {
+  background: rgb(20, 20, 20);
 }
 
-.header .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
+@media (max-width: 800px) {
+  :root {
+    --background-image: linear-gradient(
+        0deg,
+        rgba(10, 10, 10, 1),
+        rgba(10, 10, 10, 0)
+      ),
+      url("{{{background}}}") !important;
+  }
 }
-
-.nav a {
-    color: white;
-    text-decoration: none;
-    margin-left: 1.5rem;
-    font-weight: bold;
-    transition: color 0.3s;
-}
-
-.nav a:hover {
-    color: var(--secondary-color);
-}
-
-/* Main Content Sections */
-.main-content {
-    padding-top: 20px;
-}
-
-.section {
-    padding: 40px 0;
-}
-
-.section-title {
-    font-size: 2rem;
-    color: var(--primary-color);
-    border-bottom: 3px solid var(--secondary-color);
-    padding-bottom: 10px;
-    margin-bottom: 30px;
-}
-
-.hero-section {
-    text-align: center;
-    padding: 60px 0;
-    background-color: var(--card-background);
-    border-radius: 8px;
-    margin-bottom: 40px;
-}
-
-.hero-section h2 {
-    color: var(--secondary-color);
-    font-size: 2.5rem;
-    margin-bottom: 15px;
-}
-
-/* Simulation Grid */
-.simulation-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-}
-
-.sim-card {
-    background-color: var(--card-background);
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-}
-
-.sim-card h3 {
-    color: var(--primary-color);
-    margin-top: 0;
-}
-
-.embed-box {
-    background-color: var(--background-color);
-    height: 300px; /* Placeholder height for simulation embed */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 15px 0;
-    border: 1px dashed #ccc;
-    font-style: italic;
-    color: #666;
-}
-
-/* Buttons */
-.btn {
-    display: inline-block;
-    padding: 10px 20px;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: background-color 0.3s;
-    margin-right: 10px;
-}
-
-.btn.primary {
-    background-color: var(--secondary-color);
-    color: white;
-}
-
-.btn.primary:hover {
-    background-color: #00993c;
-}
-
-.btn.secondary {
-    background-color: #ccc;
-    color: var(--text-color);
-}
-
-.btn.secondary:hover {
-    background-color: #bbb;
-}
-
-/* Footer */
-.footer {
-    text-align: center;
-    padding: 20px 0;
-    margin-top: 40px;
-    border-top: 1px solid #ddd;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-/* Mobile Adjustments */
-@media (max-width: 600px) {
-    .header .container {
-        flex-direction: column;
-        text-align: center;
-    }
-    .nav {
-        margin-top: 1rem;
-    }
-    .nav a {
-        display: block;
-        margin: 0.5rem 0;
-    }
-    .hero-section h2 {
-        font-size: 2rem;
-    }
-}
-
-/* Temporary update to trigger CDN refresh */

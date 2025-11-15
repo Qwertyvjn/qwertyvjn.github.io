@@ -209,4 +209,78 @@ strong { font-weight: 500; }
   color: var(--accent);
   font-size: 0.875rem;
   text-decoration: none;
-  margin-top: 
+  margin-top: 0.75rem;
+}
+.card-link:hover { text-decoration: underline; }
+
+.full { grid-column: 1 / -1; }
+
+/* Concept cards */
+.concept { background: none; border: none; padding: 0; }
+.card-title {
+  font-weight: 500;
+  color: var(--accent);
+  font-size: 1rem;
+  text-decoration: none;
+}
+.card-title:hover { text-decoration: underline; }
+.card-desc { font-size: 0.875rem; color: var(--dim); margin-top: 0.25rem; }
+
+/* Repo Cards (NEW!) */
+.repo-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+.repo-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 182, 76, 0.12);
+}
+.repo-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.repo-name {
+  font-weight: 500;
+  color: var(--accent);
+  font-size: 1rem;
+}
+.repo-lang {
+  font-size: 0.75rem;
+  color: var(--dim);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+}
+.repo-desc {
+  font-size: 0.875rem;
+  color: var(--dim);
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+.repo-desc a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.repo-desc a:hover { text-decoration: underline; }
+.repo-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: var(--dim);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 3px;
+}

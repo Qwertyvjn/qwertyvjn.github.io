@@ -71,19 +71,23 @@
     <div class="flex flex-col lg:flex-row">
 
         <!-- Sidebar / Header (Fixed Position on Desktop) -->
-        <aside class="w-full lg:w-96 p-6 lg:h-screen lg:sticky lg:top-0 shadow-lg z-10" style="background-color: var(--card);">
-            <div class="flex flex-col h-full">
+        <!-- FIX 1: Added overflow-y-auto to enable internal scrolling when height is fixed (lg:h-screen) -->
+        <aside class="w-full lg:w-96 p-6 lg:h-screen lg:sticky lg:top-0 shadow-lg z-10 overflow-y-auto" style="background-color: var(--card);">
+            <!-- REMOVED h-full from this div to work with overflow-y-auto -->
+            <div class="flex flex-col"> 
                 
                 <!-- Profile Section -->
                 <div class="mb-8 pb-4" style="border-color: var(--border);">
                     <!-- Placeholder for image/avatar similar to reference -->
-                    <div class="w-24 h-24 bg-gray-600 rounded-full mb-4 mx-auto lg:mx-0">
+                    <div class="w-24 h-24 bg-gray-600 rounded-full mb-4 mx-auto">
                          <!-- Placeholder for your profile picture -->
                     </div>
                     
-                    <h1 class="text-3xl font-extrabold accent-text tracking-wider text-center lg:text-left">BrainFart</h1>
-                    <p class="text-sm mt-1 text-center lg:text-left" style="color: var(--text);">Glenn Alvin: Environmental Engineering Undergraduate</p>
-                    <p class="text-xs mt-2 opacity-75 text-center lg:text-left" style="color: var(--text);">Focus: Unconventional Energy, Air Pollution, and Sustainability</p>
+                    <h1 class="text-3xl font-extrabold accent-text tracking-wider text-center">BrainFart</h1>
+                    <!-- FIX 2: Updated profile text arrangement for better hierarchy -->
+                    <p class="text-lg mt-2 font-bold text-center" style="color: var(--text);">Glenn Alvin</p>
+                    <p class="text-sm mt-1 text-center opacity-75" style="color: var(--text);">Environmental Engineering Undergraduate</p>
+                    <p class="text-xs mt-2 opacity-60 text-center" style="color: var(--text);">Focus: Unconventional Energy, Air Pollution, and Sustainability</p>
                 </div>
 
                 <!-- Navigation (Only includes main page sections) -->
@@ -125,7 +129,8 @@
                     <!-- Simulation Card 1: Salinity Gradient Energy (RED) -->
                     <div class="card p-6 rounded-xl hover:scale-[1.02] transition duration-300">
                         <h4 class="text-2xl font-semibold mb-3 accent-text">1. Salinity Gradient Model ($\text{RED}$)</h4>
-                        <p class="mb-4 opacity-90 text-sm" style="color: var(--text);">**The Chemical Waterfall:** Explore how the cost and efficiency of **Reverse Electrodialysis ($\text{RED}$)** membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
+                        <!-- FIX 3: Removed Markdown asterisks and applied bold class for styling -->
+                        <p class="mb-4 opacity-90 text-sm" style="color: var(--text);"><span class="font-bold">The Chemical Waterfall:</span> Explore how the cost and efficiency of <span class="font-bold">Reverse Electrodialysis ($\text{RED}$)</span> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
                         
                         <!-- Insight Maker Embed Box -->
                         <div class="h-64 w-full overflow-hidden flex items-center justify-center rounded-lg border-2 border-dashed" style="border-color: var(--border);">
@@ -137,7 +142,8 @@
                     <!-- Simulation Card 2: Gravity Potential Energy (GPE) -->
                     <div class="card p-6 rounded-xl hover:scale-[1.02] transition duration-300">
                         <h4 class="text-2xl font-semibold mb-3 accent-text">2. Gravity Storage Calculator ($\text{GPE}$)</h4>
-                        <p class="mb-4 opacity-90 text-sm" style="color: var(--text);">**Storing Energy with Bricks:** A calculator demonstrating the massive **mass ($M$)** and **height ($H$)** required to store large-scale renewable energy using the physics of potential energy.</p>
+                        <!-- FIX 3: Removed Markdown asterisks and applied bold class for styling -->
+                        <p class="mb-4 opacity-90 text-sm" style="color: var(--text);"><span class="font-bold">Storing Energy with Bricks:</span> A calculator demonstrating the massive <span class="font-bold">mass ($M$)</span> and <span class="font-bold">height ($H$)</span> required to store large-scale renewable energy using the physics of potential energy.</p>
                         
                         <!-- Looker Studio / Custom JS Embed Box -->
                         <div class="h-64 w-full overflow-hidden flex items-center justify-center rounded-lg border-2 border-dashed" style="border-color: var(--border);">

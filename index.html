@@ -1,127 +1,222 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>BrainFart-Environmental Talks</title>
-    <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="themes/dark.css" id="theme-link">
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://use.fontawesome.com/releases/v5.7.1/css/all.css"
-      integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr"
-      crossorigin="anonymous"
-    />
-    <script
-      src="https://code.jquery.com/jquery-3.4.1.min.js"
-      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-      crossorigin="anonymous"
-    ></script>
-  </head>
-  <body>
-    <div id="loading">
-      <div id="spinner"></div>
-    </div>
-    <a href="/" class="go_back"><i class="fas fa-arrow-left"></i></a>
-    <div id="background_overlay"></div>
-    <div id="background"></div>
-    <table id="profile_blog">
-      <tbody>
-        <tr>
-          <td style="width:8vw;"><div id="profile_img_blog"></div></td>
-          <td style="width:52vw;">
-            <div id="username_blog"></div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div id="blog-display">
-      <h1 id="blog_title">Lorem ipsum dolor</h1>
-      <h2 id="blog_sub_title">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-      </h2>
-      <div id="blog">
-        <img
-          src="https://images.unsplash.com/photo-1553748024-d1b27fb3f960?w=1450"
-        />
-        <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut placerat
-          pretium sem, ac maximus dui sodales a. Nunc aliquet hendrerit turpis
-          ac egestas. Phasellus volutpat tristique maximus.
-          <b>Pellentesque feugiat eget nisi et dignissim.</b> Nam nibh erat,
-          sollicitudin non facilisis nec, scelerisque nec ipsum. Sed accumsan
-          velit condimentum, pharetra felis vitae, commodo tellus.
-          <u><i>Mauris consequat luctus orci.</i></u>
-        </p>
-        <p>
-          Vivamus pharetra lobortis dui non tincidunt. Mauris vitae nisi
-          vestibulum, mollis magna a, maximus mi. Suspendisse dictum eget augue
-          quis sodales. Quisque rutrum ligula nec dapibus tincidunt.
-          <span
-            >Proin hendrerit massa a tellus vestibulum, a hendrerit ipsum
-            iaculis. Suspendisse potenti.</span
-          >
-          Praesent eget erat blandit, finibus sapien vitae, ullamcorper erat.
-          Integer blandit, felis at ullamcorper maximus, odio lectus pretium
-          mauris, vel consequat lectus quam eu risus. Pellentesque gravida nec
-          diam eget vehicula.
-        </p>
-        <img
-          src="https://images.unsplash.com/photo-1556814278-8906c7d3a05f?w=1050"
-        />
-        <p>
-          Donec hendrerit turpis non libero eleifend dignissim. Mauris non
-          tempor metus, et tristique massa. Integer consequat justo quam, vitae
-          aliquam arcu vestibulum at. Donec porttitor quam in tempus convallis.
-          Praesent feugiat eget eros vitae accumsan. Duis ultricies odio quis
-          nisl volutpat, consectetur imperdiet sem laoreet. Quisque maximus
-          semper ligula at tincidunt. Pellentesque accumsan varius vehicula.
-        </p>
-      </div>
-    </div>
-    <div id="footer_blog">
-      <a href="https://github.com/imfunniee" target="_blank"
-        >made on earth by a human</a
-      >
-    </div>
-    <script type="text/javascript">
-      setTimeout(function() {
-        document.getElementById("loading").classList.add("animated");
-        document.getElementById("loading").classList.add("fadeOut");
-        setTimeout(function() {
-          document.getElementById("loading").classList.remove("animated");
-          document.getElementById("loading").classList.remove("fadeOut");
-          document.getElementById("loading").style.display = "none";
-        }, 800);
-      }, 1500);
-      $.getJSON("../../config.json", function(user) {
-        var icon = document.createElement("link");
-        icon.setAttribute("rel", "icon");
-        icon.setAttribute("href", user[0].userimg);
-        icon.setAttribute("type", "image/png");
-        document.getElementsByTagName("head")[0].appendChild(icon);
-        document.getElementById(
-          "profile_img_blog"
-        ).style.background = `url('${user[0].userimg}') center center`;
-        document.getElementById(
-          "username_blog"
-        ).innerHTML = `<span style="display:${
-          user[0].name == null || !user[0].name ? "none" : "block"
-        };">${user[0].name}</span>@${user[0].username}<b id="blog_time"></b>`;
-
-        if ((user[0].theme = "dark.css")) {
-          document.querySelector("#background_overlay").style.background =
-            "linear-gradient(0deg, rgba(10, 10, 10, 1), rgba(10, 10, 10, 0.1))";
-        } else {
-          document.querySelector("#background_overlay").style.background =
-            "linear-gradient(0deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.1))";
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrainFart | Interactive Environmental Engineering</title>
+    <!-- Tailwind CSS CDN for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font: Inter (Clean and modern) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* BASE THEME COLORS (Set to Dark Mode by default) */
+        :root {
+            /* DARK MODE DEFAULTS (Deep Black Aesthetic from Reference) */
+            --bg: #121212; /* Deeper background color */
+            --card: #1E1E1E; /* Darker card/sidebar background */
+            --text: #F0F0F0;
+            --accent: #00B64C; /* Green accent for visibility on dark theme */
+            --border: #3A3A3A; /* Thicker, defined border/divider */
+            --shadow: rgba(0, 0, 0, 0.7);
         }
-      });
+        
+        /* LIGHT MODE OVERRIDES (Applied when <html> has the 'light' class) */
+        html.light {
+            --bg: #f7f7f7;
+            --card: #ffffff;
+            --text: #121212;
+            --accent: #0077B6; /* Blue accent for visibility on light theme */
+            --border: #ddd;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Applying the CSS variables globally for transition */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            transition: background-color 0.4s, color 0.4s;
+        }
+
+        .card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 10px var(--shadow);
+            transition: background-color 0.4s, border-color 0.4s, box-shadow 0.4s;
+        }
+        
+        .accent-text {
+            color: var(--accent);
+        }
+
+        /* Ensure Sidebar is visually distinct in light mode */
+        html.light aside {
+             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Hide scrollbar on mobile but allow scrolling */
+        body::-webkit-scrollbar {
+            width: 8px;
+        }
+        body::-webkit-scrollbar-thumb {
+            background-color: var(--accent);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <!-- Main Container Layout: Sidebar and Content -->
+    <div class="flex flex-col lg:flex-row">
+
+        <!-- Sidebar / Header (Fixed Position on Desktop) -->
+        <aside class="w-full lg:w-80 p-6 lg:h-screen lg:sticky lg:top-0 shadow-lg z-10" style="background-color: var(--card);">
+            <div class="flex flex-col h-full">
+                
+                <!-- Profile Section -->
+                <div class="mb-8 pb-4" style="border-color: var(--border);">
+                    <!-- Placeholder for image/avatar similar to reference -->
+                    <div class="w-24 h-24 bg-gray-600 rounded-full mb-4 mx-auto lg:mx-0">
+                         <!-- Placeholder for your profile picture -->
+                    </div>
+                    
+                    <h1 class="text-3xl font-extrabold accent-text tracking-wider text-center lg:text-left">BrainFart</h1>
+                    <p class="text-sm mt-1 text-center lg:text-left" style="color: var(--text);">Qwertyyjn: Environmental Engineer</p>
+                    <p class="text-xs mt-2 opacity-75 text-center lg:text-left" style="color: var(--text);">Focus: Unconventional Energy & Climate Modeling</p>
+                </div>
+
+                <!-- Navigation (Only includes main page sections) -->
+                <nav class="space-y-4 flex-grow mb-10 border-b pb-6" style="border-color: var(--border);">
+                    <a href="#simulations" class="block font-semibold nav-link transition duration-200 hover:text-opacity-100" style="color: var(--text);">📊 Live Data Feeds</a>
+                    <a href="#data" class="block font-semibold nav-link transition duration-200 hover:text-opacity-100" style="color: var(--text);">⚡️ Interactive Projects</a>
+                    <a href="#about" class="block font-semibold nav-link transition duration-200 hover:text-opacity-100" style="color: var(--text);">📚 Featured Concepts</a>
+                </nav>
+                
+                <!-- --- Contact & Hobby Links (The "Link" Section) --- -->
+                <div class="mb-10 space-y-3">
+                    <h3 class="text-lg font-bold accent-text">Connect & Explore</h3>
+                    <a href="[Your LinkedIn URL]" target="_blank" class="block font-semibold nav-link text-sm transition duration-200 hover:text-opacity-100" style="color: var(--text);">🔗 LinkedIn (Professional)</a>
+                    <a href="[Your Linktree URL]" target="_blank" class="block font-semibold nav-link text-sm transition duration-200 hover:text-opacity-100" style="color: var(--text);">🎶 Hobbies (DJ, Muay Thai)</a>
+                    <a href="mailto:your.email@example.com" class="block font-semibold nav-link text-sm transition duration-200 hover:text-opacity-100" style="color: var(--text);">📧 Contact Me</a>
+                    <a href="[Your Resume Link]" target="_blank" class="block font-semibold nav-link text-sm transition duration-200 hover:text-opacity-100" style="color: var(--text);">📄 Download Resume</a>
+                </div>
+                
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" class="mt-auto w-full px-4 py-3 font-bold text-lg rounded-xl transition-colors duration-300" style="background-color: var(--accent); color: var(--card);">
+                    ☀️ Toggle Theme
+                </button>
+
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow p-6 lg:p-12">
+            <header class="mb-12">
+                <h2 class="text-4xl lg:text-5xl font-extrabold mb-3" style="color: var(--text);">Interactive Projects.</h2>
+                <p class="text-xl font-light opacity-80" style="color: var(--text);">Interactive models and deep dives into unconventional energy and environmental systems.</p>
+            </header>
+            
+            <!-- --- SIMULATIONS SECTION (NOW INTERACTIVE PROJECTS) --- -->
+            <section id="simulations" class="mb-16">
+                <h3 class="text-3xl font-extrabold mb-8 accent-text">🔬 Featured Simulations</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    
+                    <!-- Simulation Card 1: Salinity Gradient Energy (RED) -->
+                    <div class="card p-6 rounded-xl hover:scale-[1.02] transition duration-300">
+                        <h4 class="text-2xl font-semibold mb-3 accent-text">1. Salinity Gradient Model ($\text{RED}$)</h4>
+                        <p class="mb-4 opacity-90 text-sm" style="color: var(--text);">**The Chemical Waterfall:** Explore how the cost and efficiency of **Reverse Electrodialysis ($\text{RED}$)** membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
+                        
+                        <!-- Insight Maker Embed Box -->
+                        <div class="h-64 w-full overflow-hidden flex items-center justify-center rounded-lg border-2 border-dashed" style="border-color: var(--border);">
+                            <p class="text-center italic opacity-70" style="color: var(--text);">Paste Insight Maker Embed Code Here</p>
+                        </div>
+                        <a href="#" class="mt-4 inline-block px-5 py-2 font-semibold rounded-lg text-sm transition duration-300" style="background-color: var(--accent); color: var(--card);">View Analysis & Code</a>
+                    </div>
+                    
+                    <!-- Simulation Card 2: Gravity Potential Energy (GPE) -->
+                    <div class="card p-6 rounded-xl hover:scale-[1.02] transition duration-300">
+                        <h4 class="text-2xl font-semibold mb-3 accent-text">2. Gravity Storage Calculator ($\text{GPE}$)</h4>
+                        <p class="mb-4 opacity-90 text-sm" style="color: var(--text);">**Storing Energy with Bricks:** A calculator demonstrating the massive **mass ($M$)** and **height ($H$)** required to store large-scale renewable energy using the physics of potential energy.</p>
+                        
+                        <!-- Looker Studio / Custom JS Embed Box -->
+                        <div class="h-64 w-full overflow-hidden flex items-center justify-center rounded-lg border-2 border-dashed" style="border-color: var(--border);">
+                            <p class="text-center italic opacity-70" style="color: var(--text);">Paste Looker Studio or Custom Embed Here</p>
+                        </div>
+                        <a href="#" class="mt-4 inline-block px-5 py-2 font-semibold rounded-lg text-sm transition duration-300" style="background-color: var(--accent); color: var(--card);">View Calculator & Code</a>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- --- LIVE DATA SECTION --- -->
+            <section id="data" class="mb-16">
+                <h3 class="text-3xl font-extrabold mb-8 accent-text">📊 The Global Carbon Pulse</h3>
+                <p class="mb-6 opacity-90" style="color: var(--text);">Tracking real-time indicators that define the challenge of climate mitigation and adaptation, powered by embedded public data feeds.</p>
+                
+                <!-- Placeholder for Live Data Dashboard -->
+                <div class="card p-6 rounded-xl h-96 w-full flex items-center justify-center">
+                     <p class="text-center italic opacity-70" style="color: var(--text);">Paste Interactive Looker Studio Data Dashboard Here</p>
+                </div>
+            </section>
+
+            <!-- --- ABOUT ME SECTION (Now Featured Concepts) --- -->
+            <section id="about" class="mb-12">
+                <h3 class="text-3xl font-extrabold mb-8 accent-text">📚 Featured Concepts</h3>
+                <p class="text-lg mb-4 opacity-90" style="color: var(--text);">My long-form analysis, academic summaries, and articles exploring the theoretical underpinnings of sustainability (linked to Medium or internal pages).</p>
+                <!-- Placeholder for link cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div class="card p-4 rounded-lg">
+                        <a href="[Link to Medium Article 1]" class="font-semibold underline hover:no-underline accent-text">Article: The Efficiency Ceiling of GPE Storage</a>
+                        <p class="text-xs opacity-70 mt-1">Summary of key findings and technical barriers.</p>
+                     </div>
+                     <div class="card p-4 rounded-lg">
+                        <a href="[Link to Medium Article 2]" class="font-semibold underline hover:no-underline accent-text">Article: Urban Air Pollution and Policy Delay</a>
+                        <p class="text-xs opacity-70 mt-1">Analysis of $\text{PM}_{2.5}$ trends in Southeast Asian cities.</p>
+                     </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- JavaScript for Theme Toggle (MUST be before closing </body> tag) -->
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const root = document.documentElement; // Target the <html> element
+
+        // Function to set the theme and update localStorage/button
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                root.classList.remove('light');
+                root.classList.add('dark');
+                themeToggle.textContent = '💡 Toggle Theme';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                root.classList.remove('dark');
+                root.classList.add('light');
+                themeToggle.textContent = '☀️ Toggle Theme';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // 1. Initial Load: Check saved preference or system default
+        const initialTheme = localStorage.getItem('theme') || 
+                             (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        setTheme(initialTheme);
+
+        // 2. Click Handler: Switch the theme
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = root.classList.contains('dark') ? 'dark' : 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        });
+
+        // Optional: Listen for system theme changes (if not overridden by user click)
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (!localStorage.getItem('theme')) {
+                setTheme(event.matches ? 'dark' : 'light');
+            }
+        });
     </script>
-  </body>
+</body>
 </html>

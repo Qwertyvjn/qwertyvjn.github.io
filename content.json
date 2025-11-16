@@ -1,0 +1,53 @@
+{
+  "hero": {
+    "title": "Interactive Projects.",
+    "description": "Hi, I'm <strong>Glenn Alvin</strong>, an Indonesian Environmental Engineering student and enthusiastic knowledge-sharer. This site is my personal challenge to simplify complex environmental concepts—like <strong>air pollution</strong> and <strong>unconventional energy</strong>—through interactive models, proving you don't have to be a master coder to share valuable knowledge. Hope it's useful!"
+  },
+  "simulations": [
+    {
+      "id": "red",
+      "title": "Salinity Gradient Model (RED)",
+      "emoji": "🧪",
+      "tagline": "The Chemical Waterfall",
+      "description": "Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.",
+      "embedPlaceholder": "Paste Insight Maker Embed Code Here",
+      "linkText": "view analysis & code"
+    },
+    {
+      "id": "gpe",
+      "title": "Gravity Storage Calculator (GPE)",
+      "emoji": "🏗️",
+      "tagline": "Storing Energy with Bricks",
+      "description": "A calculator demonstrating the massive <strong>mass (M)</strong> and <strong>height (H)</strong> required to store large-scale renewable energy using the physics of potential energy.",
+      "embedPlaceholder": "Paste Looker Studio or Custom Embed Here",
+      "linkText": "view calculator & code"
+    }
+  ],
+  "data": {
+    "title": "The Global Carbon Pulse",
+    "description": "Tracking real-time indicators that define the challenge of climate mitigation and adaptation, powered by embedded public data feeds.",
+    "embedPlaceholder": "Paste Interactive Looker Studio Data Dashboard Here"
+  },
+  "concepts": [
+    {
+      "title": "The Efficiency Ceiling of GPE Storage",
+      "description": "Summary of key findings and technical barriers.",
+      "linkText": "Read full analysis"
+    },
+    {
+      "title": "Urban Air Pollution and Policy Delay",
+      "description": "Analysis of PM<sub>2.5</sub> trends in Southeast Asian cities.",
+      "linkText": "Read full analysis"
+    }
+  ],
+  "pulse": {
+    "title": "🌍 Today’s Pulse — For You",
+    "fallback": {
+      "city": "Global",
+      "aqi": "65",
+      "category": "Moderate",
+      "co2": "428",
+      "temp": "18"
+    }
+  }
+}

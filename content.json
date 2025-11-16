@@ -51,3 +51,44 @@
     }
   }
 }
+
+{
+  "hero": { ... },
+  "simulations": [ ... ],
+  "data": { ... },
+  "concepts": [ ... ],
+  "pulse": {
+    "title": "🌍 Today’s Pulse — For You",
+    "fallback": {
+      "city": "Global",
+      "aqi": "65",
+      "category": "Moderate",
+      "co2": "428",
+      "temp": "18"
+    }
+  },
+  "carbon": {
+    "title": "📉 Your Carbon Footprint — On This Site",
+    "equivalents": [
+      "0.001 g of rice",
+      "0.01 g of coffee",
+      "0.1 g of bread",
+      "1 g of chocolate",
+      "10 g of beef"
+    ]
+  },
+  "thesis": {
+    "title": "🎓 Thesis Snippet — Auto-Rotating",
+    "snippets": [
+      "Policy lag explains 62% of PM₂.₅ exceedance in Jakarta (2020–2024). — Undergraduate Thesis, Universitas Indonesia",
+      "Reverse Electrodialysis efficiency drops 30% when membrane cost exceeds $20/m². — Simulation Analysis",
+      "Gravitational storage requires 10x more mass than lithium batteries for same energy density. — Concept Note"
+    ]
+  },
+  "learn": {
+    "title": "📬 Learn With Me",
+    "description": "Get monthly breakdowns of energy + environment models — no spam, just insight.",
+    "placeholder": "your@email.com",
+    "buttonText": "Subscribe"
+  }
+}

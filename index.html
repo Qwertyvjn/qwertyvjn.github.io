@@ -42,48 +42,111 @@
       </button>
     </aside>
 
-    <!-- Main Content (rendered by JS) -->
+    <!-- Main Content -->
     <main class="main">
-  <div class="content-columns">
+      <div class="content-columns">
+        <!-- Left Column -->
+        <div class="left-column">
+          <header>
+            <h1>Interactive Projects.</h1>
+            <p>
+              Hi, I'm <strong>Glenn Alvin</strong>, an Indonesian Environmental Engineering student
+              and enthusiastic knowledge-sharer. This site is my personal challenge to simplify complex
+              environmental concepts—like <strong>air pollution</strong> and <strong>unconventional energy</strong>—
+              through interactive models.
+            </p>
+          </header>
 
-    <!-- LEFT COLUMN: Projects & Data -->
-    <div class="left-column">
-      <header id="hero"></header>
-      <section id="simulations"></section>
-      <section id="data"></section>
-      <section id="concepts"></section>
-    </div>
+          <section id="simulations">
+            <h2>🔬 Featured Simulations</h2>
+            <div class="grid">
+              <div class="card">
+                <h3>🧪 Salinity Gradient Model (RED)</h3>
+                <p><strong>The Chemical Waterfall:</strong> Explore how cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect energy viability.</p>
+                <div class="embed-placeholder">Paste Insight Maker Embed Code Here</div>
+                <a href="#" class="card-link">view analysis & code</a>
+              </div>
+              <div class="card">
+                <h3>🏗️ Gravity Storage Calculator (GPE)</h3>
+                <p><strong>Storing Energy with Bricks:</strong> A calculator for <strong>mass (M)</strong> and <strong>height (H)</strong> needed for gravitational storage.</p>
+                <div class="embed-placeholder">Paste Looker Studio or Custom Embed Here</div>
+                <a href="#" class="card-link">view calculator & code</a>
+              </div>
+            </div>
+          </section>
 
-    <!-- RIGHT COLUMN: Widgets -->
-    <div class="right-column">
-      <section id="pulse"></section>
-      <section id="carbon"></section>
-      <section id="thesis"></section>
-      <section id="learn"></section>
-    </div>
+          <section id="data">
+            <h2>📊 The Global Carbon Pulse</h2>
+            <p>Tracking real-time indicators for climate mitigation, powered by public data feeds.</p>
+            <div class="card full">
+              <div class="embed-placeholder large">Paste Interactive Looker Studio Dashboard Here</div>
+            </div>
+          </section>
 
-  </div>
-</main>
-  <div class="content-columns">
+          <section id="concepts">
+            <h2>📚 Featured Concepts</h2>
+            <p>Long-form analysis and articles on sustainability theory.</p>
+            <div class="grid">
+              <div class="card concept">
+                <a href="#" class="card-title">The Efficiency Ceiling of GPE Storage</a>
+                <p class="card-desc">Summary of key findings and technical barriers.</p>
+              </div>
+              <div class="card concept">
+                <a href="#" class="card-title">Urban Air Pollution and Policy Delay</a>
+                <p class="card-desc">Analysis of PM<sub>2.5</sub> trends in Southeast Asian cities.</p>
+              </div>
+            </div>
+          </section>
+        </div>
 
-    <!-- LEFT COLUMN: Projects & Data -->
-    <div class="left-column">
-      <header id="hero"></header>
-      <section id="simulations"></section>
-      <section id="data"></section>
-      <section id="concepts"></section>
-    </div>
+        <!-- Right Column -->
+        <div class="right-column">
+          <section id="pulse">
+            <h2>🌍 Today’s Pulse — For You</h2>
+            <div class="card">
+              <div id="location-data" class="loading">📍 Detecting your location...</div>
+              <div id="aqi-display" class="hidden">
+                <div class="city-header">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.27-.13-.53-.23-.75C5.3 10.4 4 9.1 4 7.5 4 5.9 5.3 4.6 7 4.6c1.7 0 3 1.3 3 2.9 0 1.6-1.3 2.9-3 2.9 0 0-1 0-1-1h2c0 0 0 0 0 0"/>
+                  </svg>
+                  <span id="city-name">—</span>
+                </div>
+                <p><strong>Air Quality:</strong> <span id="aqi-value">—</span> (<span id="aqi-category">—</span>)</p>
+                <p><strong>CO₂:</strong> <span id="co2-value">—</span> ppm</p>
+                <p><strong>Temp:</strong> <span id="temp-value">—</span>°C</p>
+              </div>
+            </div>
+          </section>
 
-    <!-- RIGHT COLUMN: Widgets -->
-    <div class="right-column">
-      <section id="pulse"></section>
-      <section id="carbon"></section>
-      <section id="thesis"></section>
-      <section id="learn"></section>
-    </div>
+          <section id="carbon">
+            <h2>📉 Your Carbon Footprint — On This Site</h2>
+            <div class="card">
+              <p>You’ve been here for <span id="time-spent">0</span> seconds.</p>
+              <p>Your estimated footprint: <strong><span id="carbon-value">0.0</span> g CO₂</strong></p>
+              <p>That’s like <span id="equivalent">0.001 g of rice</span></p>
+            </div>
+          </section>
 
-  </div>
-</main>
+          <section id="thesis">
+            <h2>🎓 Thesis Snippet — Auto-Rotating</h2>
+            <div class="card">
+              <div id="thesis-content">Policy lag explains 62% of PM₂.₅ exceedance in Jakarta (2020–2024).</div>
+            </div>
+          </section>
+
+          <section id="learn">
+            <h2>📬 Learn With Me</h2>
+            <div class="card">
+              <p>Get monthly breakdowns of energy + environment models — no spam, just insight.</p>
+              <form id="newsletter-form">
+                <input type="email" placeholder="your@email.com" class="input" required>
+                <button type="submit" class="btn">Subscribe</button>
+              </form>
+            </div>
+          </section>
+        </div>
+      </div>
     </main>
   </div>
 

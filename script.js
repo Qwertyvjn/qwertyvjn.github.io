@@ -72,8 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
           // 🔹 1. Get Air Quality from IQAir (FREE)
           // ⚠️ Replace 'YOUR_FREE_IQAIR_KEY' with your key from https://www.iqair.com/air-pollution-data-api
           const aqiRes = await fetch(
-            `https://api.airvisual.com/v2/nearest_city?lat=${latitude}&lon=${longitude}&key=	
-f74e14f9-86c9-4246-8065-ec2018624690`
+            `https://api.airvisual.com/v2/nearest_city?lat=${latitude}&lon=${longitude}&key=f74e14f9-86c9-4246-8065-ec2018624690`
           );
           const aqiData = await aqiRes.json();
 

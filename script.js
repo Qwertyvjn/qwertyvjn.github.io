@@ -70,17 +70,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
           // 🔹 1. Get Air Quality from IQAir (FREE)
-          // ⚠️ Replace 'YOUR_FREE_IQAIR_KEY' with your key from https://www.iqair.com/air-pollution-data-api
           const aqiRes = await fetch(
             `https://api.airvisual.com/v2/nearest_city?lat=${latitude}&lon=${longitude}&key=f74e14f9-86c9-4246-8065-ec2018624690`
           );
           const aqiData = await aqiRes.json();
 
-          let aqi = '--', category = '--', pm25 = '--';
+          let aqi = '--', category = '--', pm25 = '--', cityName = 'Unknown';
           if (aqiData.status === 'success') {
             aqi = aqiData.data.current.pollution.aqius;
             pm25 = aqiData.data.current.pollution.mainus;
             category = getAQICategory(aqi);
+            cityName = aqiData.data.city; // Get city name from response
           }
 
           // 🔹 2. Get Temp & CO₂ from Open-Meteo (100% FREE, no key!)
@@ -100,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('aqi-category').textContent = category;
           document.getElementById('co2-value').textContent = co2;
           document.getElementById('temp-value').textContent = temp;
+          document.getElementById('city-name').textContent = cityName;
           document.getElementById('aqi-display').classList.remove('hidden');
           document.getElementById('location-data').remove();
 
@@ -116,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('aqi-category').textContent = "Moderate";
         document.getElementById('co2-value').textContent = "428";
         document.getElementById('temp-value').textContent = "--";
+        document.getElementById('city-name').textContent = "Global";
         document.getElementById('aqi-display').classList.remove('hidden');
         document.getElementById('location-data').remove();
       }

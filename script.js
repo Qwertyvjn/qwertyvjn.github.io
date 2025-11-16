@@ -25,7 +25,7 @@ function getLocation() {
 }
 
 async function fetchIQAirData(lat, lon) {
-  const API_KEY = 'YOUR_IQAIR_API_KEY'; // 🔑 ← REPLACE THIS WITH YOUR ACTUAL KEY
+  const API_KEY = 'f74e14f9-86c9-4246-8065-ec2018624690'; // 🔑 ← REPLACE THIS WITH YOUR ACTUAL KEY
 
   const url = `https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lon}&key=${API_KEY}`;
 

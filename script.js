@@ -25,7 +25,7 @@ function getLocation() {
 
 // Fetch Air Quality Index (AQI) from OpenWeatherMap
 async function fetchAirQuality(lat, lon) {
-  const apiKey = 'YOUR_OPENWEATHER_API_KEY'; // ← GET ONE FREE AT https://openweathermap.org/api
+  const apiKey = 'f74e14f9-86c9-4246-8065-ec2018624690'; // ← GET ONE FREE AT https://openweathermap.org/api
   const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
 
   try {

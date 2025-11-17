@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timeSpentEl.textContent = secondsSpent;
             
             // Your CO2 calculation: (secondsSpent * 0.0003 g/s)
-            const co2Grams = (secondsSpent * 0.0003).toFixed(1);
+            const co2Grams = (secondsSpent * 1000).toFixed(1);
             carbonValueEl.textContent = co2Grams;
             
             // Assuming your rice factor is ~3333 to match the initial display

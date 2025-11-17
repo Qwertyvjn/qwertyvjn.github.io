@@ -17,7 +17,7 @@ html.light {
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body, .layout {
-  overflow-x: hidden; /* 🔧 Prevent horizontal scroll */
+  overflow-x: hidden;
 }
 body {
   font-family: 'Fira Code', monospace;
@@ -107,7 +107,7 @@ html.dark .toggle-track { background: var(--accent); }
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   padding: 1.25rem;
-  margin-bottom: 1.5rem; /* 🔧 Space between cards */
+  margin-bottom: 1.5rem;
   transition: all 0.3s ease;
 }
 .card:hover {
@@ -116,14 +116,14 @@ html.dark .toggle-track { background: var(--accent); }
   border-color: transparent;
 }
 section {
-  margin-bottom: 2rem; /* 🔧 Space between sections */
+  margin-bottom: 2rem;
 }
 h2 {
-  margin-top: 2rem; /* 🔧 Top spacing */
+  margin-top: 2rem;
   margin-bottom: 1rem;
 }
 p {
-  margin-bottom: 1rem; /* 🔧 Less dense text */
+  margin-bottom: 1rem;
 }
 .embed-placeholder {
   background: rgba(255,255,255,0.03);
@@ -132,7 +132,7 @@ p {
   text-align: center;
   font-size: 0.875rem;
   color: var(--dim);
-  margin: 1rem 0; /* 🔧 Consistent embed spacing */
+  margin: 1rem 0;
 }
 .embed-placeholder.large {
   height: 200px;
@@ -179,6 +179,29 @@ p {
   font-weight: 500;
   margin-top: 0.5rem;
   cursor: pointer;
+}
+
+/* ===== GRID FOR SIMULATIONS & CONCEPTS ===== */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ===== CONCEPT TITLE COLOR FIX ===== */
+.card.concept .card-title {
+  color: var(--text);
+  font-weight: 500;
+  text-decoration: none;
+}
+.card.concept .card-title:hover {
+  color: var(--accent);
+  text-decoration: underline;
 }
 
 /* Scrollbar */

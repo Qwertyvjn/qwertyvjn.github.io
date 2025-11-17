@@ -1,58 +1,62 @@
-/* --- FIX: Consolidated Theme Variables --- */
-/* Set the default theme (Dark) - this applies when no 'light' class is present */
 :root {
-  --bg: #121212;
-  --card: #1e1e1e;
-  --text: #e0e0e0;
-  --accent: #00b64c; /* Original green accent */
-  --dim: #777;
-  --border: #333;
+  --bg: #121212;
+  --card: #1e1e1e;
+  --text: #e0e0e0;
+  --accent: #00b64c; /* Original green accent */
+  --dim: #777;
+  --border: #333;
 }
-/* Light theme overrides - applies when html.light class is present */
+html.dark {
+  --bg: #121212;
+  --card: #1e1e1e;
+  --text: #e0e0e0;
+  --accent: #00b64c;
+  --dim: #777;
+  --border: #333;
+}
 html.light {
-  --bg: #f8f8f8;
-  --card: #ffffff;
-  --text: #222;
-  --accent: #0077b6; /* New blue accent for light mode */
-  --dim: #888;
-  --border: #ddd;
+  --bg: #f8f8f8;
+  --card: #ffffff;
+  --text: #222;
+  --accent: #0077b6;
+  --dim: #888;
+  --border: #ddd;
 }
-/* No need for html.dark, as it falls back to :root */
 
 body {
-  background: var(--bg);
-  color: var(--text);
-  transition: background 0.3s, color 0.3s;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body, .layout {
-  overflow-x: hidden;
+  overflow-x: hidden;
 }
 body {
-  font-family: 'Fira Code', monospace;
-  background: var(--bg);
-  color: var(--text);
-  transition: background 0.3s, color 0.3s;
-  line-height: 1.6;
+  font-family: 'Fira Code', monospace;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
+  line-height: 1.6;
 }
 
 .layout { display: flex; min-height: 100vh; }
 .sidebar {
-  width: 280px;
-  padding: 2rem 1.5rem;
-  background: var(--card);
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  border-right: 1px solid var(--border);
-  overflow-y: auto;
+  width: 280px;
+  padding: 2rem 1.5rem;
+  background: var(--card);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
 }
 .profile { text-align: center; margin-bottom: 2rem; }
 .avatar { width: 64px; height: 64px; background: #555; border-radius: 50%; margin: 0 auto 1rem; }
 .cut-text {
-  font-size: 2.2rem; font-weight: 500; color: var(--accent);
-  overflow: hidden; white-space: nowrap; letter-spacing: -0.03em; line-height: 1;
+  font-size: 2.2rem; font-weight: 500; color: var(--accent);
+  overflow: hidden; white-space: nowrap; letter-spacing: -0.03em; line-height: 1;
 }
 .name { font-weight: 500; font-size: 1rem; }
 .bio { font-size: 0.875rem; color: var(--dim); margin: 0.25rem 0; }
@@ -60,162 +64,158 @@ body {
 
 .nav { margin-bottom: 2rem; }
 .nav-link {
-  display: block; padding: 0.5rem 0; font-size: 0.9rem; color: var(--dim); text-decoration: none;
-  transition: color 0.2s;
+  display: block; padding: 0.5rem 0; font-size: 0.9rem; color: var(--dim); text-decoration: none;
+  transition: color 0.2s;
 }
 .nav-link:hover { color: var(--accent); }
 
 .links { margin-bottom: 2rem; }
 .section-title {
-  font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;
-  color: var(--dim); margin-bottom: 0.5rem;
+  font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--dim); margin-bottom: 0.5rem;
 }
 .link {
-  display: block; padding: 0.375rem 0; font-size: 0.9rem; color: var(--dim); text-decoration: none;
-  transition: color 0.2s;
+  display: block; padding: 0.375rem 0; font-size: 0.9rem; color: var(--dim); text-decoration: none;
+  transition: color 0.2s;
 }
 .link:hover { color: var(--accent); }
 .glow:hover {
-  text-shadow: 0 0 12px rgba(0, 182, 76, 0.7);
-  transform: translateY(-1px);
+  text-shadow: 0 0 12px rgba(0, 182, 76, 0.7);
+  transform: translateY(-1px);
 }
 
 .theme-toggle {
-  display: flex; align-items: center; gap: 0.75rem;
-  background: none; border: none; color: var(--text); cursor: pointer;
-  width: 100%; padding: 0.75rem; border-radius: 0.5rem;
-  transition: background 0.3s;
+  display: flex; align-items: center; gap: 0.75rem;
+  background: none; border: none; color: var(--text); cursor: pointer;
+  width: 100%; padding: 0.75rem; border-radius: 0.5rem;
+  transition: background 0.3s;
 }
 .theme-toggle:hover { background: rgba(255,255,255,0.05); }
 
-/* --- FIX: Toggle Thumb Position based on light/dark class --- */
 .toggle-track {
-  width: 40px; height: 20px; background: var(--dim); border-radius: 10px;
-  position: relative; overflow: hidden;
-  transition: background 0.4s;
+  width: 40px; height: 20px; background: var(--dim); border-radius: 10px;
+  position: relative; overflow: hidden;
 }
 .toggle-thumb {
-  width: 16px; height: 16px; background: white; border-radius: 50%;
-  position: absolute; top: 2px; left: 2px; /* Default (Light Mode) position */
-  transition: transform 0.4s cubic-bezier(0.68,-0.55,0.27,1.55);
+  width: 16px; height: 16px; background: white; border-radius: 50%;
+  position: absolute; top: 2px; left: 2px;
+  transition: transform 0.4s cubic-bezier(0.68,-0.55,0.27,1.55);
 }
-/* Apply transform when 'dark' class is present on HTML (your starting state) */
-html:not(.light) .toggle-thumb { transform: translateX(20px); }
-html:not(.light) .toggle-track { background: var(--accent); }
-/* The initial HTML has class="dark", so this selects correctly */
+html.dark .toggle-thumb { transform: translateX(20px); }
+html.dark .toggle-track { background: var(--accent); }
 
 .toggle-label { font-size: 0.875rem; font-weight: 500; }
 
 .main {
-  flex: 1; padding: 2rem 3rem; max-width: 1200px;
+  flex: 1; padding: 2rem 3rem; max-width: 1200px;
 }
 .content-columns {
-  display: flex; gap: 2rem;
+  display: flex; gap: 2rem;
 }
 .left-column { flex: 1; }
 .right-column { width: 300px; }
 
 /* ===== SPACING UPGRADES ===== */
 .card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
-  transition: all 0.3s ease;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
 }
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0,182,76,0.15);
-  border-color: transparent;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0,182,76,0.15);
+  border-color: transparent;
 }
 section {
-  margin-bottom: 2rem;
+  margin-bottom: 2rem;
 }
 h2 {
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 p {
-  margin-bottom: 1rem;
+  margin-bottom: 1rem;
 }
 .embed-placeholder {
-  background: rgba(255,255,255,0.03);
-  border-radius: 0.375rem;
-  padding: 1.5rem;
-  text-align: center;
-  font-size: 0.875rem;
-  color: var(--dim);
-  margin: 1rem 0;
+  background: rgba(255,255,255,0.03);
+  border-radius: 0.375rem;
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--dim);
+  margin: 1rem 0;
 }
 .embed-placeholder.large {
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .card-link {
-  display: inline-block;
-  color: var(--accent);
-  font-size: 0.875rem;
-  text-decoration: none;
-  margin-top: 0.75rem;
+  display: inline-block;
+  color: var(--accent);
+  font-size: 0.875rem;
+  text-decoration: none;
+  margin-top: 0.75rem;
 }
 .card-link:hover { text-decoration: underline; }
 
 .city-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
 .loading {
-  padding: 1rem;
-  background: rgba(255,255,255,0.03);
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
+  padding: 1rem;
+  background: rgba(255,255,255,0.03);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
 }
 .hidden { display: none !important; }
 
 .input {
-  width: 100%;
-  padding: 0.5rem;
-  margin-top: 0.5rem;
-  background: var(--card);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 0.375rem;
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
 }
 .btn {
-  display: block;
-  width: 100%;
-  padding: 0.5rem;
-  background: var(--accent);
-  color: var(--card);
-  border: none;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  margin-top: 0.5rem;
-  cursor: pointer;
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--accent);
+  color: var(--card);
+  border: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  cursor: pointer;
 }
 
 /* ===== GRID FOR SIMULATIONS & CONCEPTS ===== */
 .grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 @media (min-width: 768px) {
-  .grid {
-    grid-template-columns: 1fr 1fr;
-  }
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 /* ===== CONCEPT TITLE COLOR FIX ===== */
 .card.concept .card-title {
-  color: var(--text);
-  font-weight: 500;
-  text-decoration: none;
+  color: var(--text);
+  font-weight: 500;
+  text-decoration: none;
 }
 .card.concept .card-title:hover {
-  color: var(--accent);
-  text-decoration: underline;
+  color: var(--accent);
+  text-decoration: underline;
 }
 
 /* Scrollbar */
@@ -225,41 +225,41 @@ p {
 
 /* ===== MOBILE RESPONSIVENESS ===== */
 @media (max-width: 768px) {
-  .layout {
-    flex-direction: column;
-  }
+  .layout {
+    flex-direction: column;
+  }
 
-  .sidebar {
-    position: static;
-    width: 100% !important;
-    height: auto;
-    padding: 1.25rem;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    overflow-y: visible;
-  }
+  .sidebar {
+    position: static;
+    width: 100% !important;
+    height: auto;
+    padding: 1.25rem;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-y: visible;
+  }
 
-  .content-columns {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
+  .content-columns {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
 
-  .right-column {
-    width: 100%;
-  }
+  .right-column {
+    width: 100%;
+  }
 
-  .main {
-    padding: 1.25rem;
-  }
+  .main {
+    padding: 1.25rem;
+  }
 
-  .grid {
-    grid-template-columns: 1fr;
-  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
 
-  h1 { font-size: 1.75rem; }
-  h2 { font-size: 1.25rem; margin-top: 1.5rem; }
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.25rem; margin-top: 1.5rem; }
 
-  .card {
-    padding: 1rem;
-  }
+  .card {
+    padding: 1rem;
+  }
 }

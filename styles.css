@@ -6,6 +6,14 @@
   --dim: #777;
   --border: #333;
 }
+html.dark {
+  --bg: #121212;
+  --card: #1e1e1e;
+  --text: #e0e0e0;
+  --accent: #00b64c;
+  --dim: #777;
+  --border: #333;
+}
 html.light {
   --bg: #f8f8f8;
   --card: #ffffff;
@@ -13,6 +21,12 @@ html.light {
   --accent: #0077b6;
   --dim: #888;
   --border: #ddd;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }

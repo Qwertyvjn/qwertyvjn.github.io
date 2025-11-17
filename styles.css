@@ -1,10 +1,10 @@
 :root {
-  --bg: #28443F; /* Deep Teal */
-  --card: #1e2d2b; /* Slightly darker teal for cards */
-  --text: #F2FD7D; /* Lemon Yellow */
-  --accent: #F2FD7D; /* Lemon Yellow for links, buttons */
-  --dim: #a0b0a0; /* Lighter teal for muted text */
-  --border: #3a5a50; /* Border color */
+  --bg: #121212;
+  --card: #1e1e1e;
+  --text: #e0e0e0;
+  --accent: #00b64c; /* Original green accent */
+  --dim: #777;
+  --border: #333;
 }
 html.light {
   --bg: #f8f8f8;
@@ -39,7 +39,7 @@ body {
   overflow-y: auto;
 }
 .profile { text-align: center; margin-bottom: 2rem; }
-.avatar { width: 64px; height: 64px; background: #3a5a50; border-radius: 50%; margin: 0 auto 1rem; }
+.avatar { width: 64px; height: 64px; background: #555; border-radius: 50%; margin: 0 auto 1rem; }
 .cut-text {
   font-size: 2.2rem; font-weight: 500; color: var(--accent);
   overflow: hidden; white-space: nowrap; letter-spacing: -0.03em; line-height: 1;
@@ -66,7 +66,7 @@ body {
 }
 .link:hover { color: var(--accent); }
 .glow:hover {
-  text-shadow: 0 0 12px rgba(242, 253, 125, 0.7);
+  text-shadow: 0 0 12px rgba(0, 182, 76, 0.7);
   transform: translateY(-1px);
 }
 
@@ -76,7 +76,7 @@ body {
   width: 100%; padding: 0.75rem; border-radius: 0.5rem;
   transition: background 0.3s;
 }
-.theme-toggle:hover { background: rgba(242, 253, 125, 0.05); }
+.theme-toggle:hover { background: rgba(255,255,255,0.05); }
 
 .toggle-track {
   width: 40px; height: 20px; background: var(--dim); border-radius: 10px;
@@ -112,7 +112,7 @@ html.dark .toggle-track { background: var(--accent); }
 }
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(242, 253, 125, 0.15);
+  box-shadow: 0 10px 25px rgba(0,182,76,0.15);
   border-color: transparent;
 }
 section {
@@ -126,7 +126,7 @@ p {
   margin-bottom: 1rem;
 }
 .embed-placeholder {
-  background: rgba(242, 253, 125, 0.03);
+  background: rgba(255,255,255,0.03);
   border-radius: 0.375rem;
   padding: 1.5rem;
   text-align: center;
@@ -153,7 +153,7 @@ p {
 .city-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
 .loading {
   padding: 1rem;
-  background: rgba(242, 253, 125, 0.03);
+  background: rgba(255,255,255,0.03);
   border-radius: 0.375rem;
   font-size: 0.875rem;
 }

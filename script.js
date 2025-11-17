@@ -1,7 +1,6 @@
 // ===== TODAY'S PULSE — IQAir Integration (Safe & Robust) =====
 
 function getLocation() {
-  function getLocation() {
   const locationData = document.getElementById('location-data');
   if (!locationData) {
     console.error('❌ #location-data element not found');
@@ -26,26 +25,8 @@ function getLocation() {
   }
 }
 
-  locationData.textContent = '📍 Detecting your location...';
-  locationData.classList.remove('hidden');
-
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      success => fetchIQAirData(success.coords.latitude, success.coords.longitude),
-      error => {
-        console.warn('Geolocation denied:', error);
-        locationData.textContent = '❌ Location access denied. Using Jakarta.';
-        fetchIQAirData(-6.2088, 106.8456); // Jakarta fallback
-      }
-    );
-  } else {
-    locationData.textContent = '❌ Geolocation not supported. Using Jakarta.';
-    fetchIQAirData(-6.2088, 106.8456);
-  }
-}
-
 async function fetchIQAirData(lat, lon) {
-  const API_KEY = 'f74e14f9-86c9-4246-8065-ec2018624690'; // 🔑 REPLACE THIS WITH YOUR KEY
+  const API_KEY = 'f74e14f9-86c9-4246-8065-ec2018624690'; // ✅ QUOTED KEY
 
   const url = `https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lon}&key=${API_KEY}`;
 
@@ -121,7 +102,6 @@ if (timeSpentEl && carbonValueEl && equivalentEl) {
   }, 1000);
 }
 
-// ===== THEME TOGGLE — FIXED (Now works reliably) =====
 // ===== THEME TOGGLE — FIXED FOR REAL =====
 document.addEventListener('DOMContentLoaded', () => {
   const themeToggle = document.getElementById('theme-toggle');

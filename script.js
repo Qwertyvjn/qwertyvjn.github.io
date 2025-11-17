@@ -130,26 +130,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // 2. ✅ FIX: CARBON FOOTPRINT COUNTER (Logic moved inside DOMContentLoaded)
-    let secondsSpent = 0;
-    const timeSpentEl = document.getElementById('time-spent');
-    const carbonValueEl = document.getElementById('carbon-value');
-    const equivalentEl = document.getElementById('equivalent');
+    // ===== CARBON FOOTPRINT COUNTER =====
+let secondsSpent = 0;
+const timeSpentEl = document.getElementById('time-spent');
+const carbonValueEl = document.getElementById('carbon-value');
+const equivalentEl = document.getElementById('equivalent');
 
-    if (timeSpentEl && carbonValueEl && equivalentEl) {
-        setInterval(() => {
-            secondsSpent++;
-            timeSpentEl.textContent = secondsSpent;
-            
-            // Your CO2 calculation: (secondsSpent * 0.0003 g/s)
-            const co2Grams = (secondsSpent * 1000).toFixed(1);
-            carbonValueEl.textContent = co2Grams;
-            
-            // Assuming your rice factor is ~3333 to match the initial display
-            const riceEquivalent = (parseFloat(co2Grams) * 3333.33).toFixed(3); 
-            equivalentEl.textContent = `${riceEquivalent} g of rice`;
-        }, 1000);
-        console.log('✅ Carbon counter started');
-    }
+if (timeSpentEl && carbonValueEl && equivalentEl) {
+  setInterval(() => {
+    secondsSpent++;
+    timeSpentEl.textContent = secondsSpent;
+    
+    // Your CO2 calculation: (secondsSpent * 0.0003 g/s)
+    const co2Grams = (secondsSpent * 0.0003).toFixed(1);
+    carbonValueEl.textContent = co2Grams;
+    
+    // REALISTIC RICE EQUIVALENT: 1g CO₂ = 1000g rice
+    const riceEquivalent = (parseFloat(co2Grams) * 1000).toFixed(3);
+    equivalentEl.textContent = `${riceEquivalent} g of rice`;
+  }, 1000);
+  console.log('✅ Carbon counter started');
+}
 
     // Init pulse
     getLocation();

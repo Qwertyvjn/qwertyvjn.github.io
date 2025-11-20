@@ -22,10 +22,33 @@ function getLocation() {
             success => fetchIQAirData(success.coords.latitude, success.coords.longitude),
             // Error: handle denial or timeout
             error => {
-                console.warn('Geolocation denied or failed (Code ' + error.code + '):', error.message);
-                locationData.textContent = '❌ Location access denied/failed. Using Jakarta fallback.';
-                fetchIQAirData(-6.2088, 106.8456); // Jakarta fallback
-            },
+  console.warn('Geolocation denied or failed (Code ' + error.code + '):', error.message);
+  locationData.textContent = '🔒 Data Inaccessible';
+  locationData.classList.remove('hidden');
+  locationData.style.color = '#ff7e00'; // Orange for warning
+  
+  const aqiDisplay = document.getElementById('aqi-display');
+  if (aqiDisplay) aqiDisplay.classList.add('hidden');
+  
+  // Add explanation below the card
+  const pulseSection = document.getElementById('pulse');
+  if (pulseSection) {
+    let notice = document.getElementById('iqair-notice');
+    if (!notice) {
+      notice = document.createElement('div');
+      notice.id = 'iqair-notice';
+      notice.innerHTML = `
+        <p style="font-size: 0.8rem; color: #a0a0a0; margin-top: 0.5rem;">
+          📍 Why? Your browser blocked location access. 
+          Enable location permissions to see local data.
+          <br><br>
+          💡 Data powered by <a href="https://www.iqair.com/air-pollution-data-api" target="_blank" style="color: #00b64c;">IQAir API</a>.
+        </p>
+      `;
+      pulseSection.appendChild(notice);
+    }
+  }
+},
             // Options: set timeout for better UX
             { timeout: 10000, enableHighAccuracy: false }
         );

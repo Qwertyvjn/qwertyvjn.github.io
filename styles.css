@@ -274,11 +274,11 @@ p {
   transform: translate(-50%, -50%);
   font-size: 1.2rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.15); /* Subtle white — barely visible */
+  color: rgba(255, 255, 255, 0.15); /* Subtle white */
   text-shadow: none;
   pointer-events: none;
   transition: color 0.3s, text-shadow 0.3s;
-  z-index: 5;
+  z-index: 10; /* ✅ In front of blur */
 }
 
 .card {
@@ -291,7 +291,7 @@ p {
   text-shadow: 0 0 8px #00ff7f, 0 0 16px #00ff7f;
 }
 
-/* Blur effect on hover (cross-browser fallback) */
+/* Blur effect on hover */
 .card:hover::before {
   content: '';
   position: absolute;
@@ -300,11 +300,6 @@ p {
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
-  z-index: 4;
+  z-index: 4; /* ✅ Behind text */
   border-radius: 0.5rem;
-}
-
-.card:hover .coming-soon-text {
-  color: #00ff7f; /* Glowing green */
-  text-shadow: 0 0 8px #00ff7f, 0 0 16px #00ff7f;
 }

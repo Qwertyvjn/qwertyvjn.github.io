@@ -264,8 +264,8 @@ p {
   }
 }
 
-/* ===== COMING SOON CENTERED + BLUR ===== */
-.coming-soon-overlay {
+/* ===== COMING SOON CENTERED + BLUR (CARD-ONLY) ===== */
+.card .coming-soon-overlay {
   position: absolute;
   top: 0;
   left: 0;

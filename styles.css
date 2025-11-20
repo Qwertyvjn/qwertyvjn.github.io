@@ -117,6 +117,8 @@ html.dark .toggle-track { background: var(--accent); }
 
 /* ===== SPACING UPGRADES ===== */
 .card {
+  position: relative;
+  overflow: hidden; /* ✅ Ensures blur stays inside rounded corners */
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 0.5rem;

@@ -266,9 +266,7 @@ p {
   }
 }
 
-/* ===== COMING SOON — ONLY FOR RED & GPE CARDS ===== */
-
-/* Centered subtle text */
+/* ===== COMING SOON — CENTERED + BLUR ON HOVER (ONLY RED & GPE) ===== */
 #simulation-red .coming-soon-text,
 #simulation-gpe .coming-soon-text {
   position: absolute;
@@ -277,14 +275,19 @@ p {
   transform: translate(-50%, -50%);
   font-size: 1.2rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.15); /* Barely visible white */
+  color: rgba(255, 255, 255, 0.15);
   text-shadow: none;
   pointer-events: none;
   transition: color 0.3s, text-shadow 0.3s;
   z-index: 10;
 }
 
-/* Blur overlay on hover — ONLY for RED & GPE */
+#simulation-red:hover .coming-soon-text,
+#simulation-gpe:hover .coming-soon-text {
+  color: #00ff7f;
+  text-shadow: 0 0 8px #00ff7f, 0 0 16px #00ff7f;
+}
+
 #simulation-red:hover::before,
 #simulation-gpe:hover::before {
   content: '';
@@ -298,21 +301,47 @@ p {
   border-radius: 0.5rem;
 }
 
-/* Glowing green text on hover */
-#simulation-red:hover .coming-soon-text,
-#simulation-gpe:hover .coming-soon-text {
-  color: #00ff7f;
-  text-shadow: 0 0 8px #00ff7f, 0 0 16px #00ff7f;
-}
-
-/* Ensure cards are position-relative */
 #simulation-red,
 #simulation-gpe {
   position: relative;
   overflow: hidden;
 }
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-  z-index: 4; /* ✅ Behind text */
-  border-radius: 0.5rem;
+
+/* ===== BUTTONS INSIDE CARDS ===== */
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.btn-material,
+.btn-simulation {
+  display: block;
+  padding: 0.5rem 1rem;
+  background: var(--card);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.btn-material:hover,
+.btn-simulation:hover {
+  background: var(--accent);
+  color: var(--card);
+  box-shadow: 0 0 8px rgba(0, 182, 76, 0.7);
+  transform: translateY(-1px);
+}
+
+.btn-simulation {
+  background: var(--card);
+  color: var(--accent);
+}
+
+.btn-simulation:hover {
+  background: var(--accent);
+  color: var(--card);
 }

@@ -266,9 +266,8 @@ p {
   }
 }
 
-/* ===== COMING SOON — CENTERED + BLUR ON HOVER (ONLY RED & GPE) ===== */
-#simulation-red .coming-soon-text,
-#simulation-gpe .coming-soon-text {
+/* ===== COMING SOON — CENTERED + BLUR ON HOVER (ONLY FOR CARDS WITH .coming-soon-text) ===== */
+.card .coming-soon-text {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -282,14 +281,12 @@ p {
   z-index: 10;
 }
 
-#simulation-red:hover .coming-soon-text,
-#simulation-gpe:hover .coming-soon-text {
+.card:hover .coming-soon-text {
   color: #00ff7f;
   text-shadow: 0 0 8px #00ff7f, 0 0 16px #00ff7f;
 }
 
-#simulation-red:hover::before,
-#simulation-gpe:hover::before {
+.card:hover::before {
   content: '';
   position: absolute;
   top: 0; left: 0;
@@ -301,8 +298,7 @@ p {
   border-radius: 0.5rem;
 }
 
-#simulation-red,
-#simulation-gpe {
+.card {
   position: relative;
   overflow: hidden;
 }
@@ -340,7 +336,11 @@ p {
 
 /* Glow Simulation Button when embed code is pasted */
 #embed-red:not(:empty) ~ .button-group .btn-simulation,
-#embed-gpe:not(:empty) ~ .button-group .btn-simulation {
+#embed-gpe:not(:empty) ~ .button-group .btn-simulation,
+#embed-pptx:not(:empty) ~ .button-group .btn-simulation,
+#embed-tool2:not(:empty) ~ .button-group .btn-simulation,
+#embed-tool3:not(:empty) ~ .button-group .btn-simulation,
+#embed-tool4:not(:empty) ~ .button-group .btn-simulation {
   background: var(--accent);
   color: var(--card);
   box-shadow: 0 0 12px rgba(0, 182, 76, 0.8);

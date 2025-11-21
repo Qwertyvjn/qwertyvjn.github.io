@@ -307,9 +307,10 @@ p {
   overflow: hidden;
 }
 
-/* ===== BUTTONS INSIDE CARDS — BOX STYLE ===== */
+/* ===== BUTTONS INSIDE CARDS — VERTICAL BOX STYLE ===== */
 .button-group {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
   margin-top: 1rem;
 }
@@ -337,12 +338,16 @@ p {
   transform: translateY(-1px);
 }
 
-.btn-simulation {
-  background: var(--card);
-  color: var(--accent);
-}
-
-.btn-simulation:hover {
+/* Glow Simulation Button when embed code is pasted */
+#embed-red:not(:empty) ~ .button-group .btn-simulation,
+#embed-gpe:not(:empty) ~ .button-group .btn-simulation {
   background: var(--accent);
   color: var(--card);
+  box-shadow: 0 0 12px rgba(0, 182, 76, 0.8);
+  animation: pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from { opacity: 0.8; }
+  to { opacity: 1; }
 }

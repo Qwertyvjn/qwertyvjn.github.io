@@ -266,8 +266,9 @@ p {
   }
 }
 
-/* ===== COMING SOON — CENTERED + BLUR ON HOVER (ONLY FOR CARDS WITH .coming-soon-text) ===== */
-.card .coming-soon-text {
+/* ===== COMING SOON — CENTERED + BLUR ON HOVER (ONLY IN #content AND #tools) ===== */
+#content .card .coming-soon-text,
+#tools .card .coming-soon-text {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -281,12 +282,14 @@ p {
   z-index: 10;
 }
 
-.card:hover .coming-soon-text {
+#content .card:hover .coming-soon-text,
+#tools .card:hover .coming-soon-text {
   color: #00ff7f;
   text-shadow: 0 0 8px #00ff7f, 0 0 16px #00ff7f;
 }
 
-.card:hover::before {
+#content .card:hover::before,
+#tools .card:hover::before {
   content: '';
   position: absolute;
   top: 0; left: 0;
@@ -298,21 +301,25 @@ p {
   border-radius: 0.5rem;
 }
 
-.card {
+#content .card,
+#tools .card {
   position: relative;
   overflow: hidden;
 }
 
 /* ===== BUTTONS INSIDE CARDS — VERTICAL BOX STYLE ===== */
-.button-group {
+#content .button-group,
+#tools .button-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   margin-top: 1rem;
 }
 
-.btn-material,
-.btn-simulation {
+#content .btn-material,
+#tools .btn-material,
+#content .btn-simulation,
+#tools .btn-simulation {
   display: block;
   padding: 0.5rem 1rem;
   background: var(--card);
@@ -326,8 +333,10 @@ p {
   min-width: 120px;
 }
 
-.btn-material:hover,
-.btn-simulation:hover {
+#content .btn-material:hover,
+#tools .btn-material:hover,
+#content .btn-simulation:hover,
+#tools .btn-simulation:hover {
   background: var(--accent);
   color: var(--card);
   box-shadow: 0 0 8px rgba(0, 182, 76, 0.7);

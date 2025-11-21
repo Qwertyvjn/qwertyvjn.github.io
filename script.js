@@ -186,3 +186,51 @@ if (timeSpentEl && carbonValueEl && equivalentEl) {
     // Init pulse
     getLocation();
 });
+
+// ===== MODAL SYSTEM — SAFE & NON-INTRUSIVE =====
+document.addEventListener('DOMContentLoaded', () => {
+  const modalOverlay = document.getElementById('modal-overlay');
+  const modalBody = document.getElementById('modal-body');
+  const modalClose = document.getElementById('modal-close');
+
+  // Open modal
+  window.openModal = async function(modalPath) {
+    try {
+      const response = await fetch(modalPath);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const html = await response.text();
+      modalBody.innerHTML = html;
+      modalOverlay.classList.remove('hidden');
+      document.body.style.overflow = 'hidden'; // Lock scroll
+    } catch (err) {
+      console.error('Modal load error:', err);
+      modalBody.innerHTML = `
+        <h2>⚠️ Content Unavailable</h2>
+        <p>Could not load: <code>${modalPath}</code></p>
+        <p>Check console for details.</p>
+      `;
+      modalOverlay.classList.remove('hidden');
+    }
+  };
+
+  // Close modal
+  function closeModal() {
+    if (modalOverlay.classList.contains('hidden')) return;
+    modalOverlay.classList.add('hidden');
+    document.body.style.overflow = '';
+    modalBody.innerHTML = '';
+  }
+
+  // Event listeners
+  if (modalClose) modalClose.addEventListener('click', closeModal);
+  if (modalOverlay) {
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+  }
+
+  // ESC to close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+});

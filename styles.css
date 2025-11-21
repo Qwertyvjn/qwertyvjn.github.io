@@ -337,6 +337,7 @@ p {
 /* Glow Simulation Button when embed code is pasted */
 #embed-red:not(:empty) ~ .button-group .btn-simulation,
 #embed-gpe:not(:empty) ~ .button-group .btn-simulation,
+#embed-ipcc:not(:empty) ~ .button-group .btn-simulation,
 #embed-pptx:not(:empty) ~ .button-group .btn-simulation,
 #embed-tool2:not(:empty) ~ .button-group .btn-simulation,
 #embed-tool3:not(:empty) ~ .button-group .btn-simulation,

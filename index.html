@@ -61,7 +61,18 @@
           <section id="content">
             <h2>📚 Content</h2>
             <div class="grid">
-              <!-- RED Card -->
+              <!-- IPCC Card (Left) -->
+              <div class="card" id="simulation-ipcc">
+                <h3>🌍 IPCC Carbon Counting</h3>
+                <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
+                <div class="embed-placeholder" id="embed-ipcc">Paste Embed Code Here</div>
+                <div class="button-group">
+                  <a href="#" class="btn-material" onclick="openModal('modals/ipcc-modal.html'); return false;">Methodology</a>
+                  <a href="#" class="btn-simulation">Simulation</a>
+                </div>
+              </div>
+
+              <!-- RED Card (Right) -->
               <div class="card" id="simulation-red">
                 <h3>🧪 Salinity Gradient Model (RED)</h3>
                 <p><strong>The Chemical Waterfall:</strong> Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
@@ -79,20 +90,8 @@
                 <p><strong>Storing Energy with Bricks:</strong> A calculator demonstrating the massive mass (<em>M</em>) and height (<em>H</em>) required to store large-scale renewable energy using the physics of potential energy.</p>
                 <div class="embed-placeholder" id="embed-gpe">Paste Looker Studio or Custom Embed Here</div>
                 <div class="button-group">
-                  <a href="#" class="btn-material" onclick="openModal('modals/ipcc-modal.html'); return false;">Reading Material</a>
+                  <a href="#" class="btn-material">Reading Material</a>
                   <a href="#" class="btn-simulation">Simulation</a>
-                </div>
-                <div class="coming-soon-text">COMING SOON</div>
-              </div>
-
-              <!-- IPCC Carbon Counting -->
-              <div class="card" id="simulation-ipcc">
-                <h3>🌍 IPCC Carbon Counting</h3>
-                <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
-                <div class="embed-placeholder" id="embed-ipcc">Paste Embed Code Here</div>
-                <div class="button-group">
-                  <a href="#" class="btn-material">Methodology</a>
-                  <a href="#" class="btn-simulation">Calculate Now</a>
                 </div>
                 <div class="coming-soon-text">COMING SOON</div>
               </div>
@@ -218,15 +217,16 @@
     </main>
   </div>
 
-  <script src="script.js"></script>
   <!-- MODAL CONTAINER (ADD ONCE) -->
-<div id="modal-overlay" class="modal-overlay hidden">
-  <div class="modal-content">
-    <button id="modal-close" class="modal-close">&times;</button>
-    <div id="modal-body">
-      <!-- Content loaded dynamically -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal-content">
+      <button id="modal-close" class="modal-close">&times;</button>
+      <div id="modal-body">
+        <!-- Modal content loaded here -->
+      </div>
     </div>
   </div>
-</div>
+
+  <script src="script.js"></script>
 </body>
 </html>

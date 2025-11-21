@@ -266,38 +266,51 @@ p {
   }
 }
 
-/* ===== COMING SOON — CENTERED + BLUR ON HOVER ===== */
-.coming-soon-text {
+/* ===== COMING SOON — ONLY FOR RED & GPE CARDS ===== */
+
+/* Centered subtle text */
+#simulation-red .coming-soon-text,
+#simulation-gpe .coming-soon-text {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 1.2rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.15); /* Subtle white */
+  color: rgba(255, 255, 255, 0.15); /* Barely visible white */
   text-shadow: none;
   pointer-events: none;
   transition: color 0.3s, text-shadow 0.3s;
-  z-index: 10; /* ✅ In front of blur */
+  z-index: 10;
 }
 
-.card {
-  position: relative;
-  overflow: hidden;
-}
-
-.card:hover .coming-soon-text {
-  color: #00ff7f;
-  text-shadow: 0 0 8px #00ff7f, 0 0 16px #00ff7f;
-}
-
-/* Blur effect on hover */
-.card:hover::before {
+/* Blur overlay on hover — ONLY for RED & GPE */
+#simulation-red:hover::before,
+#simulation-gpe:hover::before {
   content: '';
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
   background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 4;
+  border-radius: 0.5rem;
+}
+
+/* Glowing green text on hover */
+#simulation-red:hover .coming-soon-text,
+#simulation-gpe:hover .coming-soon-text {
+  color: #00ff7f;
+  text-shadow: 0 0 8px #00ff7f, 0 0 16px #00ff7f;
+}
+
+/* Ensure cards are position-relative */
+#simulation-red,
+#simulation-gpe {
+  position: relative;
+  overflow: hidden;
+}
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   z-index: 4; /* ✅ Behind text */

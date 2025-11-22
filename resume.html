@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glenn Alvin — Resume</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --text: #e0e0e0;
+      --accent: #00b64c;
+      --dim: #777;
+      --border: #333;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Fira Code', monospace;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ===== HORIZONTAL SCROLL CONTAINER ===== */
+    .scroll-container {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none; /* Firefox */
+    }
+    .scroll-container::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
+    .section {
+      flex: 0 0 100vw;
+      height: 100%;
+      scroll-snap-align: start;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 2rem;
+      overflow: hidden;
+    }
+
+    /* ===== PARALLAX LAYERS ===== */
+    .bg-layer {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-size: cover;
+      background-position: center;
+      opacity: 0.05;
+      z-index: 0;
+    }
+
+    .content {
+      position: relative;
+      z-index: 10;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 500;
+      margin: 2rem 0 1rem;
+      color: var(--accent);
+    }
+
+    p, li {
+      font-size: 1.125rem;
+      line-height: 1.7;
+      margin-bottom: 1rem;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 1.5rem;
+    }
+
+    ul li::before {
+      content: '▹ ';
+      color: var(--accent);
+    }
+
+    .highlight {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .back-link {
+      position: absolute;
+      top: 1.5rem;
+      left: 1.5rem;
+      color: var(--dim);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ===== ANIMATIONS ON SCROLL ===== */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .section.active .fade-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .section { padding: 1.5rem; }
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.5rem; }
+      p, li { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <a href="https://qwertyvjn.github.io/#" class="back-link">← Back to BrainFart</a>
+
+  <div class="scroll-container" id="scrollContainer">
+    <!-- Section 1: Hero -->
+    <section class="section active" id="hero">
+      <div class="bg-layer" style="background: radial-gradient(circle, var(--accent), transparent);"></div>
+      <div class="content fade-in">
+        <h1>Glenn Alvin</h1>
+        <p>Environmental Engineering Undergraduate · Indonesia</p>
+        <p>
+          Building <span class="highlight">interactive tools</span> to democratize complex sustainability concepts — 
+          from carbon accounting to unconventional energy.
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 2: Skills -->
+    <section class="section" id="skills">
+      <div class="bg-layer" style="background: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\"><rect width=\"100\" height=\"100\" fill=\"%2300b64c\" opacity=\"0.02\"/><circle cx=\"20\" cy=\"20\" r=\"5\" fill=\"%2300b64c\" opacity=\"0.1\"/><circle cx=\"80\" cy=\"70\" r=\"3\" fill=\"%2300b64c\" opacity=\"0.1\"/></svg>');"></div>
+      <div class="content fade-in">
+        <h2>🔧 Technical Toolkit</h2>
+        <ul>
+          <li>📊 <span class="highlight">Carbon Modeling</span>: IPCC Tier frameworks, Scope 1/2/3 accounting</li>
+          <li>⚡ <span class="highlight">Energy Systems</span>: RED, GPE, grid integration analysis</li>
+          <li>💻 <span class="highlight">Web Development</span>: HTML/CSS/JS, Chart.js, GitHub Pages</li>
+          <li>🧪 <span class="highlight">Data Tools</span>: Looker Studio, Insight Maker, Python (pandas)</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Section 3: Projects -->
+    <section class="section" id="projects">
+      <div class="bg-layer" style="background: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 100 100\"><rect width=\"100\" height=\"100\" fill=\"%231e1e1e\"/><path d=\"M10,50 Q30,30 50,50 T90,50\" stroke=\"%2300b64c\" stroke-width=\"0.5\" fill=\"none\" opacity=\"0.1\"/></svg>');"></div>
+      <div class="content fade-in">
+        <h2>🧩 Key Projects</h2>
+        <ul>
+          <li><span class="highlight">IPCC Carbon Accounting Decision Modeler</span><br>Interactive simulator to explore how Tier precision and Scope inclusion affect reported footprint.</li>
+          <li><span class="highlight">Gravity Storage Calculator (GPE)</span><br>Physics-based tool to size M/H for grid-scale energy storage.</li>
+          <li><span class="highlight">Salinity Gradient Model (RED)</span><br>Cost/efficiency trade-off analysis for osmotic power.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Section 4: Thesis & Vision -->
+    <section class="section" id="vision">
+      <div class="bg-layer" style="background: linear-gradient(135deg, var(--accent) 0%, transparent 100%); opacity: 0.03;"></div>
+      <div class="content fade-in">
+        <h2>🎓 Thesis & Vision</h2>
+        <p>
+          <span class="highlight">“Policy Lag and PM₂.₅ Exceedance in Jakarta (2020–2024)”</span><br>
+          Quantifying how implementation delays in air quality policy lead to persistent health impacts.
+        </p>
+        <p>
+          I believe sustainability literacy should be <span class="highlight">accessible</span>, <span class="highlight">visual</span>, and <span class="highlight">interactive</span> — 
+          not locked behind academic paywalls or complex jargon.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Auto-activate sections on scroll
+    const sections = document.querySelectorAll('.section');
+    const scrollContainer = document.getElementById('scrollContainer');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          sections.forEach(s => s.classList.remove('active'));
+          entry.target.classList.add('active');
+        }
+      });
+    }, { threshold: 0.7 });
+
+    sections.forEach(section => observer.observe(section));
+
+    // Smooth scroll to next section on click (optional)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') {
+        const currentIndex = Array.from(sections).findIndex(s => s.classList.contains('active'));
+        if (currentIndex < sections.length - 1) {
+          sections[currentIndex + 1].scrollIntoView({ behavior: 'smooth' });
+        }
+      } else if (e.key === 'ArrowLeft') {
+        const currentIndex = Array.from(sections).findIndex(s => s.classList.contains('active'));
+        if (currentIndex > 0) {
+          sections[currentIndex - 1].scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    });
+  </script>
+</body>
+</html>

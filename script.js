@@ -230,8 +230,62 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  
   // ESC to close
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
   });
+});
+
+// ===== SEARCH FUNCTIONALITY =====
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.getElementById('search-input');
+  
+  if (!searchInput) return;
+
+  // Debounce helper
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // Search function
+  const performSearch = debounce(() => {
+    const query = searchInput.value.trim().toLowerCase();
+    
+    // Target cards in #content and #tools
+    const sections = ['#content', '#tools'];
+    sections.forEach(sectionId => {
+      const section = document.querySelector(sectionId);
+      if (!section) return;
+      
+      const cards = section.querySelectorAll('.card');
+      cards.forEach(card => {
+        // Extract searchable text: h3, p, button text
+        const title = card.querySelector('h3')?.textContent || '';
+        const desc = card.querySelector('p')?.textContent || '';
+        const buttons = Array.from(card.querySelectorAll('a.btn-material, a.btn-simulation'))
+          .map(btn => btn.textContent)
+          .join(' ');
+        
+        const fullText = `${title} ${desc} ${buttons}`.toLowerCase();
+        
+        // Show/hide based on match
+        if (query === '' || fullText.includes(query)) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  }, 200);
+
+  searchInput.addEventListener('input', performSearch);
 });

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  
+
   <!-- Lottie Player -->
   <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
 
@@ -31,12 +31,58 @@
       color: var(--text);
     }
 
+    /* ===== HEADER (HOKAIDO STYLE) ===== */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      background: rgba(18, 18, 18, 0.7);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .logo img {
+      width: 24px;
+      height: 24px;
+      filter: drop-shadow(0 0 2px var(--accent));
+    }
+
+    .menu-toggle {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .menu-toggle:hover {
+      color: var(--accent);
+    }
+
     /* ===== VERTICAL SCROLL CONTAINER ===== */
     .scroll-container {
       width: 100%;
       min-height: 100vh;
       overflow-y: auto;
       scrollbar-width: none;
+      scroll-behavior: smooth;
+      padding-top: 4rem; /* Offset for fixed header */
     }
     .scroll-container::-webkit-scrollbar { display: none; }
 
@@ -128,18 +174,73 @@
       margin: 0 auto 2rem;
     }
 
+    /* ===== MENU (HAMBURGER) ===== */
+    .menu {
+      position: fixed;
+      top: 4rem;
+      right: 0;
+      width: 250px;
+      background: var(--card);
+      border-left: 1px solid var(--border);
+      padding: 1rem;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      z-index: 99;
+    }
+    .menu.active {
+      transform: translateX(0);
+    }
+    .menu-item {
+      display: block;
+      padding: 0.75rem 1rem;
+      color: var(--text);
+      text-decoration: none;
+      border-radius: 0.375rem;
+      transition: background 0.2s;
+    }
+    .menu-item:hover {
+      background: var(--accent);
+      color: var(--card);
+    }
+
     /* Mobile */
     @media (max-width: 768px) {
+      .header {
+        padding: 1rem;
+      }
       .section { padding: 2rem 1.5rem; }
       h1 { font-size: 2rem; }
       h2 { font-size: 1.5rem; }
       p, li { font-size: 1rem; }
+      .menu {
+        width: 200px;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Header (Hokaido Style) -->
+  <header class="header">
+    <div class="logo">
+      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjEgMTVjLTQgMC03IDMtNyA3cy0zLTctMy03czMtNyAzLTdzNyAzIDcgN3M3LTcgNy03czAtNyAwLTciIGZpbGw9IiMwMGJmNDgiLz48cGF0aCBkPSJNMTIgMThjLTEuMSAwLTIuMi0xLjEtMi4yLTIuMmg0LjRjMCAxLjEtMS4xIDIuMi0yLjIgMi4yIiBmaWxsPSIjMDBiZjQ4Ii8+PHBhdGggZD0iTTEyIDEyYy0xLjEgMC0yLjItMS4xLTIuMi0yLjJoNC40YzAgMS4xLTEuMSAyLjItMi4yIDIuMiIgZmlsbD0iIzAwYmY0OCIvPjxwYXRoIGQ9Ik0xMiA2Yy0xLjEgMC0yLjItMS4xLTIuMi0yLjJoNC40YzAgMS4xLTEuMSAyLjItMi4yIDIuMiIgZmlsbD0iIzAwYmY0OCIvPjwvc3ZnPg==" alt="BrainFart Logo" />
+      <span>BrainFart</span>
+    </div>
+    <button class="menu-toggle" id="menuToggle">☰</button>
+  </header>
+
+  <!-- Menu (Hamburger) -->
+  <nav class="menu" id="menu">
+    <a href="#" class="menu-item">🎓 Education</a>
+    <a href="#" class="menu-item">💼 Experience</a>
+    <a href="#" class="menu-item">🔧 Skills</a>
+    <a href="#" class="menu-item">📊 Projects</a>
+    <a href="#" class="menu-item">📄 Resume (PDF)</a>
+  </nav>
+
+  <!-- Back Link -->
   <a href="https://qwertyvjn.github.io/#" class="back-link">← Back to BrainFart</a>
 
+  <!-- Scroll Container -->
   <div class="scroll-container" id="scrollContainer">
     <!-- Section 1: Hero -->
     <section class="section active" id="hero">
@@ -215,6 +316,14 @@
   </div>
 
   <script>
+    // Toggle Menu
+    const menuToggle = document.getElementById('menuToggle');
+    const menu = document.getElementById('menu');
+
+    menuToggle.addEventListener('click', () => {
+      menu.classList.toggle('active');
+    });
+
     // Auto-activate sections on scroll
     const sections = document.querySelectorAll('.section');
     const scrollContainer = document.getElementById('scrollContainer');

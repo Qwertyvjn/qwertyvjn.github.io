@@ -244,44 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') closeModal();
   });
 });
-      
-      // Scroll to top of modal
-      modalBody.scrollTop = 0;
-    } catch (err) {
-      console.error('Modal load failed:', err);
-      modalBody.innerHTML = `
-        <h2 style="color:var(--accent);">⚠️ Content Unavailable</h2>
-        <p>Could not load: <code>${url}</code></p>
-        <p style="font-size:0.9rem; color:var(--dim);">
-          Check console for details, or try again later.
-        </p>
-      `;
-      modalOverlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-  };
-
-  // Close modal
-  function closeModal() {
-    if (!modalOverlay.classList.contains('active')) return;
-    modalOverlay.classList.remove('active');
-    setTimeout(() => {
-      modalBody.innerHTML = '';
-      document.body.style.overflow = '';
-    }, 300); // Match CSS transition
-  }
-
-  // Events
-  if (modalClose) modalClose.addEventListener('click', closeModal);
-  if (modalOverlay) modalOverlay.addEventListener('click', (e) => {
-    if (e.target === modalOverlay) closeModal();
-  });
-
-  // ESC to close
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
-  });
-});
 
 // ===== SEARCH FUNCTIONALITY — FOCUSED MODE =====
 document.addEventListener('DOMContentLoaded', () => {

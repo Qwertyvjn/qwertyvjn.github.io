@@ -237,55 +237,116 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ===== SEARCH FUNCTIONALITY =====
+// ===== SEARCH FUNCTIONALITY — FOCUSED MODE =====
 document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.getElementById('search-input');
-  
-  if (!searchInput) return;
+  const searchResults = document.getElementById('search-results');
+  const layout = document.querySelector('.layout');
+
+  if (!searchInput || !searchResults) return;
 
   // Debounce helper
   function debounce(func, wait) {
     let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
+    return function (...args) {
       clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
+      timeout = setTimeout(() => func.apply(this, args), wait);
     };
+  }
+
+  // Clone card template
+  function cloneCard(card) {
+    const clone = card.cloneNode(true);
+    
+    // Remove embed placeholders and coming-soon text
+    const embeds = clone.querySelectorAll('.embed-placeholder, .coming-soon-text, .coming-soon-overlay');
+    embeds.forEach(el => el.remove());
+    
+    // Update button links to open in new tab
+    const buttons = clone.querySelectorAll('.btn-material, .btn-simulation');
+    buttons.forEach(btn => {
+      const href = btn.getAttribute('href');
+      if (href && href !== '#') {
+        btn.setAttribute('target', '_blank');
+      }
+    });
+    
+    return clone;
   }
 
   // Search function
   const performSearch = debounce(() => {
     const query = searchInput.value.trim().toLowerCase();
     
-    // Target cards in #content and #tools
+    if (query === '') {
+      layout.classList.remove('search-active');
+      searchResults.innerHTML = '';
+      return;
+    }
+
+    // Activate focused mode
+    layout.classList.add('search-active');
+
+    // Search in #content and #tools
     const sections = ['#content', '#tools'];
+    const matches = [];
+
     sections.forEach(sectionId => {
       const section = document.querySelector(sectionId);
       if (!section) return;
       
       const cards = section.querySelectorAll('.card');
       cards.forEach(card => {
-        // Extract searchable text: h3, p, button text
         const title = card.querySelector('h3')?.textContent || '';
         const desc = card.querySelector('p')?.textContent || '';
-        const buttons = Array.from(card.querySelectorAll('a.btn-material, a.btn-simulation'))
+        const buttons = Array.from(card.querySelectorAll('a'))
           .map(btn => btn.textContent)
           .join(' ');
         
         const fullText = `${title} ${desc} ${buttons}`.toLowerCase();
         
-        // Show/hide based on match
-        if (query === '' || fullText.includes(query)) {
-          card.style.display = '';
-        } else {
-          card.style.display = 'none';
+        if (fullText.includes(query)) {
+          matches.push(cloneCard(card));
         }
       });
     });
-  }, 200);
+
+    // Render results
+    if (matches.length > 0) {
+      searchResults.innerHTML = '';
+      searchResults.classList.remove('hidden');
+      
+      const header = document.createElement('div');
+      header.innerHTML = `<h3 style="text-align:center; margin-bottom:1rem; color:var(--accent);">
+        ${matches.length} result${matches.length !== 1 ? 's' : ''} for "<strong>${searchInput.value}</strong>"
+      </h3>`;
+      searchResults.appendChild(header);
+
+      matches.forEach(card => {
+        searchResults.appendChild(card);
+      });
+    } else {
+      searchResults.innerHTML = `
+        <div class="card" style="text-align:center; padding:2rem;">
+          <p>No results found for "<strong>${searchInput.value}</strong>"</p>
+          <p style="font-size:0.9rem; color:var(--dim); margin-top:0.5rem;">
+            Try: <code>ipcc</code>, <code>red</code>, <code>pptx</code>, <code>simulation</code>
+          </p>
+        </div>
+      `;
+      searchResults.classList.remove('hidden');
+    }
+  }, 150);
 
   searchInput.addEventListener('input', performSearch);
+
+  // Clear on ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && searchInput.value) {
+      searchInput.value = '';
+      layout.classList.remove('search-active');
+      searchResults.innerHTML = '';
+      searchResults.classList.add('hidden');
+    }
+  });
 });

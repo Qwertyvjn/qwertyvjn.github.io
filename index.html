@@ -73,18 +73,21 @@
           <section id="content">
             <h2>📚 Content</h2>
             <div class="grid">
-              <!-- IPCC Card (Left) -->
-              <div class="card" id="simulation-ipcc">
-                <h3>🌍 IPCC Carbon Counting</h3>
-                <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
-                <!-- ❌ REMOVED EMBED PLACEHOLDER -->
-                <div class="button-group">
-                  <a href="#" class="btn-material" onclick="openModal('modals/ipcc-modal.html'); return false;">Methodology</a>
-                  <a href="ipcc-simulator.html" target="_blank" class="btn-simulation">
-  Simulation <span style="font-size: 0.8em;">(opens in new window)</span>
-</a>
-                </div>
-              </div>
+              
+              <!-- IPCC Carbon Counting Card -->
+<div class="card">
+  <div class="card-header">
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjEgMTVjLTQgMC03IDMtNyA3cy0zLTctMy03czMtNyAzLTdzNyAzIDcgN3M3LTcgNy03czAtNyAwLTciIGZpbGw9IiMwMGJmNDgiLz48L3N2Zz4=" alt="Carbon Icon" />
+    <h3>IPCC Carbon Counting</h3>
+  </div>
+  <div class="card-content">
+    <p>Track Your Footprint: Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
+    <div class="btn-container">
+      <a href="ipcc-methodology.html" class="btn-material">Methodology</a>
+      <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">Simulation (opens in new window)</a>
+    </div>
+  </div>
+</div>
 
               <!-- RED Card (Right) -->
               <div class="card" id="simulation-red">

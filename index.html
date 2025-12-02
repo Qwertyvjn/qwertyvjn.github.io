@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BrainFart | Interactive Environmental Engineering</title>
+  <!-- ✅ CRITICAL: LINK TO STYLESHEET -->
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -50,7 +51,7 @@
           <header>
             <h1>Interactive Projects.</h1>
             <p>
-              Hi, I'm <strong>Alvin</strong>, an Indonesian Environmental Engineering student
+              Hi, I'm <strong>Glenn Alvin</strong>, an Indonesian Environmental Engineering student
               and enthusiastic knowledge-sharer. This site is my personal challenge to simplify complex
               environmental concepts—like <strong>air pollution</strong> and <strong>unconventional energy</strong>—
               through interactive models, proving you don't have to be a master coder to share valuable knowledge.
@@ -58,38 +59,32 @@
             </p>
           </header>
 
-<!-- SEARCH BAR + RESULTS -->
-<div class="search-section">
-  <input 
-    type="text" 
-    id="search-input" 
-    placeholder="🔍 Search content & tools..." 
-    class="search-input"
-    autocomplete="off"
-  />
-  <div id="search-results" class="search-results hidden"></div>
-</div>
+          <!-- SEARCH BAR + RESULTS -->
+          <div class="search-section">
+            <input 
+              type="text" 
+              id="search-input" 
+              placeholder="🔍 Search content & tools..." 
+              class="search-input"
+              autocomplete="off"
+            />
+            <div id="search-results" class="search-results hidden"></div>
+          </div>
 
           <section id="content">
             <h2>📚 Content</h2>
             <div class="grid">
-              
-              <!-- IPCC Carbon Counting Card -->
-<div class="card">
-  <div class="card-header">
-    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjEgMTVjLTQgMC03IDMtNyA3cy0zLTctMy03czMtNyAzLTdzNyAzIDcgN3M3LTcgNy03czAtNyAwLTciIGZpbGw9IiMwMGJmNDgiLz48L3N2Zz4=" alt="Carbon Icon" />
-    <h3>IPCC Carbon Counting</h3>
-  </div>
-  <div class="card-content">
-    <p>Track Your Footprint: Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
-    <div class="btn-container">
-     <a href="#" class="btn-material" onclick="openModal('ipcc-methodology.html'); return false;">Methodology</a>
-      <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">Simulation (opens in new window)</a>
-    </div>
-  </div>
-</div>
+              <!-- IPCC Card (No embed, working modal + simulation) -->
+              <div class="card">
+                <h3>🌍 IPCC Carbon Counting</h3>
+                <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
+                <div class="button-group">
+                  <a href="#" class="btn-material" onclick="openModal('ipcc-methodology.html'); return false;">Methodology</a>
+                  <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">Simulation</a>
+                </div>
+              </div>
 
-              <!-- RED Card (Right) -->
+              <!-- RED Card -->
               <div class="card" id="simulation-red">
                 <h3>🧪 Salinity Gradient Model (RED)</h3>
                 <p><strong>The Chemical Waterfall:</strong> Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
@@ -232,16 +227,16 @@
         </div>
       </div>
     </main>
-  </div>
 
-
-
-<!-- MODAL CONTAINER (Reusable for any content) -->
-<div id="modal-overlay" class="modal-overlay hidden">
-  <div class="modal-content">
-    <button id="modal-close" class="modal-close">&times;</button>
-    <div id="modal-body" class="modal-body">
-      <!-- Content loaded dynamically via fetch -->
+  <!-- ✅ MODAL CONTAINER (for IPCC methodology) -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal-content">
+      <button id="modal-close" class="modal-close">&times;</button>
+      <div id="modal-body" class="modal-body"></div>
     </div>
   </div>
-</div>
+
+  <!-- ✅ CRITICAL: LINK TO SCRIPT -->
+  <script src="script.js"></script>
+</body>
+</html>

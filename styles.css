@@ -448,7 +448,7 @@ p {
   display: none !important;
 }
 
-/* ===== SEARCH BAR ===== */
+/* ===== SEARCH STYLES ===== */
 .search-section {
   margin: 1.5rem 0;
   text-align: center;
@@ -475,4 +475,35 @@ p {
 
 .search-input::placeholder {
   color: var(--dim);
+}
+
+/* Search Results */
+.search-results {
+  margin-top: 1.5rem;
+}
+
+.search-results .card {
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 182, 76, 0.15);
+  border: 1px solid var(--accent);
+}
+
+/* Full Screen Mode */
+.search-active .sidebar,
+.search-active .right-column,
+.search-active header,
+.search-active #content > h2,
+.search-active #data,
+.search-active #tools > h2 {
+  display: none !important;
+}
+
+.search-active .left-column {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem !important;
+}
+
+.search-active .content-columns {
+  flex-direction: column;
 }

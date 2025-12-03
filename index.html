@@ -43,11 +43,76 @@
       box-shadow: 0 4px 12px rgba(0, 182, 76, 0.15);
       border: 1px solid var(--accent);
     }
+
+    /* ===== MODAL STYLES ===== */
+    #modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+    #modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal-content {
+      background: var(--card);
+      color: var(--text);
+      width: 90%;
+      max-width: 900px;
+      max-height: 90vh;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    #modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: none;
+      border: none;
+      color: var(--dim);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    #modal-close:hover {
+      color: var(--accent);
+    }
+    #modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      max-height: calc(90vh - 60px);
+      line-height: 1.6;
+    }
+    .hidden { display: none !important; }
+
+    /* ===== SEARCH FOCUS MODE ===== */
+    .search-active .sidebar,
+    .search-active .right-column,
+    .search-active header,
+    .search-active #content > h2,
+    .search-active #data,
+    .search-active #tools > h2,
+    .search-active .main > .content-columns > .left-column > .section:not(#content) {
+      display: none !important;
+    }
+    .search-active .left-column {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1rem !important;
+    }
+    .search-active .content-columns { flex-direction: column; }
   </style>
 </head>
 <body>
   <div class="layout">
-    
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="profile">
@@ -88,8 +153,10 @@
             <h1>Interactive Projects.</h1>
             <p>
               Hi, I'm <strong>Glenn Alvin</strong>, an Indonesian Environmental Engineering student
-              and enthusiastic knowledge-sharer. This site is my personal challenge to simplify complex environmental concepts — 
-              from carbon accounting to unconventional energy.
+              and enthusiastic knowledge-sharer. This site is my personal challenge to simplify complex
+              environmental concepts—like <strong>air pollution</strong> and <strong>unconventional energy</strong>—
+              through interactive models, proving you don't have to be a master coder to share valuable knowledge.
+              Hope it's useful!
             </p>
           </header>
 
@@ -99,108 +166,106 @@
             <div id="search-results" class="search-results"></div>
           </div>
 
-          <!-- SEARCH RESULTS CONTAINER -->
-<div id="search-results" class="search-results hidden"></div>
+          <section id="content">
+            <h2>📚 Content</h2>
+            <div class="grid">
+              <!-- IPCC Carbon Counting -->
+              <div class="card">
+                <h3>🌍 IPCC Carbon Counting</h3>
+                <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
+                <div class="button-group">
+                  <a href="#" class="btn-material" onclick="openModal('ipcc-methodology.html'); return false;">Methodology</a>
+                  <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">Simulation</a>
+                </div>
+              </div>
 
-<!-- ORIGINAL CONTENT & TOOLS (HIDDEN WHEN SEARCHING) -->
-<section id="content" style="display: block;">
-  <h2>📚 Content</h2>
-  <div class="grid">
-    <!-- IPCC Carbon Counting -->
-    <div class="card" id="simulation-ipcc">
-      <h3>🌍 IPCC Carbon Counting</h3>
-      <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
-      <div class="button-group">
-        <a href="#" class="btn-material" onclick="openModal('ipcc-methodology.html'); return false;">Methodology</a>
-        <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">Simulation</a>
-      </div>
-    </div>
+              <!-- RED -->
+              <div class="card" id="simulation-red">
+                <h3>🧪 Salinity Gradient Model (RED)</h3>
+                <p><strong>The Chemical Waterfall:</strong> Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
+                <div class="embed-placeholder" id="embed-red">Paste Insight Maker Embed Code Here</div>
+                <div class="button-group">
+                  <a href="#" class="btn-material">Reading Material</a>
+                  <a href="#" class="btn-simulation">Simulation</a>
+                </div>
+                <div class="coming-soon-text">COMING SOON</div>
+              </div>
 
-    <!-- RED -->
-    <div class="card" id="simulation-red">
-      <h3>🧪 Salinity Gradient Model (RED)</h3>
-      <p><strong>The Chemical Waterfall:</strong> Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
-      <div class="embed-placeholder" id="embed-red">Paste Insight Maker Embed Code Here</div>
-      <div class="button-group">
-        <a href="#" class="btn-material">Reading Material</a>
-        <a href="#" class="btn-simulation">Simulation</a>
-      </div>
-      <div class="coming-soon-text">COMING SOON</div>
-    </div>
+              <!-- GPE -->
+              <div class="card" id="simulation-gpe">
+                <h3>🏗️ Gravity Storage Calculator (GPE)</h3>
+                <p><strong>Storing Energy with Bricks:</strong> A calculator demonstrating the massive mass (<em>M</em>) and height (<em>H</em>) required to store large-scale renewable energy using the physics of potential energy.</p>
+                <div class="embed-placeholder" id="embed-gpe">Paste Looker Studio or Custom Embed Here</div>
+                <div class="button-group">
+                  <a href="#" class="btn-material">Reading Material</a>
+                  <a href="#" class="btn-simulation">Simulation</a>
+                </div>
+                <div class="coming-soon-text">COMING SOON</div>
+              </div>
+            </div>
+          </section>
 
-    <!-- GPE -->
-    <div class="card" id="simulation-gpe">
-      <h3>🏗️ Gravity Storage Calculator (GPE)</h3>
-      <p><strong>Storing Energy with Bricks:</strong> A calculator demonstrating the massive mass (<em>M</em>) and height (<em>H</em>) required to store large-scale renewable energy using the physics of potential energy.</p>
-      <div class="embed-placeholder" id="embed-gpe">Paste Looker Studio or Custom Embed Here</div>
-      <div class="button-group">
-        <a href="#" class="btn-material">Reading Material</a>
-        <a href="#" class="btn-simulation">Simulation</a>
-      </div>
-      <div class="coming-soon-text">COMING SOON</div>
-    </div>
-  </div>
-</section>
+          <section id="data">
+            <h2>📊 The Global Carbon Pulse</h2>
+            <p>Tracking real-time indicators that define the challenge of climate mitigation and adaptation, powered by embedded public data feeds.</p>
+            <div class="card full">
+              <div class="embed-placeholder large" id="embed-data">Paste Interactive Looker Studio Dashboard Here</div>
+            </div>
+          </section>
 
-<section id="data">
-  <h2>📊 The Global Carbon Pulse</h2>
-  <p>Tracking real-time indicators that define the challenge of climate mitigation and adaptation, powered by embedded public data feeds.</p>
-  <div class="card full">
-    <div class="embed-placeholder large" id="embed-data">Paste Interactive Looker Studio Dashboard Here</div>
-  </div>
-</section>
+          <section id="tools">
+            <h2>🔧 Tools</h2>
+            <div class="grid">
+              <!-- Tool 1: PPTX to PDF Converter -->
+              <div class="card" id="tool-pptx">
+                <h3>📄 PPTX to PDF Converter</h3>
+                <p>Convert PowerPoint presentations to PDF format — no software needed.</p>
+                <div class="embed-placeholder" id="embed-pptx">Coming Soon</div>
+                <div class="button-group">
+                  <a href="#" class="btn-material">Documentation</a>
+                  <a href="#" class="btn-simulation">Convert Now</a>
+                </div>
+              </div>
 
-<section id="tools">
-  <h2>🔧 Tools</h2>
-  <div class="grid">
-    <!-- Tool 1: PPTX to PDF Converter -->
-    <div class="card" id="tool-pptx">
-      <h3>📄 PPTX to PDF Converter</h3>
-      <p>Convert PowerPoint presentations to PDF format — no software needed.</p>
-      <div class="embed-placeholder" id="embed-pptx">Coming Soon</div>
-      <div class="button-group">
-        <a href="#" class="btn-material">Documentation</a>
-        <a href="#" class="btn-simulation">Convert Now</a>
-      </div>
-    </div>
+              <!-- Tool 2: COMING SOON -->
+              <div class="card" id="tool-2">
+                <h3>⚙️ Tool 2</h3>
+                <p>Placeholder for future utility.</p>
+                <div class="embed-placeholder" id="embed-tool2">Coming Soon</div>
+                <div class="button-group">
+                  <a href="#" class="btn-material">Learn More</a>
+                  <a href="#" class="btn-simulation">Try It</a>
+                </div>
+                <div class="coming-soon-text">COMING SOON</div>
+              </div>
 
-    <!-- Tool 2: COMING SOON -->
-    <div class="card" id="tool-2">
-      <h3>⚙️ Tool 2</h3>
-      <p>Placeholder for future utility.</p>
-      <div class="embed-placeholder" id="embed-tool2">Coming Soon</div>
-      <div class="button-group">
-        <a href="#" class="btn-material">Learn More</a>
-        <a href="#" class="btn-simulation">Try It</a>
-      </div>
-      <div class="coming-soon-text">COMING SOON</div>
-    </div>
+              <!-- Tool 3: COMING SOON -->
+              <div class="card" id="tool-3">
+                <h3>🧮 Tool 3</h3>
+                <p>Placeholder for future utility.</p>
+                <div class="embed-placeholder" id="embed-tool3">Coming Soon</div>
+                <div class="button-group">
+                  <a href="#" class="btn-material">Learn More</a>
+                  <a href="#" class="btn-simulation">Try It</a>
+                </div>
+                <div class="coming-soon-text">COMING SOON</div>
+              </div>
 
-    <!-- Tool 3: COMING SOON -->
-    <div class="card" id="tool-3">
-      <h3>🧮 Tool 3</h3>
-      <p>Placeholder for future utility.</p>
-      <div class="embed-placeholder" id="embed-tool3">Coming Soon</div>
-      <div class="button-group">
-        <a href="#" class="btn-material">Learn More</a>
-        <a href="#" class="btn-simulation">Try It</a>
-      </div>
-      <div class="coming-soon-text">COMING SOON</div>
-    </div>
+              <!-- Tool 4: COMING SOON -->
+              <div class="card" id="tool-4">
+                <h3>🌐 Tool 4</h3>
+                <p>Placeholder for future utility.</p>
+                <div class="embed-placeholder" id="embed-tool4">Coming Soon</div>
+                <div class="button-group">
+                  <a href="#" class="btn-material">Learn More</a>
+                  <a href="#" class="btn-simulation">Try It</a>
+                </div>
+                <div class="coming-soon-text">COMING SOON</div>
+              </div>
+            </div>
+          </section>
+        </div>
 
-    <!-- Tool 4: COMING SOON -->
-    <div class="card" id="tool-4">
-      <h3>🌐 Tool 4</h3>
-      <p>Placeholder for future utility.</p>
-      <div class="embed-placeholder" id="embed-tool4">Coming Soon</div>
-      <div class="button-group">
-        <a href="#" class="btn-material">Learn More</a>
-        <a href="#" class="btn-simulation">Try It</a>
-      </div>
-      <div class="coming-soon-text">COMING SOON</div>
-    </div>
-  </div>
-</section>
         <!-- Right Column -->
         <div class="right-column">
           <section id="pulse">
@@ -259,18 +324,116 @@
     </main>
   </div>
 
-  <!-- MODAL CONTAINER (for IPCC methodology) -->
+  <!-- MODAL CONTAINER -->
   <div id="modal-overlay" class="modal-overlay hidden">
     <div class="modal-content">
       <button id="modal-close" class="modal-close">&times;</button>
-      <div id="modal-body"></div>
+      <div id="modal-body" class="modal-body">
+        <!-- Modal content loaded here -->
+      </div>
     </div>
   </div>
 
   <script>
-    // ===== IQAir API + CARBON COUNTER =====
+    // ===== MODAL SYSTEM =====
     document.addEventListener('DOMContentLoaded', () => {
-      // ✅ FIX: IQAir API (use your key)
+      const modalOverlay = document.getElementById('modal-overlay');
+      const modalBody = document.getElementById('modal-body');
+      const modalClose = document.getElementById('modal-close');
+
+      window.openModal = async function(url) {
+        try {
+          const res = await fetch(url);
+          modalBody.innerHTML = await res.text();
+          modalOverlay.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        } catch (err) {
+          modalBody.innerHTML = `<h2 style="color:var(--accent)">⚠️ Failed to load</h2><p>${err.message}</p>`;
+          modalOverlay.classList.add('active');
+        }
+      };
+
+      function closeModal() {
+        modalOverlay.classList.remove('active');
+        setTimeout(() => modalBody.innerHTML = '', 300);
+        document.body.style.overflow = '';
+      }
+
+      if (modalClose) modalClose.addEventListener('click', closeModal);
+      if (modalOverlay) modalOverlay.addEventListener('click', e => {
+        if (e.target === modalOverlay) closeModal();
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeModal();
+      });
+    });
+
+    // ===== SEARCH =====
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('search-input');
+      const searchResults = document.getElementById('search-results');
+      const layout = document.querySelector('.layout');
+
+      if (!searchInput) return;
+
+      searchInput.addEventListener('input', debounce(() => {
+        const q = searchInput.value.trim().toLowerCase();
+        if (!q) {
+          layout.classList.remove('search-active');
+          searchResults.innerHTML = '';
+          searchResults.classList.add('hidden');
+          return;
+        }
+
+        layout.classList.add('search-active');
+        searchResults.classList.remove('hidden');
+
+        const matches = [];
+        ['#content', '#tools'].forEach(sectionId => {
+          const section = document.querySelector(sectionId);
+          if (!section) return;
+
+          const cards = section.querySelectorAll('.card');
+          cards.forEach(card => {
+            const title = card.querySelector('h3')?.textContent || '';
+            const desc = card.querySelector('p')?.textContent || '';
+            const buttons = Array.from(card.querySelectorAll('a')).map(btn => btn.textContent).join(' ');
+            
+            const fullText = `${title} ${desc} ${buttons}`.toLowerCase();
+            if (fullText.includes(q)) {
+              matches.push(card.cloneNode(true));
+            }
+          });
+        });
+
+        if (matches.length > 0) {
+          searchResults.innerHTML = `
+            <h3 style="text-align:center; margin-bottom:1rem; color:var(--accent);">
+              ${matches.length} result${matches.length !== 1 ? 's' : ''} for "<strong>${searchInput.value}</strong>"
+            </h3>
+            ${matches.map(c => c.outerHTML).join('')}
+          `;
+        } else {
+          searchResults.innerHTML = `
+            <div class="card" style="text-align:center; padding:2rem;">
+              <p>No results for "<strong>${searchInput.value}</strong>"</p>
+            </div>
+          `;
+        }
+      }, 150));
+
+      function debounce(fn, wait) {
+        let timeout;
+        return (...args) => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => fn.apply(this, args), wait);
+        };
+      }
+    });
+
+    // ===== IQAir API + CARBON FOOTPRINT COUNTER =====
+    document.addEventListener('DOMContentLoaded', () => {
+      // IQAir
       const API_KEY = 'f74e14f9-86c9-4246-8065-ec2018624690';
       const locationData = document.getElementById('location-data');
       const aqiDisplay = document.getElementById('aqi-display');
@@ -344,7 +507,7 @@
         }
       }
 
-      // ✅ FIX: Carbon Counter (start from 0, update every second)
+      // Carbon Counter
       let secondsSpent = 0;
       const timeSpentEl = document.getElementById('time-spent');
       const carbonValueEl = document.getElementById('carbon-value');
@@ -374,85 +537,21 @@
       getLocation();
     });
 
-    // ===== MODAL SYSTEM =====
+    // ===== THEME TOGGLE =====
     document.addEventListener('DOMContentLoaded', () => {
-      const modalOverlay = document.getElementById('modal-overlay');
-      const modalBody = document.getElementById('modal-body');
-      const modalClose = document.getElementById('modal-close');
-
-      window.openModal = async function(url) {
-        try {
-          const res = await fetch(url);
-          modalBody.innerHTML = await res.text();
-          modalOverlay.classList.add('active');
-          document.body.style.overflow = 'hidden';
-        } catch (err) {
-          modalBody.innerHTML = `<h2 style="color:var(--accent)">⚠️ Failed to load</h2><p>${err.message}</p>`;
-          modalOverlay.classList.add('active');
-        }
-      };
-
-      function closeModal() {
-        modalOverlay.classList.remove('active');
-        setTimeout(() => modalBody.innerHTML = '', 300);
-        document.body.style.overflow = '';
-      }
-
-      if (modalClose) modalClose.addEventListener('click', closeModal);
-      if (modalOverlay) modalOverlay.addEventListener('click', e => {
-        if (e.target === modalOverlay) closeModal();
-      });
-      document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') closeModal();
-      });
-    });
-
-    // ===== SEARCH =====
-    document.addEventListener('DOMContentLoaded', () => {
-      const searchInput = document.getElementById('search-input');
-      const searchResults = document.getElementById('search-results');
-      const contentSection = document.getElementById('content');
-      const grid = contentSection.querySelector('.grid');
-
-      if (!searchInput) return;
-
-      searchInput.addEventListener('input', () => {
-        const q = searchInput.value.trim().toLowerCase();
-        if (!q) {
-          searchResults.classList.remove('visible');
-          grid.style.display = 'grid'; // Restore original grid
-          return;
-        }
-
-        searchResults.classList.add('visible');
-        grid.style.display = 'none'; // Hide original grid
-
-        const matches = [];
-        const cards = document.querySelectorAll('#content .card');
-        cards.forEach(card => {
-          const title = card.querySelector('h3')?.textContent || '';
-          const desc = card.querySelector('p')?.textContent || '';
-          const btns = Array.from(card.querySelectorAll('a')).map(a => a.textContent).join(' ');
-          if (`${title} ${desc} ${btns}`.toLowerCase().includes(q)) {
-            matches.push(card.cloneNode(true));
+      const themeToggle = document.getElementById('theme-toggle');
+      if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+          const htmlEl = document.documentElement;
+          if (htmlEl.classList.contains('light')) {
+            htmlEl.classList.remove('light');
+            htmlEl.classList.add('dark');
+          } else {
+            htmlEl.classList.remove('dark');
+            htmlEl.classList.add('light');
           }
         });
-
-        if (matches.length) {
-          searchResults.innerHTML = `
-            <h3 style="text-align:center; margin-bottom:1rem; color:var(--accent);">
-              ${matches.length} result${matches.length !== 1 ? 's' : ''} for "<strong>${searchInput.value}</strong>"
-            </h3>
-            ${matches.map(c => c.outerHTML).join('')}
-          `;
-        } else {
-          searchResults.innerHTML = `
-            <div class="card" style="text-align:center; padding:2rem;">
-              <p>No results for "<strong>${searchInput.value}</strong>"</p>
-            </div>
-          `;
-        }
-      });
+      }
     });
   </script>
 </body>

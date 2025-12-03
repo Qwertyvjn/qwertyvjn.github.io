@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
-    /* ✅ SEARCH STYLES (minimal, safe) */
+    /* ===== SEARCH STYLES ===== */
     .search-section {
       margin: 1.5rem 0;
       text-align: center;
@@ -31,70 +31,18 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 2px rgba(0, 182, 76, 0.2);
     }
-    /* ✅ MODAL STYLES (inline, no external dependency) */
-    #modal-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s, visibility 0.3s;
+    .search-results {
+      margin-top: 1.5rem;
+      display: none;
     }
-    #modal-overlay.active {
-      opacity: 1;
-      visibility: visible;
+    .search-results.visible {
+      display: block;
     }
-    .modal-content {
-      background: var(--card);
-      color: var(--text);
-      width: 90%;
-      max-width: 900px;
-      max-height: 90vh;
-      border-radius: 0.5rem;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+    .search-results .card {
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 182, 76, 0.15);
+      border: 1px solid var(--accent);
     }
-    #modal-close {
-      position: absolute;
-      top: 1rem; right: 1rem;
-      background: none;
-      border: none;
-      color: var(--dim);
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
-    #modal-close:hover {
-      color: var(--accent);
-    }
-    #modal-body {
-      padding: 1.5rem;
-      overflow-y: auto;
-      max-height: calc(90vh - 60px);
-      line-height: 1.6;
-    }
-    .hidden { display: none !important; }
-    /* ✅ SEARCH FOCUS MODE (hides non-matches) */
-    .search-active .sidebar,
-    .search-active .right-column,
-    .search-active header,
-    .search-active #content > h2,
-    .search-active #data,
-    .search-active #tools > h2,
-    .search-active .main > .content-columns > .left-column > .section:not(#content) {
-      display: none !important;
-    }
-    .search-active .left-column {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 2rem 1rem !important;
-    }
-    .search-active .content-columns { flex-direction: column; }
   </style>
 </head>
 <body>
@@ -139,24 +87,22 @@
             <h1>Interactive Projects.</h1>
             <p>
               Hi, I'm <strong>Glenn Alvin</strong>, an Indonesian Environmental Engineering student
-              and enthusiastic knowledge-sharer. This site is my personal challenge to simplify complex
-              environmental concepts—like <strong>air pollution</strong> and <strong>unconventional energy</strong>—
-              through interactive models, proving you don't have to be a master coder to share valuable knowledge.
-              Hope it's useful!
+              and enthusiastic knowledge-sharer. This site is my personal challenge to simplify complex environmental concepts — 
+              from carbon accounting to unconventional energy.
             </p>
           </header>
 
-          <!-- ✅ SEARCH BAR -->
+          <!-- SEARCH BAR -->
           <div class="search-section">
-            <input type="text" id="search-input" placeholder="🔍 Search content & tools..." />
-            <div id="search-results" class="hidden"></div>
+            <input type="text" id="search-input" placeholder="🔍 Search content & tools..." class="search-input" />
+            <div id="search-results" class="search-results"></div>
           </div>
 
           <section id="content">
             <h2>📚 Content</h2>
             <div class="grid">
-              <!-- ✅ IPCC FIRST, NO EMBED, WORKING BUTTONS -->
-              <div class="card">
+              <!-- IPCC Carbon Counting -->
+              <div class="card" id="simulation-ipcc">
                 <h3>🌍 IPCC Carbon Counting</h3>
                 <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
                 <div class="button-group">
@@ -308,83 +254,202 @@
         </div>
       </div>
     </main>
+  </div>
 
-  <!-- ✅ MODAL CONTAINER (for IPCC methodology) -->
-  <div id="modal-overlay" class="modal-overlay">
+  <!-- MODAL CONTAINER (for IPCC methodology) -->
+  <div id="modal-overlay" class="modal-overlay hidden">
     <div class="modal-content">
       <button id="modal-close" class="modal-close">&times;</button>
       <div id="modal-body"></div>
     </div>
   </div>
 
-  <!-- ✅ SCRIPT (minimal, safe) -->
   <script>
-    // ✅ MODAL + SEARCH (no external deps)
+    // ===== IQAir API + CARBON COUNTER =====
     document.addEventListener('DOMContentLoaded', () => {
-      // Modal
-      const modal = document.getElementById('modal-overlay');
-      const body = document.getElementById('modal-body');
-      const close = document.getElementById('modal-close');
-      if (modal && body) {
-        window.openModal = async (url) => {
-          try {
-            const res = await fetch(url);
-            body.innerHTML = await res.text();
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-          } catch (e) {
-            body.innerHTML = `<h2 style="color:var(--accent)">⚠️ Failed to load</h2><p>${e.message || 'Check console'}</p>`;
-            modal.classList.add('active');
-          }
-        };
-        const closeModal = () => {
-          modal.classList.remove('active');
-          setTimeout(() => body.innerHTML = '', 300);
-          document.body.style.overflow = '';
-        };
-        if (close) close.onclick = closeModal;
-        modal.onclick = e => { if (e.target === modal) closeModal(); };
-        document.onkeydown = e => { if (e.key === 'Escape') closeModal(); };
+      // ✅ FIX: IQAir API (use your key)
+      const API_KEY = 'f74e14f9-86c9-4246-8065-ec2018624690';
+      const locationData = document.getElementById('location-data');
+      const aqiDisplay = document.getElementById('aqi-display');
+      const cityName = document.getElementById('city-name');
+      const aqiValue = document.getElementById('aqi-value');
+      const aqiCategory = document.getElementById('aqi-category');
+      const co2Value = document.getElementById('co2-value');
+      const tempValue = document.getElementById('temp-value');
+
+      function getLocation() {
+        if (!navigator.geolocation) {
+          locationData.textContent = '🔒 Geolocation not supported.';
+          return;
+        }
+
+        locationData.textContent = '📍 Detecting your location...';
+        navigator.geolocation.getCurrentPosition(
+          success => fetchIQAirData(success.coords.latitude, success.coords.longitude),
+          error => {
+            console.warn('Geolocation denied or failed:', error.message);
+            locationData.textContent = '🔒 Data Inaccessible';
+            locationData.style.color = '#ff7e00';
+            aqiDisplay.classList.add('hidden');
+          },
+          { timeout: 10000, enableHighAccuracy: false }
+        );
       }
 
-      // Search
-      const search = document.getElementById('search-input');
-      if (search) {
-        search.oninput = () => {
-          const q = search.value.trim().toLowerCase();
-          if (!q) return document.body.classList.remove('search-active');
+      async function fetchIQAirData(lat, lon) {
+        try {
+          const url = `https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lon}&key=${API_KEY}`;
+          const res = await fetch(url);
+          const data = await res.json();
 
-          const cards = document.querySelectorAll('#content .card, #tools .card');
-          let matches = [];
-          cards.forEach(card => {
-            const title = card.querySelector('h3')?.textContent || '';
-            const desc = card.querySelector('p')?.textContent || '';
-            const btns = Array.from(card.querySelectorAll('a')).map(a => a.textContent).join(' ');
-            if (`${title} ${desc} ${btns}`.toLowerCase().includes(q)) {
-              matches.push(card.cloneNode(true));
-            }
-          });
-
-          let results = document.getElementById('search-results');
-          if (!results) {
-            results = document.createElement('div');
-            results.id = 'search-results';
-            search.parentNode.insertBefore(results, search.nextSibling);
+          if (data.status !== 'success' || !data.data) {
+            throw new Error(`Invalid response from IQAir. Status: ${data.status} | Message: ${data.data.message || 'No data.'}`);
           }
 
-          if (matches.length) {
-            results.innerHTML = `<h3 style="text-align:center; margin:1rem 0; color:var(--accent);">
-              ${matches.length} result${matches.length !== 1 ? 's' : ''} for "<strong>${search.value}</strong>"
-            </h3>` + matches.map(c => c.outerHTML).join('');
-            document.body.classList.add('search-active');
-          } else {
-            results.innerHTML = `<div class="card" style="text-align:center; padding:2rem;">
-              <p>No results for "<strong>${search.value}</strong>"</p>
-            </div>`;
-          }
-          results.classList.remove('hidden');
-        };
+          const city = data.data.city || 'Nearby City';
+          const state = data.data.state || '';
+          const aqius = data.data.current.pollution.aqius;
+          const tempC = data.data.current.weather.tp;
+          const co2Estimate = Math.round(400 + (aqius / 300) * 150);
+
+          // AQI Category Mapping
+          const categories = [
+            { max: 50, name: 'Good', color: '#00e400' },
+            { max: 100, name: 'Moderate', color: '#ffff00' },
+            { max: 150, name: 'Unhealthy for Sensitive', color: '#ff7e00' },
+            { max: 200, name: 'Unhealthy', color: '#ff0000' },
+            { max: 300, name: 'Very Unhealthy', color: '#8f3f97' },
+            { max: Infinity, name: 'Hazardous', color: '#7e0023' }
+          ];
+          const category = categories.find(c => aqius <= c.max) || categories[0];
+
+          // Update DOM
+          cityName.textContent = `${city}${state ? `, ${state}` : ''}`;
+          aqiValue.textContent = aqius;
+          aqiCategory.textContent = category.name;
+          aqiCategory.style.color = category.color;
+          co2Value.textContent = co2Estimate;
+          tempValue.textContent = tempC;
+
+          // Show data, hide loading
+          locationData.classList.add('hidden');
+          aqiDisplay.classList.remove('hidden');
+        } catch (err) {
+          console.error('IQAir API error:', err);
+          locationData.textContent = `⚠️ Data unavailable. Check console.`;
+          aqiDisplay.classList.add('hidden');
+        }
       }
+
+      // ✅ FIX: Carbon Counter (start from 0, update every second)
+      let secondsSpent = 0;
+      const timeSpentEl = document.getElementById('time-spent');
+      const carbonValueEl = document.getElementById('carbon-value');
+      const equivalentEl = document.getElementById('equivalent');
+      const sourceEl = document.getElementById('rice-source');
+
+      setInterval(() => {
+        secondsSpent++;
+        timeSpentEl.textContent = secondsSpent;
+        
+        // Your CO2 calculation: (secondsSpent * 0.0003 g/s)
+        const co2Grams = (secondsSpent * 0.0003).toFixed(1);
+        carbonValueEl.textContent = co2Grams;
+        
+        // REALISTIC RICE EQUIVALENT: 1g rice ≈ 1.8g CO₂e (based on avg from Our World in Data)
+        // So: g rice = g CO₂ / 1.8
+        const riceGrams = (parseFloat(co2Grams) / 1.8).toFixed(3);
+        equivalentEl.textContent = `${riceGrams} g of rice`;
+
+        // Optional: Update source text if element exists
+        if (sourceEl) {
+          sourceEl.textContent = 'Based on: 1g rice ≈ 1.8g CO₂e (Our World in Data)';
+        }
+      }, 1000);
+
+      // Init pulse
+      getLocation();
+    });
+
+    // ===== MODAL SYSTEM =====
+    document.addEventListener('DOMContentLoaded', () => {
+      const modalOverlay = document.getElementById('modal-overlay');
+      const modalBody = document.getElementById('modal-body');
+      const modalClose = document.getElementById('modal-close');
+
+      window.openModal = async function(url) {
+        try {
+          const res = await fetch(url);
+          modalBody.innerHTML = await res.text();
+          modalOverlay.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        } catch (err) {
+          modalBody.innerHTML = `<h2 style="color:var(--accent)">⚠️ Failed to load</h2><p>${err.message}</p>`;
+          modalOverlay.classList.add('active');
+        }
+      };
+
+      function closeModal() {
+        modalOverlay.classList.remove('active');
+        setTimeout(() => modalBody.innerHTML = '', 300);
+        document.body.style.overflow = '';
+      }
+
+      if (modalClose) modalClose.addEventListener('click', closeModal);
+      if (modalOverlay) modalOverlay.addEventListener('click', e => {
+        if (e.target === modalOverlay) closeModal();
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeModal();
+      });
+    });
+
+    // ===== SEARCH =====
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('search-input');
+      const searchResults = document.getElementById('search-results');
+      const contentSection = document.getElementById('content');
+      const grid = contentSection.querySelector('.grid');
+
+      if (!searchInput) return;
+
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value.trim().toLowerCase();
+        if (!q) {
+          searchResults.classList.remove('visible');
+          grid.style.display = 'grid'; // Restore original grid
+          return;
+        }
+
+        searchResults.classList.add('visible');
+        grid.style.display = 'none'; // Hide original grid
+
+        const matches = [];
+        const cards = document.querySelectorAll('#content .card');
+        cards.forEach(card => {
+          const title = card.querySelector('h3')?.textContent || '';
+          const desc = card.querySelector('p')?.textContent || '';
+          const btns = Array.from(card.querySelectorAll('a')).map(a => a.textContent).join(' ');
+          if (`${title} ${desc} ${btns}`.toLowerCase().includes(q)) {
+            matches.push(card.cloneNode(true));
+          }
+        });
+
+        if (matches.length) {
+          searchResults.innerHTML = `
+            <h3 style="text-align:center; margin-bottom:1rem; color:var(--accent);">
+              ${matches.length} result${matches.length !== 1 ? 's' : ''} for "<strong>${searchInput.value}</strong>"
+            </h3>
+            ${matches.map(c => c.outerHTML).join('')}
+          `;
+        } else {
+          searchResults.innerHTML = `
+            <div class="card" style="text-align:center; padding:2rem;">
+              <p>No results for "<strong>${searchInput.value}</strong>"</p>
+            </div>
+          `;
+        }
+      });
     });
   </script>
 </body>

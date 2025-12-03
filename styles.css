@@ -386,3 +386,53 @@ p {
   from { opacity: 0.8; }
   to { opacity: 1; }
 }
+
+/* ===== SEARCH STYLES ===== */
+.search-section {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+#search-input {
+  width: 100%;
+  max-width: 600px;
+  padding: 0.75rem 1rem;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9rem;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  outline: none;
+}
+#search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0, 182, 76, 0.2);
+}
+
+.search-results {
+  margin-top: 1.5rem;
+  display: none;
+}
+.search-results.visible {
+  display: block;
+}
+.search-results .card {
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 182, 76, 0.15);
+  border: 1px solid var(--accent);
+}
+
+/* ===== SEARCH FOCUS MODE ===== */
+.search-active #content,
+.search-active #data,
+.search-active #tools {
+  display: none !important;
+}
+.search-active .left-column {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem !important;
+}
+.search-active .content-columns { flex-direction: column; }
+.hidden { display: none !important; }

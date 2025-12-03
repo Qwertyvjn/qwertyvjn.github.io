@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPCC Methodology Popup Demo</title>
+    <title>IPCC Carbon Counting Methodology</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* ======================================================= */
-        /* MODAL SPECIFIC STYLES (New) */
+        /* MODAL SPECIFIC STYLES */
         /* ======================================================= */
         #modal-backdrop {
             position: fixed;
@@ -16,7 +16,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85); /* Dark, transparent overlay */
+            background: rgba(0, 0, 0, 0.85);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -28,13 +28,13 @@
             opacity: 0;
         }
         #modal-content-box {
-            max-width: 90vw; /* Responsive width */
-            max-height: 90vh; /* Responsive height */
+            max-width: 90vw;
+            max-height: 90vh;
             width: 800px; /* Max width for desktop */
-            background-color: #1e1e1e; /* Modal background matches current content file */
+            background-color: #1e1e1e;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 182, 76, 0.2);
-            overflow-y: auto; /* Allows scrolling inside the modal */
+            overflow-y: auto;
             animation: slideIn 0.3s ease-out;
         }
         @keyframes slideIn {
@@ -43,15 +43,13 @@
         }
 
         /* ======================================================= */
-        /* EXISTING CONTENT STYLES (Adapted) */
+        /* CORE CONTENT STYLES */
         /* ======================================================= */
-        
-        /* Base Content Styles */
-        body { font-family: ui-sans-serif, system-ui; background-color: #121212; color: #e0e0e0; padding: 0; margin: 0; }
+        body { font-family: Inter, ui-sans-serif, system-ui; background-color: #121212; color: #e0e0e0; padding: 0; margin: 0; }
         #modal-content-box .content-body { padding: 1.5rem; }
         h1, h2, h3 { color: #00b64c; margin-bottom: 0.5rem; }
         
-        /* Interactive Glossary (Method 1) Styles */
+        /* Interactive Glossary Styles */
         .term {
             cursor: help;
             border-bottom: 2px dashed #00b64c;
@@ -82,55 +80,35 @@
             visibility: visible;
         }
 
-        /* Dynamic Diagram (Method 3) Styles */
+        /* ======================================================= */
+        /* SVG DIAGRAM STYLES (New) */
+        /* ======================================================= */
         .diagram-container {
             position: relative;
             max-width: 600px;
+            width: 100%;
+            aspect-ratio: 600 / 400; /* Fixed aspect ratio for clean SVG display */
             margin: 1.5rem auto;
-            border: 1px solid #333;
             border-radius: 8px;
-            overflow: hidden;
-            min-height: 250px; /* Increased height to ensure diagram visibility */
+            background-color: #2a2a2a;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #2a2a2a;
-            
-            /* CSS REPLACEMENT FOR MISSING IMAGE */
-            background-image: url('https://placehold.co/600x250/1e1e1e/00b64c?text=GHG+Protocol+Scopes+1%2C+2%2C+3+Diagram'); 
-            background-size: cover;
-            background-position: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
-        .diagram-container img {
-            /* Hiding the non-functional img tag, relying on background */
-            display: none; 
-        }
-        .diagram-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        .scope-ring {
             cursor: pointer;
+            transition: stroke-width 0.3s, opacity 0.3s;
         }
-        .scope-hotspot {
-            position: absolute;
-            background: rgba(0, 182, 76, 0.2); 
-            border: 2px dashed #00b64c;
-            opacity: 0;
-            transition: opacity 0.3s;
+        .scope-hotspot-label {
+            pointer-events: none; /* Allows clicks to pass through to the SVG circle */
+            font-weight: bold;
+            font-size: 14px;
+            transition: fill 0.3s;
         }
-        .scope-hotspot:hover {
-            opacity: 1;
-        }
-        .loading-text {
-            color: #ccc;
-            font-style: italic;
-            padding: 1rem;
-        }
-        .useful-link {
-            color: #00b64c;
-            text-decoration: underline;
+        .scope-label-subtext {
+            pointer-events: none;
+            font-size: 10px;
         }
     </style>
 </head>
@@ -150,10 +128,7 @@
             <div class="content-body text-gray-200">
                 <h1 class="text-2xl font-bold mb-4">🌍 IPCC Carbon Counting — Methodology</h1>
                 
-                <!-- ======================================================= -->
-                <!-- 1. What is Carbon Counting & 2. What is IPCC -->
-                <!-- ======================================================= -->
-                <h2 class="text-xl font-semibold mt-4 mb-2">1 \& 2. The Foundation: What is Carbon Counting and the IPCC?</h2>
+                <h2 class="text-xl font-semibold mt-4 mb-2">1 & 2. The Foundation: What is Carbon Counting and the IPCC?</h2>
                 <p class="mb-2 text-sm text-gray-400">
                     <strong>Carbon Counting</strong> is the process of quantifying the total amount of greenhouse gases (CO<sub>2</sub>e) emitted directly and indirectly by an individual, organization, or country over a specific period. It's the primary tool for measuring climate impact.
                 </p>
@@ -161,9 +136,6 @@
                     The foundation for this entire process comes from the <strong>Intergovernmental Panel on Climate Change (IPCC)</strong>, which provides the scientific guidelines and consensus used globally. Organizations then translate these guidelines into actionable frameworks, most notably the <strong>Greenhouse Gas (GHG) Protocol</strong>, which structures how emissions are measured.
                 </p>
 
-                <!-- ======================================================= -->
-                <!-- 3. Why Carbon Counting is Important and Examples -->
-                <!-- ======================================================= -->
                 <h2 class="text-xl font-semibold mt-6 mb-2">3. Why It Matters: Management and Mitigation</h2>
                 <p class="mb-4 text-sm text-gray-400">
                     Counting carbon is essential because <strong>you cannot manage what you do not measure.</strong> It identifies emission hotspots and allows engineers to target the most effective areas for reduction.
@@ -178,9 +150,6 @@
                     </ul>
                 </div>
 
-                <!-- ======================================================= -->
-                <!-- 4. How to Do Carbon Counting (The Formula) -->
-                <!-- ======================================================= -->
                 <h2 class="text-xl font-semibold mt-6 mb-2">4. The Process: How to Do Carbon Counting</h2>
                 <p class="mb-2 text-sm text-gray-400">
                     The process is based on a simple relationship that determines the emissions for any activity:
@@ -188,58 +157,93 @@
 
                 <!-- Core Formula -->
                 <div class="bg-neutral-700 p-4 rounded-lg text-center text-lg font-mono">
-                    CO₂e = Activity Data &times; Emission Factor
+                    CO<sub>2</sub>e = Activity Data &times; Emission Factor
                 </div>
 
                 <p class="mt-2 text-sm text-gray-400">
-                    Where <strong>Activity Data</strong> is the amount of resource used (e.g., 100 kWh of electricity, 500 liters of gasoline), and the <strong>Emission Factor</strong> is the known CO<sub>2</sub>e intensity of that resource (e.g., 0.71 kg CO<sub>2</sub>e per kWh in Indonesia).
+                    Where <strong>Activity Data</strong> is the amount of resource used (e.g., 100 kWh of electricity), and the <strong>Emission Factor</strong> is the known CO<sub>2</sub>e intensity of that resource (e.g., 0.71 kg CO<sub>2</sub>e per kWh in Indonesia).
                 </p>
                 
-                <h2 class="text-xl font-semibold mt-6 mb-2">5. Scope and Tier Breakdown</h2>
-                <p class="mb-4 text-sm text-gray-400">
-                    To manage the complexity of all possible emissions, the GHG Protocol divides them into three Scopes and organizes the quality of data into Tiers.
+                <h2 class="text-xl font-semibold mt-6 mb-2">5. Scope and Tier Breakdown (Interactive Diagram)</h2>
+                <p class="mb-4 text-sm text-gray-400 text-center">
+                    The three Scopes define where the emissions occur. Click a ring to see details on the Scope and its corresponding Tier methodology.
                 </p>
                 
-                <!-- DYNAMIC DIAGRAM (Method 3) -->
+                <!-- DYNAMIC DIAGRAM (SVG BASED - CLEANED UP) -->
                 <div class="diagram-container" id="scope-diagram">
-                    <!-- The diagram is now set via CSS background-image -->
-                    
-                    <!-- Hidden interactive hotspots (used by JS to trigger detailed view) -->
-                    <div class="diagram-overlay">
-                        <!-- Hotspots are approximated based on a typical diagram structure -->
-                        <div class="scope-hotspot" data-scope="1" style="top: 30%; left: 30%; width: 20%; height: 30%;"></div>
-                        <div class="scope-hotspot" data-scope="2" style="top: 20%; left: 55%; width: 25%; height: 40%;"></div>
-                        <div class="scope-hotspot" data-scope="3" style="top: 10%; left: 5%; width: 90%; height: 80%;"></div>
-                    </div>
+                    <svg width="100%" height="100%" viewBox="0 0 600 400" id="scope-svg">
+                        
+                        <!-- Center Point (The previous white dot has been removed for a cleaner look) -->
+
+                        <!-- Scope 3 Ring (Largest/Value Chain) -->
+                        <circle id="ring-3" class="scope-ring" data-scope="3" cx="300" cy="200" r="160" stroke="#00b64c" fill="rgba(0, 182, 76, 0.05)" stroke-width="4" stroke-dasharray="8, 4"/>
+                        <text class="scope-hotspot-label" x="465" y="195" fill="#00b64c" id="label-3">SCOPE 3</text>
+                        <text class="scope-label-subtext" x="465" y="215" fill="#a0aec0" id="sublabel-3">Value Chain (Indirect)</text>
+
+                        <!-- Scope 2 Ring (Middle/Purchased Energy) -->
+                        <circle id="ring-2" class="scope-ring" data-scope="2" cx="300" cy="200" r="110" stroke="#ecc94b" fill="rgba(236, 201, 75, 0.08)" stroke-width="4"/>
+                        <text class="scope-hotspot-label" x="300" y="70" text-anchor="middle" fill="#ecc94b" id="label-2">SCOPE 2</text>
+                        <text class="scope-label-subtext" x="300" y="85" text-anchor="middle" fill="#a0aec0" id="sublabel-2">Purchased Energy</text>
+
+                        <!-- Scope 1 Ring (Smallest/Direct Emissions) -->
+                        <circle id="ring-1" class="scope-ring" data-scope="1" cx="300" cy="200" r="60" stroke="#f56565" fill="rgba(245, 101, 101, 0.1)" stroke-width="4"/>
+                        <!-- ADDED text-anchor="middle" to both Scope 1 labels for centering -->
+                        <text class="scope-hotspot-label" x="300" y="205" text-anchor="middle" fill="#f56565" id="label-1">SCOPE 1</text>
+                        <text class="scope-label-subtext" x="300" y="225" text-anchor="middle" fill="#a0aec0" id="sublabel-1">Direct Emissions</text>
+
+                    </svg>
                 </div>
 
-                <p class="text-sm text-gray-400 text-center mb-4">Click anywhere on the diagram above to see the detailed definitions of each Scope.</p>
+                <p class="text-sm text-gray-400 text-center mb-4">Click one of the rings in the diagram above to reveal the details below.</p>
                 
                 <!-- Detailed Scope Content - Starts Hidden, revealed by diagram click -->
                 <div id="detailed-scopes" class="hidden">
-                    <h3 class="text-lg font-medium mt-4">Scope Details</h3>
+                    <h3 class="text-lg font-medium mt-4">Selected Scope Breakdown</h3>
                     
+                    <!-- SCOPE 1 DETAIL -->
                     <div id="scope-detail-1" class="scope-box mt-3 p-3 bg-red-800 bg-opacity-30 border-l-4 border-red-500 hidden" data-scope="1">
                         <h4 class="font-bold text-white">Scope 1: Direct Emissions (In My Backyard)</h4>
-                        <p class="text-sm">Emissions directly from sources you control, like burning fuel in a generator or service vehicle fleet. <strong class="text-red-400">Example:</strong> Burning diesel in a campus bus.</p>
+                        <p class="text-sm">Emissions directly from sources you **own or control**. These are the most measurable emissions.</p>
+                        <p class="text-xs mt-1"><strong>Examples:</strong> Burning fuel in company cars/boilers, manufacturing process emissions, company-owned refrigerants.</p>
+                        
+                        <div class="mt-2 p-2 bg-neutral-700 rounded text-xs">
+                            <p class="font-bold text-yellow-400">Relevant Tier Methodology:</p>
+                            <ul class="list-disc list-inside ml-2 space-y-1">
+                                <li><strong>Tier 1:</strong> Basic Fuel Use (based on national/global average fuel factor).</li>
+                                <li><strong>Tier 2:</strong> Equipment-Specific Factors (e.g., using a factor specific to your boiler type).</li>
+                                <li><strong>Tier 3:</strong> Continuous Monitoring (e.g., live measurements of stack emissions).</li>
+                            </ul>
+                        </div>
                     </div>
 
+                    <!-- SCOPE 2 DETAIL -->
                     <div id="scope-detail-2" class="scope-box mt-3 p-3 bg-yellow-800 bg-opacity-30 border-l-4 border-yellow-500 hidden" data-scope="2">
                         <h4 class="font-bold text-white">Scope 2: Energy Consumption (My Utility Bill)</h4>
-                        <p class="text-sm">Emissions from purchased electricity or steam. The factor for Indonesia's grid, the <span class="term" data-tooltip="Perusahaan Listrik Negara (PLN) is the state-owned utility grid, which heavily influences the national electricity emission factor.">PLN grid</span>, is approximately ~0.71 kg CO<sub>2</sub>/kWh.</p>
+                        <p class="text-sm">Emissions from the **generation of purchased electricity, steam, heating, and cooling** consumed by your company.</p>
+                        <p class="text-xs mt-1"><strong>Example:</strong> The CO<sub>2</sub> released at the power plant that generates the electricity you buy for your office. Calculation can be location or market-based.</p>
+                        
+                        <div class="mt-2 p-2 bg-neutral-700 rounded text-xs">
+                            <p class="font-bold text-yellow-400">Relevant Tier Methodology:</p>
+                            <ul class="list-disc list-inside ml-2 space-y-1">
+                                <li><strong>Tier 1:</strong> Location-Based Average (using the regional grid factor, like the <span class="term" data-tooltip="Perusahaan Listrik Negara (PLN) is the state-owned utility grid, which heavily influences the national electricity emission factor.">PLN grid</span> factor).</li>
+                                <li><strong>Tier 2:</strong> Supplier-Specific Data (if your provider has a cleaner, verifiable mix).</li>
+                                <li><strong>Tier 3:</strong> Hourly/Market-Based Data (reflecting real-time energy purchases or specific renewable energy certificates).</li>
+                            </ul>
+                        </div>
                     </div>
 
+                    <!-- SCOPE 3 DETAIL -->
                     <div id="scope-detail-3" class="scope-box mt-3 p-3 bg-green-800 bg-opacity-30 border-l-4 border-green-500 hidden" data-scope="3">
                         <h4 class="font-bold text-white">Scope 3: Value Chain (Everything Else)</h4>
-                        <p class="text-sm">All indirect emissions in the value chain, such as commuting, waste, and manufacturing of purchased goods. This is often the largest factor and the hardest to track, often requiring the use of <strong>Tiers</strong>.</p>
+                        <p class="text-sm">All other indirect emissions that occur in the **value chain** (both upstream and downstream). This is usually the largest category and requires the use of Tiers to manage data quality.</p>
+                        <p class="text-xs mt-1"><strong>Examples:</strong> Business travel, employee commuting, manufacturing of purchased goods, waste disposal, and end-of-life treatment of sold products.</p>
                         
-                        <!-- Tiers Explanation -->
                         <div class="mt-2 p-2 bg-neutral-700 rounded text-xs">
-                            <p class="font-bold text-yellow-400">Tiers Summary:</p>
+                            <p class="font-bold text-yellow-400">Relevant Tier Methodology:</p>
                             <ul class="list-disc list-inside ml-2 space-y-1">
-                                <li><strong>Tier 1 (Lowest Accuracy):</strong> Uses industry-average data (e.g., generic laptop CO<sub>2</sub> factor). Quick and cheap.</li>
-                                <li><strong>Tier 2 (Medium Accuracy):</strong> Uses specific regional data (e.g., regional utility grid factor).</li>
-                                <li><strong>Tier 3 (Highest Accuracy):</strong> Requires supplier-specific data collection (e.g., surveying the exact factory). The gold standard, but requires significant effort.</li>
+                                <li><strong>Tier 1 (Simplest):</strong> Uses **industry-average** emission factors (e.g., generic laptop CO<sub>2</sub> factor). Quick and cheap.</li>
+                                <li><strong>Tier 2 (Better):</strong> Uses **regionally specific** data or economic input/output models.</li>
+                                <li><strong>Tier 3 (Best):</strong> Uses **supplier-specific primary data** (e.g., surveying the exact factory emissions). The gold standard, but requires significant effort.</li>
                             </ul>
                         </div>
                     </div>
@@ -250,12 +254,9 @@
                     To calculate the emissions from 100 kWh of electricity (Scope 2):
                 </p>
                 <div class="bg-neutral-700 p-3 rounded-lg text-sm font-mono mt-2">
-                    100 kWh &times; 0.71 kg CO₂/kWh = 71 kg CO₂e
+                    100 kWh &times; 0.71 kg CO<sub>2</sub>/kWh = 71 kg CO<sub>2</sub>e
                 </div>
 
-                <!-- ======================================================= -->
-                <!-- NEW SECTION: USEFUL LINKS -->
-                <!-- ======================================================= -->
                 <h2 class="text-xl font-semibold mt-6 mb-2">Useful Links</h2>
                 <div class="p-3 bg-neutral-700 rounded-lg text-sm mb-4 space-y-3">
                     <p class="font-bold text-yellow-400">Emission Factors:</p>
@@ -280,22 +281,18 @@
         // MODAL CONTROL FUNCTIONS
         // =======================================================
         
-        // Opens the modal (Simulates clicking the Methodology button)
         function openModal() {
             const modalBackdrop = document.getElementById('modal-backdrop');
             modalBackdrop.classList.remove('hidden-modal');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling on the main page
+            document.body.style.overflow = 'hidden';
         }
 
-        // Closes the modal (Called by clicking the backdrop)
         function closeModal(event) {
-            // Check if the click occurred directly on the backdrop
             if (event.target.id === 'modal-backdrop') {
                 const modalBackdrop = document.getElementById('modal-backdrop');
                 modalBackdrop.classList.add('hidden-modal');
-                document.body.style.overflow = ''; // Restore scrolling
+                document.body.style.overflow = '';
             }
-            // Note: The event.stopPropagation() call on the content box prevents accidental closure.
         }
 
         // =======================================================
@@ -316,20 +313,33 @@
         }
 
         // =======================================================
-        // METHOD 3: DYNAMIC DIAGRAM LABELER (FIXED INTERACTION)
+        // METHOD 3: DYNAMIC DIAGRAM LABELER (SVG INTERACTION)
         // =======================================================
 
         function initDiagramInteraction() {
-            const hotspots = document.querySelectorAll('.scope-hotspot');
+            const rings = document.querySelectorAll('.scope-ring');
             const detailedScopesContainer = document.getElementById('detailed-scopes');
             const scopeBoxes = document.querySelectorAll('.scope-box');
+            const targetSection = document.getElementById('detailed-scopes');
             
-            // Reference the section where the details appear
-            const targetSection = document.getElementById('detailed-scopes'); 
+            // Map scope to its highlight color
+            const scopeColors = {
+                '1': '#f56565', // Red
+                '2': '#ecc94b', // Yellow
+                '3': '#00b64c'  // Green
+            };
+            
+            // Map scope to its default fill color (low opacity)
+            const scopeFills = {
+                '1': 'rgba(245, 101, 101, 0.1)',
+                '2': 'rgba(236, 201, 75, 0.08)',
+                '3': 'rgba(0, 182, 76, 0.05)'
+            };
 
             const showScopeDetail = (scope) => {
                 detailedScopesContainer.classList.remove('hidden');
                 
+                // Show/hide detail box
                 scopeBoxes.forEach(box => {
                     if (box.getAttribute('data-scope') === scope) {
                         box.classList.remove('hidden');
@@ -338,29 +348,59 @@
                     }
                 });
                 
-                // Scroll immediately to the target section within the modal
+                // Highlight the selected ring
+                rings.forEach(ring => {
+                    const ringScope = ring.getAttribute('data-scope');
+                    if (ringScope === scope) {
+                        ring.style.strokeWidth = '8'; // Make it thicker
+                        ring.style.fill = scopeFills[ringScope]; // Ensure fill is set
+                        // Also highlight the text labels
+                        document.getElementById(`label-${ringScope}`).style.fill = 'white';
+                        document.getElementById(`sublabel-${ringScope}`).style.fill = 'white';
+                    } else {
+                        ring.style.strokeWidth = '4'; // Revert to normal thickness
+                        ring.style.fill = scopeFills[ringScope];
+                        // Revert text labels
+                        document.getElementById(`label-${ringScope}`).style.fill = scopeColors[ringScope];
+                        document.getElementById(`sublabel-${ringScope}`).style.fill = '#a0aec0';
+                    }
+                });
+
+                // Scroll to the detail section
                 if (targetSection) {
-                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // Use a slight delay to ensure the modal content has finished rendering
+                    setTimeout(() => {
+                        targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 50);
                 }
             };
+            
+            // Add interaction handlers to the rings
+            rings.forEach(ring => {
+                const scope = ring.getAttribute('data-scope');
+                const defaultStroke = ring.style.stroke;
 
-            // 1. Hotspot Click Handler
-            hotspots.forEach(hotspot => {
-                const scope = hotspot.getAttribute('data-scope');
-                hotspot.addEventListener('click', (e) => {
-                    e.stopPropagation();
+                // Hover (visual feedback)
+                ring.addEventListener('mouseenter', () => {
+                    ring.style.strokeWidth = '6'; 
+                });
+                ring.addEventListener('mouseleave', () => {
+                    if (document.getElementById(`scope-detail-${scope}`).classList.contains('hidden')) {
+                        ring.style.strokeWidth = '4'; 
+                    } else {
+                        // Keep the thick stroke if it is the actively selected scope
+                        ring.style.strokeWidth = '8';
+                    }
+                });
+
+                // Click (Permanent selection and detail reveal)
+                ring.addEventListener('click', () => {
                     showScopeDetail(scope);
                 });
             });
 
-            // 2. Diagram Container Click Handler (For general click on diagram area)
-            const diagramContainer = document.getElementById('scope-diagram');
-            diagramContainer.addEventListener('click', (e) => {
-                // If the click is on the container and not a hotspot, default to Scope 3
-                if (e.target.id === 'scope-diagram' || e.target.classList.contains('diagram-overlay')) {
-                    showScopeDetail('3'); // Default to Scope 3 as it's the largest/most complex
-                }
-            });
+            // Initialize: Show Scope 3 details by default on load and visually select it
+            showScopeDetail('3');
         }
         
         // =======================================================

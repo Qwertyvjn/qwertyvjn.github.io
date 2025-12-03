@@ -4,10 +4,98 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BrainFart | Interactive Environmental Engineering</title>
+  <!-- ✅ CRITICAL: LINK TO STYLESHEET -->
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ✅ SEARCH STYLES (minimal, safe) */
+    .search-section {
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+    #search-input {
+      width: 100%;
+      max-width: 600px;
+      padding: 0.75rem 1rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      outline: none;
+    }
+    #search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(0, 182, 76, 0.2);
+    }
+    /* ✅ MODAL STYLES (inline, no external dependency) */
+    #modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+    #modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal-content {
+      background: var(--card);
+      color: var(--text);
+      width: 90%;
+      max-width: 900px;
+      max-height: 90vh;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    #modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: none;
+      border: none;
+      color: var(--dim);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    #modal-close:hover {
+      color: var(--accent);
+    }
+    #modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      max-height: calc(90vh - 60px);
+      line-height: 1.6;
+    }
+    .hidden { display: none !important; }
+    /* ✅ SEARCH FOCUS MODE (hides non-matches) */
+    .search-active .sidebar,
+    .search-active .right-column,
+    .search-active header,
+    .search-active #content > h2,
+    .search-active #data,
+    .search-active #tools > h2,
+    .search-active .main > .content-columns > .left-column > .section:not(#content) {
+      display: none !important;
+    }
+    .search-active .left-column {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1rem !important;
+    }
+    .search-active .content-columns { flex-direction: column; }
+  </style>
 </head>
 <body>
   <div class="layout">
@@ -58,10 +146,26 @@
             </p>
           </header>
 
+          <!-- ✅ SEARCH BAR -->
+          <div class="search-section">
+            <input type="text" id="search-input" placeholder="🔍 Search content & tools..." />
+            <div id="search-results" class="hidden"></div>
+          </div>
+
           <section id="content">
             <h2>📚 Content</h2>
             <div class="grid">
-              <!-- RED Card -->
+              <!-- ✅ IPCC FIRST, NO EMBED, WORKING BUTTONS -->
+              <div class="card">
+                <h3>🌍 IPCC Carbon Counting</h3>
+                <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
+                <div class="button-group">
+                  <a href="#" class="btn-material" onclick="openModal('ipcc-methodology.html'); return false;">Methodology</a>
+                  <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">Simulation</a>
+                </div>
+              </div>
+
+              <!-- RED -->
               <div class="card" id="simulation-red">
                 <h3>🧪 Salinity Gradient Model (RED)</h3>
                 <p><strong>The Chemical Waterfall:</strong> Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
@@ -73,7 +177,7 @@
                 <div class="coming-soon-text">COMING SOON</div>
               </div>
 
-              <!-- GPE Card -->
+              <!-- GPE -->
               <div class="card" id="simulation-gpe">
                 <h3>🏗️ Gravity Storage Calculator (GPE)</h3>
                 <p><strong>Storing Energy with Bricks:</strong> A calculator demonstrating the massive mass (<em>M</em>) and height (<em>H</em>) required to store large-scale renewable energy using the physics of potential energy.</p>
@@ -81,18 +185,6 @@
                 <div class="button-group">
                   <a href="#" class="btn-material">Reading Material</a>
                   <a href="#" class="btn-simulation">Simulation</a>
-                </div>
-                <div class="coming-soon-text">COMING SOON</div>
-              </div>
-
-              <!-- IPCC Carbon Counting -->
-              <div class="card" id="simulation-ipcc">
-                <h3>🌍 IPCC Carbon Counting</h3>
-                <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
-                <div class="embed-placeholder" id="embed-ipcc">Paste Embed Code Here</div>
-                <div class="button-group">
-                  <a href="#" class="btn-material">Methodology</a>
-                  <a href="#" class="btn-simulation">Calculate Now</a>
                 </div>
                 <div class="coming-soon-text">COMING SOON</div>
               </div>
@@ -216,8 +308,84 @@
         </div>
       </div>
     </main>
+
+  <!-- ✅ MODAL CONTAINER (for IPCC methodology) -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-content">
+      <button id="modal-close" class="modal-close">&times;</button>
+      <div id="modal-body"></div>
+    </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- ✅ SCRIPT (minimal, safe) -->
+  <script>
+    // ✅ MODAL + SEARCH (no external deps)
+    document.addEventListener('DOMContentLoaded', () => {
+      // Modal
+      const modal = document.getElementById('modal-overlay');
+      const body = document.getElementById('modal-body');
+      const close = document.getElementById('modal-close');
+      if (modal && body) {
+        window.openModal = async (url) => {
+          try {
+            const res = await fetch(url);
+            body.innerHTML = await res.text();
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+          } catch (e) {
+            body.innerHTML = `<h2 style="color:var(--accent)">⚠️ Failed to load</h2><p>${e.message || 'Check console'}</p>`;
+            modal.classList.add('active');
+          }
+        };
+        const closeModal = () => {
+          modal.classList.remove('active');
+          setTimeout(() => body.innerHTML = '', 300);
+          document.body.style.overflow = '';
+        };
+        if (close) close.onclick = closeModal;
+        modal.onclick = e => { if (e.target === modal) closeModal(); };
+        document.onkeydown = e => { if (e.key === 'Escape') closeModal(); };
+      }
+
+      // Search
+      const search = document.getElementById('search-input');
+      if (search) {
+        search.oninput = () => {
+          const q = search.value.trim().toLowerCase();
+          if (!q) return document.body.classList.remove('search-active');
+
+          const cards = document.querySelectorAll('#content .card, #tools .card');
+          let matches = [];
+          cards.forEach(card => {
+            const title = card.querySelector('h3')?.textContent || '';
+            const desc = card.querySelector('p')?.textContent || '';
+            const btns = Array.from(card.querySelectorAll('a')).map(a => a.textContent).join(' ');
+            if (`${title} ${desc} ${btns}`.toLowerCase().includes(q)) {
+              matches.push(card.cloneNode(true));
+            }
+          });
+
+          let results = document.getElementById('search-results');
+          if (!results) {
+            results = document.createElement('div');
+            results.id = 'search-results';
+            search.parentNode.insertBefore(results, search.nextSibling);
+          }
+
+          if (matches.length) {
+            results.innerHTML = `<h3 style="text-align:center; margin:1rem 0; color:var(--accent);">
+              ${matches.length} result${matches.length !== 1 ? 's' : ''} for "<strong>${search.value}</strong>"
+            </h3>` + matches.map(c => c.outerHTML).join('');
+            document.body.classList.add('search-active');
+          } else {
+            results.innerHTML = `<div class="card" style="text-align:center; padding:2rem;">
+              <p>No results for "<strong>${search.value}</strong>"</p>
+            </div>`;
+          }
+          results.classList.remove('hidden');
+        };
+      }
+    });
+  </script>
 </body>
 </html>

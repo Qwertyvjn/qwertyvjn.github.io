@@ -307,6 +307,31 @@ p {
   overflow: hidden;
 }
 
+#content .card:hover .coming-soon-text,
+#tools .card:hover .coming-soon-text {
+  color: #00ff7f;
+  text-shadow: 0 0 8px #00ff7f, 0 0 16px #00ff7f;
+}
+
+#content .card:hover:has(.coming-soon-text)::before,
+#tools .card:hover:has(.coming-soon-text)::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 4;
+  border-radius: 0.5rem;
+}
+
+#content .card,
+#tools .card {
+  position: relative;
+  overflow: hidden;
+}
+
 /* ===== BUTTONS INSIDE CARDS — VERTICAL BOX STYLE ===== */
 #content .button-group,
 #tools .button-group {

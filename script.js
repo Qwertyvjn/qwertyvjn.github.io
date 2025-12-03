@@ -219,42 +219,70 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') closeModal();
   });
 
-  // ===== SEARCH =====
+ // ===== SEARCH =====
+document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.getElementById('search-input');
   const searchResults = document.getElementById('search-results');
   const layout = document.querySelector('.layout');
 
   if (!searchInput) return;
+
   searchInput.addEventListener('input', debounce(() => {
     const q = searchInput.value.trim().toLowerCase();
-    if (!q) return layout.classList.remove('search-active'), searchResults.innerHTML = '';
+    if (!q) {
+      // Restore original content
+      document.body.classList.remove('search-active');
+      searchResults.classList.add('hidden');
+      return;
+    }
 
-    layout.classList.add('search-active');
+    // Activate focused mode
+    document.body.classList.add('search-active');
+    searchResults.classList.remove('hidden');
+
+    // Search in #content and #tools
+    const sections = ['#content', '#tools'];
     const matches = [];
-    ['#content', '#tools'].forEach(id => {
-      document.querySelectorAll(`${id} .card`).forEach(card => {
-        const text = [card.querySelector('h3'), card.querySelector('p')]
-          .map(el => el?.textContent || '')
-          .join(' ') + Array.from(card.querySelectorAll('a')).map(a => a.textContent).join(' ');
-        if (text.toLowerCase().includes(q)) matches.push(card.cloneNode(true));
+
+    sections.forEach(sectionId => {
+      const section = document.querySelector(sectionId);
+      if (!section) return;
+
+      const cards = section.querySelectorAll('.card');
+      cards.forEach(card => {
+        const title = card.querySelector('h3')?.textContent || '';
+        const desc = card.querySelector('p')?.textContent || '';
+        const btns = Array.from(card.querySelectorAll('a')).map(a => a.textContent).join(' ');
+        
+        const fullText = `${title} ${desc} ${btns}`.toLowerCase();
+        if (fullText.includes(q)) {
+          matches.push(card.cloneNode(true));
+        }
       });
     });
 
-    searchResults.innerHTML = matches.length ? `
-      <h3 style="text-align:center; margin-bottom:1rem; color:var(--accent);">
-        ${matches.length} result${matches.length !== 1 ? 's' : ''} for "<strong>${searchInput.value}</strong>"
-      </h3>
-      ${matches.map(c => c.outerHTML).join('')}
-    ` : `
-      <div class="card" style="text-align:center; padding:2rem;">
-        <p>No results for "<strong>${searchInput.value}</strong>"</p>
-      </div>
-    `;
-    searchResults.classList.remove('hidden');
+    // Render results
+    if (matches.length > 0) {
+      searchResults.innerHTML = `
+        <h3 style="text-align:center; margin-bottom:1rem; color:var(--accent);">
+          ${matches.length} result${matches.length !== 1 ? 's' : ''} for "<strong>${searchInput.value}</strong>"
+        </h3>
+        ${matches.map(c => c.outerHTML).join('')}
+      `;
+    } else {
+      searchResults.innerHTML = `
+        <div class="card" style="text-align:center; padding:2rem;">
+          <p>No results for "<strong>${searchInput.value}</strong>"</p>
+        </div>
+      `;
+    }
   }, 150));
 
   function debounce(fn, wait) {
-    let t;
-    return (...args) => (clearTimeout(t), t = setTimeout(() => fn(...args), wait));
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn.apply(this, args), wait);
+    };
   }
 });

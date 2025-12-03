@@ -219,10 +219,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') closeModal();
   });
 
- // ===== SEARCH =====
+// ===== SEARCH =====
 document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.getElementById('search-input');
   const searchResults = document.getElementById('search-results');
+  const contentSection = document.getElementById('content');
+  const dataSection = document.getElementById('data');
+  const toolsSection = document.getElementById('tools');
   const layout = document.querySelector('.layout');
 
   if (!searchInput) return;
@@ -240,8 +243,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('search-active');
     searchResults.classList.remove('hidden');
 
-    // Search in #content and #tools
-    const sections = ['#content', '#tools'];
+    // Search in #content, #data, and #tools
+    const sections = ['#content', '#data', '#tools'];
     const matches = [];
 
     sections.forEach(sectionId => {

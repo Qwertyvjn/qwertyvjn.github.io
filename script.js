@@ -4,28 +4,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalBody = document.getElementById('modal-body');
     const modalClose = document.getElementById('modal-close');
     
-    window.openModal = async function(url) {
-        try {
-            const res = await fetch(url);
-            modalBody.innerHTML = await res.text();
-            modalOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            
-            // Initialize content-specific features after loading
-            if (url.includes('ipcc-methodology.html')) {
-                initMethodologyContent();
-            }
-        } catch (err) {
-            modalBody.innerHTML = `<div class="p-6 text-center">
-                <h2 style="color: var(--accent)" class="text-2xl mb-4">⚠️ Failed to load content</h2>
-                <p>${err.message}</p>
-                <button onclick="closeModal()" class="mt-4 px-4 py-2 bg-[#00b64c] text-white rounded hover:bg-opacity-80">
-                    Close
-                </button>
-            </div>`;
-            modalOverlay.classList.add('active');
-        }
+    if (!modalOverlay || !modalBody) {
+        console.error('Modal elements not found');
+        return;
+    }
+    
+    // Open modal function
+    window.openModal = function() {
+        // Load methodology content
+        fetch('ipcc-methodology.html')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(html => {
+                modalBody.innerHTML = html;
+                initModalContent();
+                showModal();
+            })
+            .catch(error => {
+                console.error('Error loading methodology content:', error);
+                modalBody.innerHTML = `
+                    <div class="p-6 text-center">
+                        <h2 class="text-2xl text-[#00b64c] mb-4">⚠️ Failed to load content</h2>
+                        <p class="text-gray-300 mb-4">Please try again later.</p>
+                        <button onclick="closeModal()" class="px-4 py-2 bg-[#00b64c] text-white rounded hover:bg-opacity-80">
+                            Close
+                        </button>
+                    </div>
+                `;
+                showModal();
+            });
     };
+    
+    function showModal() {
+        modalOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
     
     function closeModal() {
         modalOverlay.classList.remove('active');
@@ -41,7 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (modalOverlay) {
         modalOverlay.addEventListener('click', e => {
-            if (e.target === modalOverlay) closeModal();
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
         });
     }
     
@@ -51,57 +70,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // Initialize methodology content features
-    function initMethodologyContent() {
-        // Initialize glossary tooltips
-        document.querySelectorAll('.term').forEach(term => {
-            const tooltipText = term.getAttribute('data-tooltip');
-            if (tooltipText) {
-                const tooltip = document.createElement('div');
-                tooltip.className = 'tooltip-box';
-                tooltip.textContent = tooltipText;
-                term.appendChild(tooltip);
-            }
+    // Add event listener to methodology button in navigation
+    const methodologyButton = document.getElementById('methodology-button');
+    if (methodologyButton) {
+        methodologyButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            openModal();
         });
-        
-        // Initialize diagram interaction
-        const hotspots = document.querySelectorAll('.scope-hotspot');
-        const detailedScopes = document.getElementById('detailed-scopes');
-        const scopeBoxes = document.querySelectorAll('.scope-box');
-        
-        if (detailedScopes && hotspots.length) {
-            // Show Scope 3 details by default
-            detailedScopes.classList.remove('hidden');
-            document.getElementById('scope-detail-3').classList.remove('hidden');
-            
-            hotspots.forEach(hotspot => {
-                hotspot.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const scope = this.getAttribute('data-scope');
-                    
-                    // Hide all scope details
-                    scopeBoxes.forEach(box => box.classList.add('hidden'));
-                    
-                    // Show selected scope detail
-                    document.getElementById(`scope-detail-${scope}`).classList.remove('hidden');
-                });
-            });
-            
-            // Diagram container click handler
-            const diagramContainer = document.getElementById('scope-diagram');
-            if (diagramContainer) {
-                diagramContainer.addEventListener('click', function(e) {
-                    if (e.target === diagramContainer || e.target.classList.contains('diagram-overlay')) {
-                        // Hide all scope details
-                        scopeBoxes.forEach(box => box.classList.add('hidden'));
-                        
-                        // Show Scope 3 by default
-                        document.getElementById('scope-detail-3').classList.remove('hidden');
-                    }
-                });
-            }
-        }
     }
+    
+    // Add event listener to methodology buttons in content cards
+    document.querySelectorAll('.methodology-content, .btn-material').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            openModal();
+        });
+    });
     
     // ===== SEARCH FUNCTIONALITY =====
     const searchInput = document.getElementById('search-input');
@@ -112,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.addEventListener('input', function() {
             const query = this.value.trim().toLowerCase();
             
+            // Clear previous results and remove search-active class if query is empty
             if (query === '') {
                 searchResults.innerHTML = '';
                 searchResults.classList.remove('visible');
@@ -123,111 +108,100 @@ document.addEventListener('DOMContentLoaded', () => {
             const searchItems = [
                 { 
                     title: "IPCC Carbon Counting", 
-                    snippet: "Track your carbon footprint based on IPCC guidelines", 
+                    snippet: "Track your carbon footprint based on IPCC guidelines for individuals, households, and small businesses.", 
                     type: "ipcc",
                     icon: "🌍"
                 },
                 { 
                     title: "Methodology", 
-                    snippet: "Learn about the scientific foundation and calculation methods", 
+                    snippet: "Learn about the scientific foundation and calculation methods used in carbon counting.", 
                     type: "methodology",
                     icon: "📘"
                 },
                 { 
                     title: "Scope 1 Emissions", 
-                    snippet: "Direct emissions from sources you own or control", 
+                    snippet: "Direct emissions from sources you control, like burning fuel in a generator or service vehicle fleet.", 
                     type: "scope",
                     icon: "🔥"
                 },
                 { 
                     title: "Scope 2 Emissions", 
-                    snippet: "Indirect emissions from purchased electricity", 
+                    snippet: "Emissions from purchased electricity or steam. The factor for Indonesia's grid, the PLN grid, is approximately ~0.71 kg CO₂/kWh.", 
                     type: "scope",
                     icon: "⚡"
                 },
                 { 
                     title: "Scope 3 Emissions", 
-                    snippet: "All other indirect emissions in your value chain", 
+                    snippet: "All indirect emissions in the value chain, such as commuting, waste, and manufacturing of purchased goods.", 
                     type: "scope",
                     icon: "🔄"
                 },
                 { 
                     title: "Salinity Gradient Model (RED)", 
-                    snippet: "Explore energy from mixing fresh and salt water", 
+                    snippet: "Explore how the cost and efficiency of Reverse Electrodialysis membranes affect the viability of drawing energy from mixing fresh and salt water.", 
                     type: "red",
                     icon: "🧪"
                 },
                 { 
-                    title: "Gravity Storage Calculator", 
-                    snippet: "Demonstrating energy storage with mass and height", 
+                    title: "Gravity Storage Calculator (GPE)", 
+                    snippet: "A calculator demonstrating the massive mass and height required to store large-scale renewable energy using the physics of potential energy.", 
                     type: "gpe",
                     icon: "🏗️"
                 },
                 { 
                     title: "PPTX to PDF Converter", 
-                    snippet: "Convert PowerPoint to PDF without software", 
+                    snippet: "Convert PowerPoint presentations to PDF format — no software needed.", 
                     type: "pptx",
                     icon: "📄"
                 }
             ];
             
-            // Filter items
+            // Filter items based on query
             const results = searchItems.filter(item => 
                 item.title.toLowerCase().includes(query) || 
                 item.snippet.toLowerCase().includes(query)
             );
             
+            // Show search results container and add search-active class
+            searchResults.classList.add('visible');
+            body.classList.add('search-active');
+            
             // Clear previous results
             searchResults.innerHTML = '';
             
+            // If no results found
             if (results.length === 0) {
                 searchResults.innerHTML = `
                     <div class="card">
-                        <p class="text-gray-400 text-center p-4">No results found for "${query}". Try another term.</p>
+                        <p class="text-gray-400 text-center p-4">No results found for "${query}". Try another search term.</p>
                     </div>
                 `;
-            } else {
-                results.forEach(item => {
-                    const resultCard = document.createElement('div');
-                    resultCard.className = 'card';
-                    resultCard.innerHTML = `
+                return;
+            }
+            
+            // Create result cards
+            let html = `<h3 style="text-align:center; margin-bottom:1rem; color:var(--accent);">
+                          ${results.length} result${results.length !== 1 ? 's' : ''} for "<strong>${this.value}</strong>"
+                        </h3>`;
+            
+            results.forEach(item => {
+                html += `
+                    <div class="card">
                         <div class="flex items-start">
                             <span class="text-2xl mr-3 mt-1">${item.icon}</span>
                             <div>
                                 <h3 class="font-bold text-lg mb-1">${item.title}</h3>
                                 <p class="text-gray-300 mb-2">${item.snippet}</p>
-                                <button class="text-[#00b64c] hover:underline methodology-button" data-type="${item.type}">
+                                <button class="mt-2 text-[#00b64c] hover:underline" onclick="openModal()">
                                     Learn more
                                 </button>
                             </div>
                         </div>
-                    `;
-                    searchResults.appendChild(resultCard);
-                });
-            }
+                    </div>
+                `;
+            });
             
-            // Show results and hide main content sections
-            searchResults.classList.add('visible');
-            body.classList.add('search-active');
-        });
-        
-        // Add event listeners to dynamically created "Learn more" buttons
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('methodology-button')) {
-                const type = e.target.getAttribute('data-type');
-                if (type === 'ipcc' || type === 'methodology') {
-                    openModal('ipcc-methodology.html');
-                }
-            }
-        });
-    }
-    
-    // Add event listener to the methodology button in navigation
-    const methodologyButton = document.getElementById('methodology-button');
-    if (methodologyButton) {
-        methodologyButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            openModal('ipcc-methodology.html');
+            searchResults.innerHTML = html;
         });
     }
     
@@ -337,5 +311,57 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize location detection
     if (locationData) {
         getLocation();
+    }
+    
+    // Initialize modal content if the page is loaded as the methodology page
+    function initModalContent() {
+        // Initialize glossary tooltips
+        document.querySelectorAll('.term').forEach(term => {
+            const tooltipText = term.getAttribute('data-tooltip');
+            if (tooltipText) {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip-box';
+                tooltip.textContent = tooltipText;
+                term.appendChild(tooltip);
+            }
+        });
+        
+        // Initialize diagram interactions
+        const diagramContainer = document.getElementById('scope-diagram');
+        const detailedScopes = document.getElementById('detailed-scopes');
+        const scopeHotspots = document.querySelectorAll('.scope-hotspot');
+        const scopeBoxes = document.querySelectorAll('.scope-box');
+        
+        if (detailedScopes && scopeHotspots.length > 0) {
+            // Show Scope 3 details by default
+            detailedScopes.classList.remove('hidden');
+            document.getElementById('scope-detail-3').classList.remove('hidden');
+            
+            scopeHotspots.forEach(hotspot => {
+                hotspot.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const scope = this.getAttribute('data-scope');
+                    
+                    // Hide all scope details
+                    scopeBoxes.forEach(box => box.classList.add('hidden'));
+                    
+                    // Show selected scope detail
+                    document.getElementById(`scope-detail-${scope}`).classList.remove('hidden');
+                });
+            });
+            
+            // Default to Scope 3 when clicking on the diagram container
+            if (diagramContainer) {
+                diagramContainer.addEventListener('click', function(e) {
+                    if (e.target === diagramContainer || e.target.classList.contains('diagram-overlay')) {
+                        // Hide all scope details
+                        scopeBoxes.forEach(box => box.classList.add('hidden'));
+                        
+                        // Show Scope 3 by default
+                        document.getElementById('scope-detail-3').classList.remove('hidden');
+                    }
+                });
+            }
+        }
     }
 });

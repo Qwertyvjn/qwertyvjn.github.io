@@ -1,158 +1,204 @@
-// ===== THEME TOGGLE =====
-document.addEventListener('DOMContentLoaded', () => {
-  const toggle = document.getElementById('theme-toggle');
-  if (toggle) {
-    toggle.addEventListener('click', () => {
-      document.documentElement.classList.toggle('dark');
-      document.documentElement.classList.toggle('light');
+// ===== SAFE GLOBAL MODAL FUNCTION =====
+window.openModal = function(url) {
+  // Create modal container if missing
+  let modal = document.getElementById('modal-overlay');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <button id="modal-close" class="modal-close">&times;</button>
+        <div id="modal-body" style="padding:1.5rem;overflow-y:auto;max-height:80vh;"></div>
+      </div>
+    `;
+    Object.assign(modal.style, {
+      position: 'fixed',
+      top: '0', left: '0', width: '100%', height: '100%',
+      background: 'rgba(0,0,0,0.7)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: '2000',
+      opacity: '0', visibility: 'hidden',
+      transition: 'opacity 0.3s'
     });
-  }
-});
+    document.body.appendChild(modal);
 
-// ===== IQAir + CARBON COUNTER =====
+    const content = modal.querySelector('.modal-content');
+    Object.assign(content.style, {
+      background: 'var(--card)',
+      color: 'var(--text)',
+      width: '90%',
+      maxWidth: '900px',
+      maxHeight: '90vh',
+      borderRadius: '0.5rem',
+      overflow: 'hidden',
+      transform: 'scale(0.95)',
+      transition: 'transform 0.3s'
+    });
+
+    const closeBtn = document.getElementById('modal-close');
+    Object.assign(closeBtn.style, {
+      position: 'absolute',
+      top: '1rem', right: '1rem',
+      background: 'none',
+      border: 'none',
+      color: 'var(--dim)',
+      fontSize: '1.5rem',
+      cursor: 'pointer'
+    });
+    closeBtn.onmouseover = () => closeBtn.style.color = 'var(--accent)';
+    closeBtn.onmouseout = () => closeBtn.style.color = 'var(--dim)';
+    closeBtn.onclick = closeModal;
+    modal.onclick = e => { if (e.target === modal) closeModal(); };
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  }
+
+  // Show modal + fetch content
+  modal.style.opacity = '1';
+  modal.style.visibility = 'visible';
+  modal.querySelector('.modal-content').style.transform = 'scale(1)';
+  document.body.style.overflow = 'hidden';
+
+  const body = document.getElementById('modal-body');
+  body.innerHTML = '<p style="text-align:center;padding:2rem;">Loading...</p>';
+
+  fetch(url)
+    .then(res => res.ok ? res.text() : Promise.reject(`HTTP ${res.status}`))
+    .then(html => body.innerHTML = html)
+    .catch(err => {
+      console.error('Modal load failed:', err);
+      body.innerHTML = `
+        <h2 style="color:var(--accent);">⚠️ Failed to load methodology</h2>
+        <p>Could not load: <code>${url}</code></p>
+        <p style="font-size:0.9rem;color:var(--dim);">Ensure <code>ipcc-methodology.html</code> exists in your repo root.</p>
+        <button onclick="document.getElementById('modal-overlay').click()" style="
+          margin-top:1rem;padding:0.5rem 1rem;background:var(--accent);color:var(--card);
+          border:none;border-radius:0.375rem;cursor:pointer;
+        ">Close</button>
+      `;
+    });
+};
+
+function closeModal() {
+  const modal = document.getElementById('modal-overlay');
+  if (!modal) return;
+  modal.style.opacity = '0';
+  modal.querySelector('.modal-content').style.transform = 'scale(0.95)';
+  setTimeout(() => {
+    modal.style.visibility = 'hidden';
+    document.body.style.overflow = '';
+  }, 300);
+}
+
+// ===== CARBON + IQAir — SAFE INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   // IQAir
   const API_KEY = 'f74e14f9-86c9-4246-8065-ec2018624690';
-  const loc = document.getElementById('location-data');
-  const aqiDisp = document.getElementById('aqi-display');
-  const city = document.getElementById('city-name');
-  const aqiVal = document.getElementById('aqi-value');
-  const aqiCat = document.getElementById('aqi-category');
-  const co2Val = document.getElementById('co2-value');
-  const tempVal = document.getElementById('temp-value');
-  
-  function getLocation() {
-    if (!navigator.geolocation) return loc.textContent = '🔒 Geolocation not supported.';
-    loc.textContent = '📍 Detecting your location...';
+  const el = {
+    loc: document.getElementById('location-data'),
+    aqi: document.getElementById('aqi-display'),
+    city: document.getElementById('city-name'),
+    aqiv: document.getElementById('aqi-value'),
+    aqic: document.getElementById('aqi-category'),
+    co2: document.getElementById('co2-value'),
+    temp: document.getElementById('temp-value')
+  };
+
+  if (el.loc && navigator.geolocation) {
+    el.loc.textContent = '📍 Detecting your location...';
     navigator.geolocation.getCurrentPosition(
-      pos => fetchIQAir(pos.coords.latitude, pos.coords.longitude),
-      err => {
-        loc.textContent = '🔒 Data Inaccessible';
-        loc.style.color = '#ff7e00';
-        aqiDisp.classList.add('hidden');
+      pos => {
+        fetch(`https://api.airvisual.com/v2/nearest_city?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&key=${API_KEY}`)
+          .then(r => r.json())
+          .then(d => {
+            if (d.status !== 'success') throw 'Invalid response';
+            const a = d.data.current.pollution.aqius;
+            const cats = [{max:50,n:'Good',c:'#00e400'},{max:100,n:'Moderate',c:'#ffff00'},{max:150,n:'Unhealthy for Sensitive',c:'#ff7e00'},{max:200,n:'Unhealthy',c:'#ff0000'},{max:300,n:'Very Unhealthy',c:'#8f3f97'},{max:999,n:'Hazardous',c:'#7e0023'}];
+            const c = cats.find(x => a <= x.max) || cats[0];
+            el.city.textContent = d.data.city || 'Nearby';
+            el.aqiv.textContent = a;
+            el.aqic.textContent = c.n;
+            el.aqic.style.color = c.c;
+            el.co2.textContent = Math.round(400 + (a / 300) * 150);
+            el.temp.textContent = d.data.current.weather.tp;
+            el.loc.classList.add('hidden');
+            el.aqi.classList.remove('hidden');
+          })
+          .catch(() => {
+            el.loc.textContent = '🔒 Data Inaccessible';
+            el.loc.style.color = '#ff7e00';
+            el.aqi.classList.add('hidden');
+          });
+      },
+      () => {
+        el.loc.textContent = '🔒 Data Inaccessible';
+        el.loc.style.color = '#ff7e00';
+        el.aqi.classList.add('hidden');
       },
       { timeout: 10000 }
     );
   }
-  
-  async function fetchIQAir(lat, lon) {
-    try {
-      const res = await fetch(`https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lon}&key=${API_KEY}`);
-      const data = await res.json();
-      if (data.status !== 'success') throw new Error('Invalid IQAir response');
-      const d = data.data;
-      const aqius = d.current.pollution.aqius;
-      const categories = [
-        {max:50, name:'Good', color:'#00e400'},
-        {max:100, name:'Moderate', color:'#ffff00'},
-        {max:150, name:'Unhealthy for Sensitive', color:'#ff7e00'},
-        {max:200, name:'Unhealthy', color:'#ff0000'},
-        {max:300, name:'Very Unhealthy', color:'#8f3f97'},
-        {max:Infinity, name:'Hazardous', color:'#7e0023'}
-      ];
-      const cat = categories.find(c => aqius <= c.max) || categories[0];
-      city.textContent = `${d.city || 'Nearby'}${d.state ? `, ${d.state}` : ''}`;
-      aqiVal.textContent = aqius;
-      aqiCat.textContent = cat.name;
-      aqiCat.style.color = cat.color;
-      co2Val.textContent = Math.round(400 + (aqius / 300) * 150);
-      tempVal.textContent = d.current.weather.tp;
-      loc.classList.add('hidden');
-      aqiDisp.classList.remove('hidden');
-    } catch (err) {
-      loc.textContent = '⚠️ Data unavailable';
-      aqiDisp.classList.add('hidden');
-    }
-  }
-  
+
   // Carbon Counter
-  let sec = 0;
-  const timeEl = document.getElementById('time-spent');
-  const co2El = document.getElementById('carbon-value');
-  const riceEl = document.getElementById('equivalent');
-  const srcEl = document.getElementById('rice-source');
   setInterval(() => {
-    sec++;
-    timeEl.textContent = sec;
+    const t = document.getElementById('time-spent');
+    const c = document.getElementById('carbon-value');
+    const e = document.getElementById('equivalent');
+    if (!t || !c || !e) return;
+    const sec = parseInt(t.textContent) + 1;
+    t.textContent = sec;
     const co2 = (sec * 0.0003).toFixed(1);
-    co2El.textContent = co2;
-    riceEl.textContent = (co2 / 1.8).toFixed(3) + ' g of rice';
-    if (srcEl) srcEl.textContent = 'Based on: 1g rice ≈ 1.8g CO₂e (Our World in Data)';
+    c.textContent = co2;
+    e.textContent = (parseFloat(co2) / 1.8).toFixed(3) + ' g of rice';
   }, 1000);
-  
-  getLocation();
-});
 
-// ===== MODAL SYSTEM =====
-document.addEventListener('DOMContentLoaded', () => {
-  const modal = document.getElementById('modal-overlay');
-  const body = document.getElementById('modal-body');
-  const close = document.getElementById('modal-close');
-  
-  window.openModal = async (url) => {
-    try {
-      const res = await fetch(url);
-      body.innerHTML = await res.text();
-      modal.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    } catch (e) {
-      body.innerHTML = `<h2 style="color:var(--accent)">⚠️ Failed to load</h2><p>${e.message || 'Check console'}</p>`;
-      modal.classList.add('active');
-    }
-  };
-  
-  const closeModal = () => {
-    modal.classList.remove('active');
-    setTimeout(() => body.innerHTML = '', 300);
-    document.body.style.overflow = '';
-  };
-  
-  if (close) close.onclick = closeModal;
-  if (modal) modal.onclick = e => { if (e.target === modal) closeModal(); };
-  document.onkeydown = e => { if (e.key === 'Escape') closeModal(); };
-});
+  // Theme Toggle
+  const toggle = document.getElementById('theme-toggle');
+  if (toggle) {
+    toggle.onclick = () => {
+      const html = document.documentElement;
+      html.classList.contains('light') ? html.classList.remove('light') : html.classList.add('light');
+    };
+  }
 
-// ===== SEARCH (FIXED: middle only, sidebars stay) =====
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('search-input');
-  const results = document.getElementById('search-results');
-  const mainContent = document.getElementById('main-content');
-  
-  if (!input) return;
-  
-  input.addEventListener('input', () => {
-    const q = input.value.trim().toLowerCase();
-    if (!q) {
-      document.body.classList.remove('search-active');
-      results.innerHTML = '';
-      results.classList.remove('visible');
-      mainContent.style.display = 'block';
-      return;
-    }
-    
-    // Hide main content, show results
-    mainContent.style.display = 'none';
-    results.classList.add('visible');
-    
-    // Search in #content and #tools cards
-    const allCards = document.querySelectorAll('#content .card, #tools .card');
-    const matches = [];
-    
-    allCards.forEach(card => {
-      const title = card.querySelector('h3')?.textContent || '';
-      const desc = card.querySelector('p')?.textContent || '';
-      const btns = Array.from(card.querySelectorAll('a')).map(a => a.textContent).join(' ');
-      const text = `${title} ${desc} ${btns}`.toLowerCase();
-      if (text.includes(q)) matches.push(card.cloneNode(true));
-    });
-    
-    if (matches.length) {
-      results.innerHTML = `
-        <h3 style="text-align:center; margin-bottom:1rem; color:var(--accent);">Results for "<strong>${q}</strong>"</h3>
+  // Search
+  const search = document.getElementById('search-input');
+  if (search) {
+    search.oninput = () => {
+      const q = search.value.trim().toLowerCase();
+      const results = document.getElementById('search-results') || (() => {
+        const r = document.createElement('div');
+        r.id = 'search-results';
+        search.parentNode.insertBefore(r, search.nextSibling);
+        return r;
+      })();
+      
+      if (!q) {
+        document.body.classList.remove('search-active');
+        results.innerHTML = '';
+        return;
+      }
+
+      document.body.classList.add('search-active');
+      const matches = [];
+      ['#content', '#tools'].forEach(id => {
+        document.querySelectorAll(`${id} .card`).forEach(card => {
+          const txt = [card.querySelector('h3'), card.querySelector('p')]
+            .map(x => x?.textContent || '')
+            .join(' ') + Array.from(card.querySelectorAll('a')).map(a => a.textContent).join(' ');
+          if (txt.toLowerCase().includes(q)) matches.push(card.cloneNode(true));
+        });
+      });
+
+      results.innerHTML = matches.length ? `
+        <h3 style="text-align:center; margin:1rem 0; color:var(--accent);">
+          ${matches.length} result${matches.length !== 1 ? 's' : ''} for "<strong>${search.value}</strong>"
+        </h3>
         ${matches.map(c => c.outerHTML).join('')}
+      ` : `
+        <div class="card" style="text-align:center;padding:2rem;">
+          <p>No results for "<strong>${search.value}</strong>"</p>
+        </div>
       `;
-    } else {
-      results.innerHTML = `<div class="card" style="text-align:center; padding:2rem;"><p>No results for "<strong>${q}</strong>"</p></div>`;
-    }
-  });
+    };
+  }
 });

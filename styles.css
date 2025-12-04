@@ -436,3 +436,24 @@ p {
 }
 .search-active .content-columns { flex-direction: column; }
 .hidden { display: none !important; }
+
+.search-results {
+    margin-top: 1.5rem;
+    display: none;
+}
+.search-results.visible {
+    display: block;
+}
+.search-results .card {
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 182, 76, 0.15);
+    border: 1px solid var(--accent);
+}
+.hidden-modal {
+    visibility: hidden;
+    opacity: 0;
+}
+@keyframes slideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}

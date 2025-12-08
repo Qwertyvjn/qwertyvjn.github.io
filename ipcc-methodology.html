@@ -1,389 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPCC Carbon Counting Methodology</title>
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* ======================================================= */
-        /* CORE CONTENT STYLES */
-        /* ======================================================= */
-        /* Set base style for the entire page body */
-        body { 
-            font-family: Inter, ui-sans-serif, system-ui; 
-            background-color: #121212; 
-            color: #e0e0e0; 
-            padding: 2rem; /* Add padding directly to the body */
-            margin: 0; 
-            min-height: 100vh;
-        }
-
-        /* Styling for the content container */
-        .content-container {
-            max-width: 900px;
-            margin: 0 auto; /* Center the content on the page */
-            padding: 1.5rem;
-            background-color: #1e1e1e;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        }
-        
-        h1, h2, h3 { color: #00b64c; margin-bottom: 0.5rem; }
-        
-        /* FIX: Explicitly define the hidden class for JavaScript toggling */
-        .hidden {
-            display: none !important;
-        }
-
-        /* Interactive Glossary Styles */
-        .term {
-            cursor: help;
-            border-bottom: 2px dashed #00b64c;
-            position: relative;
-            display: inline-block;
-            font-weight: bold;
-        }
-        .tooltip-box {
-            position: absolute;
-            left: 50%;
-            top: 120%;
-            transform: translateX(-50%);
-            background-color: #333;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
-            z-index: 1000;
-            font-size: 0.85rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            border: 1px solid #00b64c;
-        }
-        .term:hover .tooltip-box {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* ======================================================= */
-        /* SVG DIAGRAM STYLES (Retained - Now visual only) */
-        /* ======================================================= */
-        .diagram-container {
-            position: relative;
-            max-width: 600px;
-            width: 100%;
-            aspect-ratio: 600 / 400; /* Fixed aspect ratio for clean SVG display */
-            margin: 1.5rem auto;
-            border-radius: 8px;
-            background-color: #2a2a2a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-        .scope-ring {
-            /* Removed cursor: pointer; to indicate it's no longer the primary click target */
-            transition: stroke-width 0.3s, opacity 0.3s;
-        }
-        .scope-hotspot-label {
-            pointer-events: none; /* Allows clicks to pass through to the SVG circle */
-            font-weight: bold;
-            font-size: 14px;
-            transition: fill 0.3s;
-        }
-        .scope-label-subtext {
-            pointer-events: none;
-            font-size: 10px;
-        }
-        
-        /* New card styling for click interaction */
-        .scope-card {
-            background-color: rgba(255, 255, 255, 0.05); /* Unified dark background */
-            border: 2px solid transparent;
-            min-width: 150px;
-            text-align: center;
-        }
-
-        /* Card color hints for non-selected state */
-        #card-1 { border-left-color: #f56565; }
-        #card-2 { border-left-color: #ecc94b; }
-        #card-3 { border-left-color: #00b64c; }
-
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IPCC Carbon Counting Methodology</title>
+  <!-- Tailwind CDN - this works in modal too -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Make Tailwind work when injected into another page
+    tailwind.config = { corePlugins: { preflight: false } }
+  </script>
+  <style>
+    body { font-family: Inter, system-ui; background:#121212; color:#e0e0e0; margin:0; padding:2rem; }
+    h1,h2,h3,h4 { color:#00b64c; }
+    .term { cursor:help; border-bottom:2px dashed #00b64c; position:relative; display:inline-block; font-weight:bold; }
+    .tooltip-box {
+      position:absolute; left:50%; top:120%; transform:translateX(-50%);
+      background:#333; color:white; padding:8px 12px; border-radius:6px; white-space:nowrap;
+      opacity:0; visibility:hidden; transition:all 0.3s; z-index:1000; font-size:0.85rem;
+      box-shadow:0 4px 10px #000; border:1px solid #00b64c;
+    }
+    .term:hover .tooltip-box { opacity:1; visibility:visible; }
+    .hidden { display:none !important; }
+    .diagram-container { max-width:600px; margin:2rem auto; background:#2a2a2a; border-radius:8px; padding:1rem; }
+  </style>
 </head>
 <body>
-    
-    <!-- MAIN CONTENT CONTAINER -->
-    <div class="content-container text-gray-200" id="main-content">
-        
-        <h1 class="text-3xl font-bold mb-6 text-center">🌍 IPCC Carbon Counting — Methodology</h1>
-        
-        <h2 class="text-xl font-semibold mt-4 mb-2">1 & 2. The Foundation: What is Carbon Counting and the IPCC?</h2>
-        <p class="mb-2 text-sm text-gray-400">
-            <strong>Carbon Counting</strong> is the process of quantifying the total amount of greenhouse gases (CO<sub>2</sub>e) emitted directly and indirectly by an individual, organization, or country over a specific period. It's the primary tool for measuring climate impact.
-        </p>
-        <p class="mb-4 text-sm text-gray-400">
-            The foundation for this entire process comes from the <strong>Intergovernmental Panel on Climate Change (IPCC)</strong>, which provides the scientific guidelines and consensus used globally. Organizations then translate these guidelines into actionable frameworks, most notably the <strong>Greenhouse Gas (GHG) Protocol</strong>, which structures how emissions are measured.
-        </p>
+  <!-- THIS WRAPPER IS REQUIRED FOR MODAL TO WORK -->
+  <div class="content-body">
 
-        <h2 class="text-xl font-semibold mt-6 mb-2">3. Why It Matters: Management and Mitigation</h2>
-        <p class="mb-4 text-sm text-gray-400">
-            Counting carbon is essential because <strong>you cannot manage what you do not measure.</strong> It identifies emission hotspots and allows engineers to target the most effective areas for reduction.
-        </p>
-        
-        <div class="p-3 bg-neutral-700 rounded-lg text-sm mb-4">
-            <p class="font-bold text-yellow-400 mb-1">Examples of Usage:</p>
-            <ul class="list-disc list-inside ml-4 space-y-1">
-                <li><strong>Policy:</strong> Governments use national inventories (based on IPCC) to set climate targets and sign international treaties.</li>
-                <li><strong>Investment:</strong> Companies use carbon data to report to investors and set corporate sustainability goals (e.g., "Net-Zero by 2050").</li>
-                <li><strong>Engineering:</strong> Engineers use CO<sub>2</sub>e metrics in Life Cycle Assessments (LCA) to design lower-impact products.</li>
-            </ul>
-        </div>
+    <h1 class="text-3xl font-bold mb-6 text-center">IPCC Carbon Counting — Methodology</h1>
 
-        <h2 class="text-xl font-semibold mt-6 mb-2">4. The Process: How to Do Carbon Counting</h2>
-        <p class="mb-2 text-sm text-gray-400">
-            The process is based on a simple relationship that determines the emissions for any activity:
-        </p>
+    <h2 class="text-xl font-semibold mt-4 mb-2">1 & 2. The Foundation: What is Carbon Counting and the IPCC?</h2>
+    <p class="mb-2 text-sm text-gray-400">
+      <strong>Carbon Counting</strong> is the process of quantifying the total amount of greenhouse gases (CO₂e) emitted directly and indirectly by an individual, organization, or country over a specific period. It's the primary tool for measuring climate impact.
+    </p>
+    <p class="mb-4 text-sm text-gray-400">
+      The foundation for this entire process comes from the <strong>Intergovernmental Panel on Climate Change (IPCC)</strong>, which provides the scientific guidelines and consensus used globally. Organizations then translate these guidelines into actionable frameworks, most notably the <strong>Greenhouse Gas (GHG) Protocol</strong>, which structures how emissions are measured.
+    </p>
 
-        <!-- Core Formula -->
-        <div class="bg-neutral-700 p-4 rounded-lg text-center text-lg font-mono">
-            CO<sub>2</sub>e = Activity Data &times; Emission Factor
-        </div>
+    <h2 class="text-xl font-semibold mt-6 mb-2">3. Why It Matters: Management and Mitigation</h2>
+    <p class="mb-4 text-sm text-gray-400">
+      Counting carbon is essential because <strong>you cannot manage what you do not measure.</strong> It identifies emission hotspots and allows engineers to target the most effective areas for reduction.
+    </p>
 
-        <p class="mt-2 text-sm text-gray-400">
-            Where <strong>Activity Data</strong> is the amount of resource used (e.g., 100 kWh of electricity), and the <strong>Emission Factor</strong> is the known CO<sub>2</sub>e intensity of that resource (e.g., 0.71 kg CO<sub>2</sub>e per kWh in Indonesia).
-        </p>
-        
-        <h2 class="text-xl font-semibold mt-6 mb-2">5. Scope and Tier Breakdown (Interactive Diagram)</h2>
-        <p class="mb-4 text-sm text-gray-400 text-center">
-            The three Scopes define where the emissions occur. Use the cards below to explore the methodology.
-        </p>
-        
-        <!-- DYNAMIC DIAGRAM (SVG BASED - VISUAL ONLY) -->
-        <div class="diagram-container" id="scope-diagram">
-            <svg width="100%" height="100%" viewBox="0 0 600 400" id="scope-svg">
-                
-                <!-- Scope 3 Ring (Largest/Value Chain) -->
-                <circle id="ring-3" class="scope-ring" data-scope="3" cx="300" cy="200" r="160" stroke="#00b64c" fill="rgba(0, 182, 76, 0.05)" stroke-width="4" stroke-dasharray="8, 4"/>
-                <text class="scope-hotspot-label" x="465" y="195" fill="#00b64c" id="label-3">SCOPE 3</text>
-                <text class="scope-label-subtext" x="465" y="215" fill="#a0aec0" id="sublabel-3">Value Chain (Indirect)</text>
-
-                <!-- Scope 2 Ring (Middle/Purchased Energy) -->
-                <circle id="ring-2" class="scope-ring" data-scope="2" cx="300" cy="200" r="110" stroke="#ecc94b" fill="rgba(236, 201, 75, 0.08)" stroke-width="4"/>
-                <text class="scope-hotspot-label" x="300" y="70" text-anchor="middle" fill="#ecc94b" id="label-2">SCOPE 2</text>
-                <text class="scope-label-subtext" x="300" y="85" text-anchor="middle" fill="#a0aec0" id="sublabel-2">Purchased Energy</text>
-
-                <!-- Scope 1 Ring (Smallest/Direct Emissions) -->
-                <circle id="ring-1" class="scope-ring" data-scope="1" cx="300" cy="200" r="60" stroke="#f56565" fill="rgba(245, 101, 101, 0.1)" stroke-width="4"/>
-                <text class="scope-hotspot-label" x="300" y="205" text-anchor="middle" fill="#f56565" id="label-1">SCOPE 1</text>
-                <text class="scope-label-subtext" x="300" y="225" text-anchor="middle" fill="#a0aec0" id="sublabel-1">Direct Emissions</text>
-
-            </svg>
-        </div>
-        
-        <!-- NEW EASIER INTERACTIVE SECTION: Clickable Cards -->
-        <div id="scope-cards" class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mt-8">
-            <div id="card-1" data-scope="1" class="scope-card p-4 rounded-lg shadow-xl cursor-pointer transition-all duration-300 bg-red-800/10 border-2 border-transparent hover:border-red-500 hover:bg-red-800/30">
-                <h4 class="font-bold text-red-400">Scope 1</h4>
-                <p class="text-xs text-gray-400">Direct Emissions</p>
-            </div>
-            <div id="card-2" data-scope="2" class="scope-card p-4 rounded-lg shadow-xl cursor-pointer transition-all duration-300 bg-yellow-800/10 border-2 border-transparent hover:border-yellow-500 hover:bg-yellow-800/30">
-                <h4 class="font-bold text-yellow-400">Scope 2</h4>
-                <p class="text-xs text-gray-400">Purchased Energy</p>
-            </div>
-            <div id="card-3" data-scope="3" class="scope-card p-4 rounded-lg shadow-xl cursor-pointer transition-all duration-300 bg-green-800/10 border-2 border-transparent hover:border-green-500 hover:bg-green-800/30">
-                <h4 class="font-bold text-green-400">Scope 3</h4>
-                <p class="text-xs text-gray-400">Value Chain (Indirect)</p>
-            </div>
-        </div>
-        
-        <p class="text-sm text-gray-400 text-center mb-4 mt-4">Click one of the cards above to see the detailed breakdown.</p>
-        
-        <!-- Detailed Scope Content - Starts Hidden, revealed by card click -->
-        <div id="detailed-scopes" class="min-h-[250px]">
-            <h3 class="text-lg font-medium mt-4">Selected Scope Breakdown</h3>
-            
-            <!-- SCOPE 1 DETAIL -->
-            <div id="scope-detail-1" class="scope-box mt-3 p-3 bg-red-800 bg-opacity-30 border-l-4 border-red-500 hidden" data-scope="1">
-                <h4 class="font-bold text-white">Scope 1: Direct Emissions (In My Backyard)</h4>
-                <p class="text-sm">Emissions directly from sources you **own or control**. These are the most measurable emissions.</p>
-                <p class="text-xs mt-1"><strong>Examples:</strong> Burning fuel in company cars/boilers, manufacturing process emissions, company-owned refrigerants.</p>
-                
-                <div class="mt-2 p-2 bg-neutral-700 rounded text-xs">
-                    <p class="font-bold text-yellow-400">Relevant Tier Methodology:</p>
-                    <ul class="list-disc list-inside ml-2 space-y-1">
-                        <li><strong>Tier 1:</strong> Basic Fuel Use (based on national/global average fuel factor).</li>
-                        <li><strong>Tier 2:</strong> Equipment-Specific Factors (e.g., using a factor specific to your boiler type).</li>
-                        <li><strong>Tier 3:</strong> Continuous Monitoring (e.g., live measurements of stack emissions).</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- SCOPE 2 DETAIL -->
-            <div id="scope-detail-2" class="scope-box mt-3 p-3 bg-yellow-800 bg-opacity-30 border-l-4 border-yellow-500 hidden" data-scope="2">
-                <h4 class="font-bold text-white">Scope 2: Energy Consumption (My Utility Bill)</h4>
-                <p class="text-sm">Emissions from the **generation of purchased electricity, steam, heating, and cooling** consumed by your company.</p>
-                <p class="text-xs mt-1"><strong>Example:</strong> The CO<sub>2</sub> released at the power plant that generates the electricity you buy for your office. Calculation can be location or market-based.</p>
-                
-                <div class="mt-2 p-2 bg-neutral-700 rounded text-xs">
-                    <p class="font-bold text-yellow-400">Relevant Tier Methodology:</p>
-                    <ul class="list-disc list-inside ml-2 space-y-1">
-                        <li><strong>Tier 1:</strong> Location-Based Average (using the regional grid factor, like the <span class="term" data-tooltip="Perusahaan Listrik Negara (PLN) is the state-owned utility grid, which heavily influences the national electricity emission factor.">PLN grid</span> factor).</li>
-                        <li><strong>Tier 2:</strong> Supplier-Specific Data (if your provider has a cleaner, verifiable mix).</li>
-                        <li><strong>Tier 3:</strong> Hourly/Market-Based Data (reflecting real-time energy purchases or specific renewable energy certificates).</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- SCOPE 3 DETAIL -->
-            <div id="scope-detail-3" class="scope-box mt-3 p-3 bg-green-800 bg-opacity-30 border-l-4 border-green-500 hidden" data-scope="3">
-                <h4 class="font-bold text-white">Scope 3: Value Chain (Everything Else)</h4>
-                <p class="text-sm">All other indirect emissions that occur in the **value chain** (both upstream and downstream). This is usually the largest category and requires the use of Tiers to manage data quality.</p>
-                <p class="text-xs mt-1"><strong>Examples:</strong> Business travel, employee commuting, manufacturing of purchased goods, waste disposal, and end-of-life treatment of sold products.</p>
-                
-                <div class="mt-2 p-2 bg-neutral-700 rounded text-xs">
-                    <p class="font-bold text-yellow-400">Relevant Tier Methodology:</p>
-                    <ul class="list-disc list-inside ml-2 space-y-1">
-                        <li><strong>Tier 1 (Simplest):</strong> Uses **industry-average** emission factors (e.g., generic laptop CO<sub>2</sub> factor). Quick and cheap.</li>
-                        <li><strong>Tier 2 (Better):</strong> Uses **regionally specific** data or economic input/output models.</li>
-                        <li><strong>Tier 3 (Best):</strong> Uses **supplier-specific primary data** (e.g., surveying the exact factory emissions). The gold standard, but requires significant effort.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        
-        <h2 class="text-xl font-semibold mt-6 mb-2">Example Calculation (Scope 2)</h2>
-        <p class="text-sm">
-            To calculate the emissions from 100 kWh of electricity (Scope 2):
-        </p>
-        <div class="bg-neutral-700 p-3 rounded-lg text-sm font-mono mt-2">
-            100 kWh &times; 0.71 kg CO<sub>2</sub>/kWh = 71 kg CO<sub>2</sub>e
-        </div>
-
-        <h2 class="text-xl font-semibold mt-6 mb-2">Useful Links</h2>
-        <div class="p-3 bg-neutral-700 rounded-lg text-sm mb-4 space-y-3">
-            <p class="font-bold text-yellow-400">Emission Factors:</p>
-            <ul class="list-disc list-inside ml-4 space-y-1">
-                <li><a href="https://www.ipcc-nggip.iges.or.jp/EFDB/main.php" target="_blank" class="useful-link"><strong>a. IPCC Emission Factor Database (EFDB):</strong></a> The core scientific repository for global inventory factors.</li>
-                <li><a href="https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2025" target="_blank" class="useful-link"><strong>b. UK Government Conversion Factors (DEFRA/DESNZ):</strong></a> Excellent annual database for specific activities (e.g., transport, materials).</li>
-                <li><a href="https://www.epa.gov/climateleadership/ghg-emission-factors-hub" target="_blank" class="useful-link"><strong>c. US EPA GHG Emission Factors Hub:</strong></a> Regularly updated factors, especially useful for energy and waste.</li>
-            </ul>
-
-            <p class="font-bold text-yellow-400 pt-3">Simulation:</p>
-            <a href="ipcc-simulator.html" target="_blank" class="useful-link block ml-4">Go to the Interactive Carbon Simulator (ipcc-simulator.html) &rarr;</a>
-        </div>
-        
+    <div class="p-3 bg-neutral-700 rounded-lg text-sm mb-4">
+      <p class="font-bold text-yellow-400 mb-1">Examples of Usage:</p>
+      <ul class="list-disc list-inside ml-4 space-y-1">
+        <li><strong>Policy:</strong> Governments use national inventories (based on IPCC) to set climate targets.</li>
+        <li><strong>Investment:</strong> Companies use carbon data to report to investors.</li>
+        <li><strong>Engineering:</strong> Engineers use CO₂e metrics in Life Cycle Assessments (LCA).</li>
+      </ul>
     </div>
 
-    <script>
-        
-        // =======================================================
-        // METHOD 1: INTERACTIVE GLOSSARY SETUP
-        // =======================================================
+    <h2 class="text-xl font-semibold mt-6 mb-2">4. The Process: How to Do Carbon Counting</h2>
+    <div class="bg-neutral-700 p-4 rounded-lg text-center text-lg font-mono mb-6">
+      CO₂e = Activity Data × Emission Factor
+    </div>
 
-        function initGlossary() {
-            const terms = document.querySelectorAll('.term');
-            terms.forEach(term => {
-                const tooltipText = term.getAttribute('data-tooltip');
-                if (tooltipText) {
-                    const tooltip = document.createElement('div');
-                    tooltip.className = 'tooltip-box';
-                    tooltip.textContent = tooltipText;
-                    term.appendChild(tooltip);
-                }
-            });
-        }
+    <h2 class="text-xl font-semibold mt-6 mb-2">5. Scope and Tier Breakdown (Interactive Diagram)</h2>
+    <p class="mb-4 text-sm text-gray-400 text-center">
+      The three Scopes define where the emissions occur. Use the cards below to explore the methodology.
+    </p>
 
-        // =======================================================
-        // METHOD 3: DYNAMIC DIAGRAM LABELER (NEW CARD INTERACTION)
-        // =======================================================
+    <div class="diagram-container">
+      <svg width="100%" height="400" viewBox="0 0 600 400">
+        <circle class="scope-ring" data-scope="3" cx="300" cy="200" r="160" stroke="#00b64c" fill="rgba(0,182,76,0.05)" stroke-width="4" stroke-dasharray="8,4"/>
+        <text x="465" y="195" fill="#00b64c" font-size="18" font-weight="bold">SCOPE 3</text>
+        <text x="465" y="215" fill="#a0aec0" font-size="12">Value Chain (Indirect)</text>
 
-        function initDiagramInteraction() {
-            const rings = document.querySelectorAll('.scope-ring');
-            const scopeCards = document.querySelectorAll('.scope-card'); // <-- New Selector
-            const scopeBoxes = document.querySelectorAll('.scope-box');
-            
-            // Map scope to its highlight color
-            const scopeColors = {
-                '1': '#f56565', // Red
-                '2': '#ecc94b', // Yellow
-                '3': '#00b64c'  // Green
-            };
-            
-            // Map scope to its default fill color (low opacity)
-            const scopeFills = {
-                '1': 'rgba(245, 101, 101, 0.1)',
-                '2': 'rgba(236, 201, 75, 0.08)',
-                '3': 'rgba(0, 182, 76, 0.05)'
-            };
+        <circle class="scope-ring" data-scope="2" cx="300" cy="200" r="110" stroke="#ecc94b" fill="rgba(236,201,75,0.08)" stroke-width="4"/>
+        <text x="300" y="70" text-anchor="middle" fill="#ecc94b" font-size="18" font-weight="bold">SCOPE 2</text>
+        <text x="300" y="90" text-anchor="middle" fill="#a0aec0" font-size="12">Purchased Energy</text>
 
-            const showScopeDetail = (scope) => {
-                // Show/hide detail box
-                scopeBoxes.forEach(box => {
-                    if (box.getAttribute('data-scope') === scope) {
-                        box.classList.remove('hidden');
-                    } else {
-                        box.classList.add('hidden');
-                    }
-                });
-                
-                // Highlight the selected SVG ring AND the selected card
-                rings.forEach(ring => {
-                    const ringScope = ring.getAttribute('data-scope');
-                    
-                    if (ringScope === scope) {
-                        // SVG Ring Highlight (Thicker stroke, white text)
-                        ring.style.strokeWidth = '8'; 
-                        ring.style.fill = scopeFills[ringScope]; 
-                        document.getElementById(`label-${ringScope}`).style.fill = 'white';
-                        document.getElementById(`sublabel-${ringScope}`).style.fill = 'white';
-                    } else {
-                        // SVG Ring Revert
-                        ring.style.strokeWidth = '4'; 
-                        ring.style.fill = scopeFills[ringScope];
-                        document.getElementById(`label-${ringScope}`).style.fill = scopeColors[ringScope];
-                        document.getElementById(`sublabel-${ringScope}`).style.fill = '#a0aec0';
-                    }
-                });
-                
-                // Highlight the selected Card
-                scopeCards.forEach(card => {
-                    const cardScope = card.getAttribute('data-scope');
-                    card.classList.remove('border-white/50', 'bg-opacity-50', 'bg-red-800/30', 'bg-yellow-800/30', 'bg-green-800/30');
-                    card.classList.add('bg-opacity-10');
+        <circle class="scope-ring" data-scope="1" cx="300" cy="200" r="60" stroke="#f56565" fill="rgba(245,101,101,0.1)" stroke-width="4"/>
+        <text x="300" y="205" text-anchor="middle" fill="#f56565" font-size="18" font-weight="bold">SCOPE 1</text>
+        <text x="300" y="225" text-anchor="middle" fill="#a0aec0" font-size="12">Direct Emissions</text>
+      </svg>
+    </div>
 
-                    if (cardScope === scope) {
-                        card.classList.add('border-white/50');
-                        // Add specific color background when selected
-                        if (scope === '1') card.classList.add('bg-red-800/30');
-                        if (scope === '2') card.classList.add('bg-yellow-800/30');
-                        if (scope === '3') card.classList.add('bg-green-800/30');
-                    }
-                });
-            };
-            
-            // Bind click events to the new cards
-            scopeCards.forEach(card => {
-                card.addEventListener('click', (e) => {
-                    const scope = e.currentTarget.getAttribute('data-scope');
-                    showScopeDetail(scope);
-                });
-            });
+    <div class="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+      <button data-scope="1" class="scope-btn px-6 py-4 rounded-xl font-bold transition-all duration-300 bg-red-900/20 hover:bg-red-900/40 border-2 border-transparent hover:border-red-500">
+        Scope 1<br><span class="text-sm opacity-80">Direct Emissions</span>
+      </button>
+      <button data-scope="2" class="scope-btn px-6 py-4 rounded-xl font-bold transition-all duration-300 bg-yellow-900/20 hover:bg-yellow-900/40 border-2 border-transparent hover:border-yellow-500">
+        Scope 2<br><span class="text-sm opacity-80">Purchased Energy</span>
+      </button>
+      <button data-scope="3" class="scope-btn px-6 py-4 rounded-xl font-bold transition-all duration-300 bg-green-900/20 hover:bg-green-900/40 border-2 border-transparent hover:border-green-500">
+        Scope 3<br><span class="text-sm opacity-80">Value Chain (Indirect)</span>
+      </button>
+    </div>
 
-            // Initialize: Show Scope 3 details by default on load and visually select it
-            showScopeDetail('3');
-        }
-        
-        // =======================================================
-        // INIT 
-        // =======================================================
-        document.addEventListener('DOMContentLoaded', () => {
-            initGlossary();
-            initDiagramInteraction();
+    <div id="detailed-scopes" class="mt-8 space-y-6">
+      <div id="scope-detail-1" class="scope-box hidden p-6 bg-red-900/30 border-l-4 border-red-500 rounded-lg">
+        <h3 class="text-xl font-bold text-red-400">Scope 1: Direct Emissions</h3>
+        <p>Emissions from sources you own or control — fuel combustion, company vehicles, fugitive emissions, etc.</p>
+      </div>
+      <div id="scope-detail-2" class="scope-box hidden p-6 bg-yellow-900/30 border-l-4 border-yellow-500 rounded-lg">
+        <h3 class="text-xl font-bold text-yellow-400">Scope 2: Purchased Energy</h3>
+        <p>Indirect emissions from the generation of purchased electricity, steam, heating, and cooling.</p>
+      </div>
+      <div id="scope-detail-3" class="scope-box p-6 bg-green-900/30 border-l-4 border-green-500 rounded-lg">
+        <h3 class="text-xl font-bold text-green-400">Scope 3: Value Chain</h3>
+        <p>All other indirect emissions in your value chain — usually the largest category (purchased goods, business travel, waste, etc.).</p>
+      </div>
+    </div>
+
+    <!-- Rest of your content (example, links, etc.) -->
+    <h2 class="text-xl font-semibold mt-8 mb-4">Example Calculation (Scope 2)</h2>
+    <div class="bg-neutral-700 p-4 rounded-lg text-center font-mono text-lg">
+      100 kWh × 0.71 kg CO₂/kWh = 71 kg CO₂e
+    </div>
+
+    <h2 class="text-xl font-semibold mt-8 mb-4">Useful Links</h2>
+    <div class="bg-neutral-700 p-4 rounded-lg space-y-2">
+      <a href="https://www.ipcc-nggip.iges.or.jp/EFDB/main.php" target="_blank" class="block text-green-400 hover:underline">IPCC Emission Factor Database</a>
+      <a href="https://ghgprotocol.org" target="_blank" class="block text-green-400 hover:underline">GHG Protocol</a>
+      <a href="ipcc-simulator.html" target="_blank" class="block text-green-400 hover:underline font-bold mt-4">→ Open Interactive Simulator</a>
+    </div>
+
+  </div> <!-- END .content-body -->
+
+  <script>
+    // Glossary tooltips
+    document.querySelectorAll('.term').forEach(term => {
+      const tip = term.dataset.tooltip;
+      if (tip) {
+        const box = document.createElement('div');
+        box.className = 'tooltip-box';
+        box.textContent = tip;
+        term.appendChild(box);
+      }
+    });
+
+    // Interactive cards + SVG highlight
+    document.querySelectorAll('.scope-btn, .scope-ring').forEach(el => {
+      el.addEventListener('click', () => {
+        const scope = el.dataset.scope;
+        document.querySelectorAll('.scope-box').forEach(box => {
+          box.classList.toggle('hidden', box.id !== `scope-detail-${scope}`);
         });
-    </script>
+        // Highlight selected ring
+        document.querySelectorAll('.scope-ring').forEach(ring => {
+          ring.style.strokeWidth = ring.dataset.scope === scope ? '8' : '4';
+        });
+      });
+    });
+
+    // Start with Scope 3
+    document.querySelector('[data-scope="3"]')?.click();
+  </script>
 </body>
 </html>

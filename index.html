@@ -93,14 +93,8 @@
       line-height: 1.6;
     }
     .hidden { display: none !important; }
-    /* ===== SEARCH FOCUS MODE ===== */
-    .search-active .sidebar,
-    .search-active .right-column,
-    .search-active header,
-    .search-active #content > h2,
-    .search-active #data,
-    .search-active #tools > h2,
-    .search-active .main > .content-columns > .left-column > .section:not(#content) {
+    /* ===== SEARCH FOCUS MODE (FIXED: Only hide middle content, keep sidebars) ===== */
+    .search-active #main-content {
       display: none !important;
     }
     .search-active .left-column {
@@ -160,97 +154,100 @@
             <input type="text" id="search-input" placeholder="🔍 Search content & tools..." class="search-input" />
             <div id="search-results" class="search-results"></div>
           </div>
-          <section id="content">
-            <h2>📚 Content</h2>
-            <div class="grid">
-              <!-- IPCC Carbon Counting -->
-              <div class="card">
-                <h3>🌍 IPCC Carbon Counting</h3>
-                <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
-                <div class="button-group">
-                  <a href="#" class="btn-material" onclick="openModal('ipcc-methodology.html'); return false;">Methodology</a>
-                  <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">Simulation</a>
+          <!-- ✅ MAIN CONTENT WRAPPER (Hidden during search) -->
+          <div id="main-content">
+            <section id="content">
+              <h2>📚 Content</h2>
+              <div class="grid">
+                <!-- IPCC Carbon Counting -->
+                <div class="card">
+                  <h3>🌍 IPCC Carbon Counting</h3>
+                  <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
+                  <div class="button-group">
+                    <a href="#" class="btn-material" onclick="openModal('ipcc-methodology.html'); return false;">Methodology</a>
+                    <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">Simulation</a>
+                  </div>
+                </div>
+                <!-- RED -->
+                <div class="card" id="simulation-red">
+                  <h3>🧪 Salinity Gradient Model (RED)</h3>
+                  <p><strong>The Chemical Waterfall:</strong> Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
+                  <div class="embed-placeholder" id="embed-red">Paste Insight Maker Embed Code Here</div>
+                  <div class="button-group">
+                    <a href="#" class="btn-material">Reading Material</a>
+                    <a href="#" class="btn-simulation">Simulation</a>
+                  </div>
+                  <div class="coming-soon-text">COMING SOON</div>
+                </div>
+                <!-- GPE -->
+                <div class="card" id="simulation-gpe">
+                  <h3>🏗️ Gravity Storage Calculator (GPE)</h3>
+                  <p><strong>Storing Energy with Bricks:</strong> A calculator demonstrating the massive mass (<em>M</em>) and height (<em>H</em>) required to store large-scale renewable energy using the physics of potential energy.</p>
+                  <div class="embed-placeholder" id="embed-gpe">Paste Looker Studio or Custom Embed Code Here</div>
+                  <div class="button-group">
+                    <a href="#" class="btn-material">Reading Material</a>
+                    <a href="#" class="btn-simulation">Simulation</a>
+                  </div>
+                  <div class="coming-soon-text">COMING SOON</div>
                 </div>
               </div>
-              <!-- RED -->
-              <div class="card" id="simulation-red">
-                <h3>🧪 Salinity Gradient Model (RED)</h3>
-                <p><strong>The Chemical Waterfall:</strong> Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
-                <div class="embed-placeholder" id="embed-red">Paste Insight Maker Embed Code Here</div>
-                <div class="button-group">
-                  <a href="#" class="btn-material">Reading Material</a>
-                  <a href="#" class="btn-simulation">Simulation</a>
-                </div>
-                <div class="coming-soon-text">COMING SOON</div>
+            </section>
+            <section id="data">
+              <h2>📊 The Global Carbon Pulse</h2>
+              <p>Tracking real-time indicators that define the challenge of climate mitigation and adaptation, powered by embedded public data feeds.</p>
+              <div class="card full">
+                <div class="embed-placeholder large" id="embed-data">Paste Interactive Looker Studio Dashboard Here</div>
               </div>
-              <!-- GPE -->
-              <div class="card" id="simulation-gpe">
-                <h3>🏗️ Gravity Storage Calculator (GPE)</h3>
-                <p><strong>Storing Energy with Bricks:</strong> A calculator demonstrating the massive mass (<em>M</em>) and height (<em>H</em>) required to store large-scale renewable energy using the physics of potential energy.</p>
-                <div class="embed-placeholder" id="embed-gpe">Paste Looker Studio or Custom Embed Here</div>
-                <div class="button-group">
-                  <a href="#" class="btn-material">Reading Material</a>
-                  <a href="#" class="btn-simulation">Simulation</a>
+            </section>
+            <section id="tools">
+              <h2>🔧 Tools</h2>
+              <div class="grid">
+                <!-- Tool 1: PPTX to PDF Converter -->
+                <div class="card" id="tool-pptx">
+                  <h3>📄 PPTX to PDF Converter</h3>
+                  <p>Convert PowerPoint presentations to PDF format — no software needed.</p>
+                  <div class="embed-placeholder" id="embed-pptx">Coming Soon</div>
+                  <div class="button-group">
+                    <a href="#" class="btn-material">Documentation</a>
+                    <a href="#" class="btn-simulation">Convert Now</a>
+                  </div>
                 </div>
-                <div class="coming-soon-text">COMING SOON</div>
-              </div>
-            </div>
-          </section>
-          <section id="data">
-            <h2>📊 The Global Carbon Pulse</h2>
-            <p>Tracking real-time indicators that define the challenge of climate mitigation and adaptation, powered by embedded public data feeds.</p>
-            <div class="card full">
-              <div class="embed-placeholder large" id="embed-data">Paste Interactive Looker Studio Dashboard Here</div>
-            </div>
-          </section>
-          <section id="tools">
-            <h2>🔧 Tools</h2>
-            <div class="grid">
-              <!-- Tool 1: PPTX to PDF Converter -->
-              <div class="card" id="tool-pptx">
-                <h3>📄 PPTX to PDF Converter</h3>
-                <p>Convert PowerPoint presentations to PDF format — no software needed.</p>
-                <div class="embed-placeholder" id="embed-pptx">Coming Soon</div>
-                <div class="button-group">
-                  <a href="#" class="btn-material">Documentation</a>
-                  <a href="#" class="btn-simulation">Convert Now</a>
+                <!-- Tool 2: COMING SOON -->
+                <div class="card" id="tool-2">
+                  <h3>⚙️ Tool 2</h3>
+                  <p>Placeholder for future utility.</p>
+                  <div class="embed-placeholder" id="embed-tool2">Coming Soon</div>
+                  <div class="button-group">
+                    <a href="#" class="btn-material">Learn More</a>
+                    <a href="#" class="btn-simulation">Try It</a>
+                  </div>
+                  <div class="coming-soon-text">COMING SOON</div>
+                </div>
+                <!-- Tool 3: COMING SOON -->
+                <div class="card" id="tool-3">
+                  <h3>🧮 Tool 3</h3>
+                  <p>Placeholder for future utility.</p>
+                  <div class="embed-placeholder" id="embed-tool3">Coming Soon</div>
+                  <div class="button-group">
+                    <a href="#" class="btn-material">Learn More</a>
+                    <a href="#" class="btn-simulation">Try It</a>
+                  </div>
+                  <div class="coming-soon-text">COMING SOON</div>
+                </div>
+                <!-- Tool 4: COMING SOON -->
+                <div class="card" id="tool-4">
+                  <h3>🌐 Tool 4</h3>
+                  <p>Placeholder for future utility.</p>
+                  <div class="embed-placeholder" id="embed-tool4">Coming Soon</div>
+                  <div class="button-group">
+                    <a href="#" class="btn-material">Learn More</a>
+                    <a href="#" class="btn-simulation">Try It</a>
+                  </div>
+                  <div class="coming-soon-text">COMING SOON</div>
                 </div>
               </div>
-              <!-- Tool 2: COMING SOON -->
-              <div class="card" id="tool-2">
-                <h3>⚙️ Tool 2</h3>
-                <p>Placeholder for future utility.</p>
-                <div class="embed-placeholder" id="embed-tool2">Coming Soon</div>
-                <div class="button-group">
-                  <a href="#" class="btn-material">Learn More</a>
-                  <a href="#" class="btn-simulation">Try It</a>
-                </div>
-                <div class="coming-soon-text">COMING SOON</div>
-              </div>
-              <!-- Tool 3: COMING SOON -->
-              <div class="card" id="tool-3">
-                <h3>🧮 Tool 3</h3>
-                <p>Placeholder for future utility.</p>
-                <div class="embed-placeholder" id="embed-tool3">Coming Soon</div>
-                <div class="button-group">
-                  <a href="#" class="btn-material">Learn More</a>
-                  <a href="#" class="btn-simulation">Try It</a>
-                </div>
-                <div class="coming-soon-text">COMING SOON</div>
-              </div>
-              <!-- Tool 4: COMING SOON -->
-              <div class="card" id="tool-4">
-                <h3>🌐 Tool 4</h3>
-                <p>Placeholder for future utility.</p>
-                <div class="embed-placeholder" id="embed-tool4">Coming Soon</div>
-                <div class="button-group">
-                  <a href="#" class="btn-material">Learn More</a>
-                  <a href="#" class="btn-simulation">Try It</a>
-                </div>
-                <div class="coming-soon-text">COMING SOON</div>
-              </div>
-            </div>
-          </section>
+            </section>
+          </div> <!-- End #main-content -->
         </div>
         <!-- Right Column -->
         <div class="right-column">
@@ -316,7 +313,7 @@
     </div>
   </div>
   <script>
-    // ===== MODAL SYSTEM (FIXED: Remove 'hidden' + better error handling) =====
+    // ===== MODAL SYSTEM =====
     document.addEventListener('DOMContentLoaded', () => {
       const modalOverlay = document.getElementById('modal-overlay');
       const modalBody = document.getElementById('modal-body');
@@ -324,7 +321,7 @@
       window.openModal = async function(url) {
         try {
           const res = await fetch(url);
-          if (!res.ok) throw new Error(`Failed to load: HTTP ${res.status} (ensure '${url}' exists in repo root)`);
+          if (!res.ok) throw new Error(`Failed to load: HTTP ${res.status} (ensure '${url}' exists in repo root and is pushed to GitHub)`);
           modalBody.innerHTML = await res.text();
           modalOverlay.classList.remove('hidden');
           modalOverlay.classList.add('active');
@@ -353,7 +350,7 @@
         if (e.key === 'Escape') closeModal();
       });
     });
-    // ===== SEARCH (FIXED: Use 'visible' class instead of 'hidden') =====
+    // ===== SEARCH =====
     document.addEventListener('DOMContentLoaded', () => {
       const searchInput = document.getElementById('search-input');
       const searchResults = document.getElementById('search-results');
@@ -483,14 +480,10 @@
       setInterval(() => {
         secondsSpent++;
         timeSpentEl.textContent = secondsSpent;
-        // Your CO2 calculation: (secondsSpent * 0.0003 g/s)
         const co2Grams = (secondsSpent * 0.0003).toFixed(1);
         carbonValueEl.textContent = co2Grams;
-        // REALISTIC RICE EQUIVALENT: 1g rice ≈ 1.8g CO₂e (based on avg from Our World in Data)
-        // So: g rice = g CO₂ / 1.8
         const riceGrams = (parseFloat(co2Grams) / 1.8).toFixed(3);
         equivalentEl.textContent = `${riceGrams} g of rice`;
-        // Optional: Update source text if element exists
         if (sourceEl) {
           sourceEl.textContent = 'Based on: 1g rice ≈ 1.8g CO₂e (Our World in Data)';
         }

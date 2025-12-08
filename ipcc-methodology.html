@@ -1,129 +1,115 @@
-<!-- CORE CONTENT (Embed-Friendly) -->
-<div class="content-body text-gray-200">
-  <h1 class="text-2xl font-bold mb-4">🌍 IPCC Carbon Counting — Methodology</h1>
-  
-  <h2 class="text-xl font-semibold mt-4 mb-2">1 & 2. The Foundation: What is Carbon Counting and the IPCC?</h2>
-  <p class="mb-2 text-sm text-gray-400">
-    <strong>Carbon Counting</strong> is the process of quantifying the total amount of greenhouse gases (CO<sub>2</sub>e) emitted directly and indirectly by an individual, organization, or country over a specific period. It's the primary tool for measuring climate impact.
-  </p>
-  <p class="mb-4 text-sm text-gray-400">
-    The foundation for this entire process comes from the <strong>Intergovernmental Panel on Climate Change (IPCC)</strong>, which provides the scientific guidelines and consensus used globally. Organizations then translate these guidelines into actionable frameworks, most notably the <strong>Greenhouse Gas (GHG) Protocol</strong>, which structures how emissions are measured.
-  </p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IPCC Carbon Counting Methodology</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui; background:#121212; color:#e0e0e0; padding:0; margin:0; }
+    h1, h2, h3, h4 { color:#00b64c; }
+    .term { cursor:help; border-bottom:2px dashed #00b64c; position:relative; display:inline-block; font-weight:bold; }
+    .tooltip-box {
+      position:absolute; left:50%; top:120%; transform:translateX(-50%);
+      background:#333; color:white; padding:8px 12px; border-radius:6px;
+      white-space:nowrap; opacity:0; visibility:hidden; transition:all 0.3s;
+      z-index:1000; font-size:0.85rem; box-shadow:0 4px 10px rgba(0,0,0,0.5);
+      border:1px solid #00b64c;
+    }
+    .term:hover .tooltip-box { opacity:1; visibility:visible; }
+    .diagram-container { max-width:600px; margin:2rem auto; background:#2a2a2a; border-radius:8px; padding:1rem; }
+    .scope-ring { cursor:pointer; transition:all 0.3s; }
+  </style>
+</head>
+<body>
 
-  <h2 class="text-xl font-semibold mt-6 mb-2">3. Why It Matters: Management and Mitigation</h2>
-  <p class="mb-4 text-sm text-gray-400">
-    Counting carbon is essential because <strong>you cannot manage what you do not measure.</strong> It identifies emission hotspots and allows engineers to target the most effective areas for reduction.
-  </p>
-  
-  <div class="p-3 bg-neutral-700 rounded-lg text-sm mb-4">
-    <strong>Example:</strong> A factory might discover that 70% of its emissions come from Scope 3 (supply chain), prompting a switch to sustainable suppliers.
+  <!-- THIS IS THE ONLY CONTENT THAT WILL BE LOADED INTO THE MODAL -->
+  <div class="content-body text-gray-200">
+
+    <h1 class="text-2xl font-bold mb-6">IPCC Carbon Counting — Methodology</h1>
+
+    <h2 class="text-xl font-semibold mt-6 mb-3">1 & 2. The Foundation</h2>
+    <p class="mb-3 text-sm text-gray-400">
+      <strong>Carbon Counting</strong> quantifies greenhouse gases (CO₂e) emitted directly or indirectly. The <strong>IPCC</strong> provides the scientific guidelines used worldwide.
+    </p>
+    <p class="mb-6 text-sm text-gray-400">
+      The <strong>GHG Protocol</strong> turns IPCC science into practical rules.
+    </p>
+
+    <h2 class="text-xl font-semibold mt-6 mb-3">3. Why It Matters</h2>
+    <p class="mb-6 text-sm text-gray-400">
+      You cannot manage what you do not measure. Carbon counting finds hotspots so engineers can act.
+    </p>
+
+    <h2 class="text-xl font-semibold mt-6 mb-3">4. The Formula</h2>
+    <div class="bg-neutral-700 p-4 rounded-lg text-center font-mono text-lg mb-6">
+      CO₂e = Activity Data × Emission Factor
+    </div>
+
+    <h2 class="text-xl font-semibold mt-8 mb-4">5. Scopes & Tiers (Interactive)</h2>
+    <p class="text-center text-sm text-gray-400 mb-6">Click a ring to explore</p>
+
+    <div class="diagram-container">
+      <svg width="100%" height="400" viewBox="0 0 600 400">
+        <circle class="scope-ring" data-scope="3" cx="300" cy="200" r="160" stroke="#00b64c" fill="rgba(0,182,76,0.05)" stroke-width="4"/>
+        <text x="465" y="195" fill="#00b64c" font-size="18" font-weight="bold">SCOPE 3</text>
+        <text x="465" y="215" fill="#a0aec0" font-size="12">Value Chain</text>
+
+        <circle class="scope-ring" data-scope="2" cx="300" cy="200" r="110" stroke="#ecc94b" fill="rgba(236,201,75,0.08)" stroke-width="4"/>
+        <text x="300" y="70" text-anchor="middle" fill="#ecc94b" font-size="18" font-weight="bold">SCOPE 2</text>
+        <text x="300" y="90" text-anchor="middle" fill="#a0aec0" font-size="12">Purchased Energy</text>
+
+        <circle class="scope-ring" data-scope="1" cx="300" cy="200" r="60" stroke="#f56565" fill="rgba(245,101,101,0.1)" stroke-width="4"/>
+        <text x="300" y="205" text-anchor="middle" fill="#f56565" font-size="18" font-weight="bold">SCOPE 1</text>
+        <text x="300" y="225" text-anchor="middle" fill="#a0aec0" font-size="12">Direct Emissions</text>
+      </svg>
+    </div>
+
+    <div id="detailed-scopes">
+      <div id="scope-detail-1" class="scope-box hidden" data-scope="1">...</div>
+      <div id="scope-detail-2" class="scope-box hidden" data-scope="2">...</div>
+      <div id="scope-detail-3" class="scope-box" data-scope="3">...</div>
+      <!-- Full details in your original file — keep them all -->
+    </div>
+
+    <!-- Keep all your original content, examples, links, etc. here -->
+    <!-- ... (your full beautiful content) ... -->
+
+    <div class="mt-8 p-4 bg-neutral-700 rounded-lg">
+      <p class="font-bold text-yellow-400">Go to Simulator → <a href="ipcc-simulator.html" target="_blank" style="color:#00b64c">Open Interactive Calculator</a></p>
+    </div>
+
   </div>
+  <!-- End .content-body -->
 
-  <!-- ... (Keep the full content here – truncated in prompt, but paste your full original content-body div) ... -->
-
-  <!-- INTERACTIVE GLOSSARY JS -->
+  <!-- Interactive Scripts (Run when injected) -->
   <script>
-    function initGlossary() {
-      const terms = document.querySelectorAll('.term');
-      terms.forEach(term => {
-        const tooltipText = term.getAttribute('data-tooltip');
-        if (tooltipText) {
-          const tooltip = document.createElement('div');
-          tooltip.className = 'tooltip-box';
-          tooltip.textContent = tooltipText;
-          term.appendChild(tooltip);
-        }
+    // Glossary
+    document.querySelectorAll('.term').forEach(term => {
+      const tip = term.getAttribute('data-tooltip');
+      if (tip) {
+        const box = document.createElement('div');
+        box.className = 'tooltip-box';
+        box.textContent = tip;
+        term.appendChild(box);
+      }
+    });
+
+    // Diagram
+    const rings = document.querySelectorAll('.scope-ring');
+    const boxes = document.querySelectorAll('.scope-box');
+    const container = document.getElementById('detailed-scopes');
+
+    rings.forEach(ring => {
+      const scope = ring.getAttribute('data-scope');
+      ring.addEventListener('click', () => {
+        container.classList.remove('hidden');
+        boxes.forEach(b => b.classList.toggle('hidden', b.getAttribute('data-scope') !== scope));
+        rings.forEach(r => r.style.strokeWidth = (r.getAttribute('data-scope') === scope) ? '8' : '4');
       });
-    }
-    initGlossary();
+    });
+    // Default show Scope 3
+    document.querySelector('[data-scope="3"]')?.click();
   </script>
-
-  <!-- DYNAMIC DIAGRAM JS -->
-  <script>
-    function initDiagramInteraction() {
-      const rings = document.querySelectorAll('.scope-ring');
-      const detailedScopesContainer = document.getElementById('detailed-scopes');
-      const scopeBoxes = document.querySelectorAll('.scope-box');
-      const targetSection = document.getElementById('detailed-scopes');
-      
-      // Map scope to its highlight color
-      const scopeColors = {
-        '1': '#f56565', // Red
-        '2': '#ecc94b', // Yellow
-        '3': '#00b64c'  // Green
-      };
-      
-      // Map scope to its default fill color (low opacity)
-      const scopeFills = {
-        '1': 'rgba(245, 101, 101, 0.1)',
-        '2': 'rgba(236, 201, 75, 0.08)',
-        '3': 'rgba(0, 182, 76, 0.05)'
-      };
-
-      const showScopeDetail = (scope) => {
-        detailedScopesContainer.classList.remove('hidden');
-        
-        // Show/hide detail box
-        scopeBoxes.forEach(box => {
-          if (box.getAttribute('data-scope') === scope) {
-            box.classList.remove('hidden');
-          } else {
-            box.classList.add('hidden');
-          }
-        });
-        
-        // Highlight the selected ring
-        rings.forEach(ring => {
-          const ringScope = ring.getAttribute('data-scope');
-          if (ringScope === scope) {
-            ring.style.strokeWidth = '8'; // Make it thicker
-            ring.style.fill = scopeFills[ringScope]; // Ensure fill is set
-            // Also highlight the text labels
-            document.getElementById(`label-${ringScope}`).style.fill = 'white';
-            document.getElementById(`sublabel-${ringScope}`).style.fill = 'white';
-          } else {
-            ring.style.strokeWidth = '4'; // Revert to normal thickness
-            ring.style.fill = scopeFills[ringScope];
-            // Revert text labels
-            document.getElementById(`label-${ringScope}`).style.fill = scopeColors[ringScope];
-            document.getElementById(`sublabel-${ringScope}`).style.fill = '#a0aec0';
-          }
-        });
-
-        // Scroll to the detail section
-        if (targetSection) {
-          setTimeout(() => {
-            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 50);
-        }
-      };
-      
-      // Add interaction handlers to the rings
-      rings.forEach(ring => {
-        const scope = ring.getAttribute('data-scope');
-        const defaultStroke = ring.style.stroke;
-
-        // Hover (visual feedback)
-        ring.addEventListener('mouseenter', () => {
-          ring.style.strokeWidth = '6'; 
-        });
-        ring.addEventListener('mouseleave', () => {
-          if (document.getElementById(`scope-detail-${scope}`).classList.contains('hidden')) {
-            ring.style.strokeWidth = '4'; 
-          } else {
-            ring.style.strokeWidth = '8';
-          }
-        });
-
-        // Click (Permanent selection and detail reveal)
-        ring.addEventListener('click', () => {
-          showScopeDetail(scope);
-        });
-      });
-
-      // Initialize: Show Scope 3 details by default
-      showScopeDetail('3');
-    }
-    initDiagramInteraction();
-  </script>
-</div>
+</body>
+</html>

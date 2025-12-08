@@ -32,6 +32,11 @@
         
         h1, h2, h3 { color: #00b64c; margin-bottom: 0.5rem; }
         
+        /* FIX: Explicitly define the hidden class for JavaScript toggling */
+        .hidden {
+            display: none !important;
+        }
+
         /* Interactive Glossary Styles */
         .term {
             cursor: help;
@@ -97,7 +102,7 @@
 </head>
 <body>
     
-    <!-- MAIN CONTENT CONTAINER (Replaces modal content box) -->
+    <!-- MAIN CONTENT CONTAINER -->
     <div class="content-container text-gray-200" id="main-content">
         
         <h1 class="text-3xl font-bold mb-6 text-center">🌍 IPCC Carbon Counting — Methodology</h1>
@@ -168,7 +173,6 @@
         <p class="text-sm text-gray-400 text-center mb-4">Click one of the rings in the diagram above to reveal the details below.</p>
         
         <!-- Detailed Scope Content - Starts Hidden, revealed by diagram click -->
-        <!-- Note: We must ensure this section is visible initially, so we remove 'hidden' on load -->
         <div id="detailed-scopes" class="min-h-[250px]">
             <h3 class="text-lg font-medium mt-4">Selected Scope Breakdown</h3>
             

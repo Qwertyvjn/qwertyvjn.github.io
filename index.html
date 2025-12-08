@@ -16,35 +16,62 @@
     .left-column { flex: 1 1 auto; min-width: 0; }
     .right-column { flex: 0 0 320px; margin-left: 1.5rem; }
     .search-active #main-content { display: none; }
-    .search-active .left-column { flex: 1 1 auto; }
+    .search-active .left-column { flex: 1 1 calc(100% - 320px); max-width: calc(100% - 320px); }
     .search-active .right-column { flex: 0 0 320px; }
-    
+
     /* Modal styles */
     #modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center;
-      z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s;
+      background: rgba(0,0,0,0.7); display: flex; align-items: center;
+      justify-content: center; z-index: 1000; opacity: 0;
+      visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
     }
     #modal-overlay.active { opacity: 1; visibility: visible; }
     .modal-content {
-      background: var(--card); color: var(--text); width: 90%; max-width: 900px;
-      max-height: 90vh; border-radius: 0.5rem; overflow: hidden; position: relative;
+      background: var(--card); color: var(--text); width: 90%;
+      max-width: 900px; max-height: 90vh; border-radius: 0.5rem;
+      overflow: hidden; display: flex; flex-direction: column;
     }
     #modal-close {
-      position: absolute; top: 1rem; right: 1rem; background: none; border: none;
-      color: var(--dim); font-size: 1.5rem; cursor: pointer;
+      position: absolute; top: 1rem; right: 1rem; background: none;
+      border: none; color: var(--dim); font-size: 1.5rem; cursor: pointer;
     }
     #modal-close:hover { color: var(--accent); }
-    #modal-body { padding: 1.5rem; overflow-y: auto; max-height: calc(90vh - 60px); }
+    #modal-body {
+      padding: 1.5rem; overflow-y: auto; max-height: calc(90vh - 60px);
+      line-height: 1.6;
+    }
+    .hidden { display: none !important; }
 
     /* Search styles */
-    .search-results { margin-top: 1.5rem; display: none; }
-    .search-results.visible { display: block; }
-    .search-results .card { margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(0,182,76,0.15); border: 1px solid var(--accent); }
+    .search-section { margin: 1.5rem 0; text-align: center; }
+    #search-input {
+      width: 100%; max-width: 600px; padding: 0.75rem 1rem;
+      font-family: 'Fira Code', monospace; font-size: 0.9rem;
+      background: var(--card); color: var(--text); border: 1px solid var(--border);
+      border-radius: 0.5rem; outline: none;
+    }
+    #search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(0, 182, 76, 0.2);
+    }
+    .search-results {
+      margin-top: 1.5rem;
+      display: none;
+    }
+    .search-results.visible {
+      display: block;
+    }
+    .search-results .card {
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 182, 76, 0.15);
+      border: 1px solid var(--accent);
+    }
   </style>
 </head>
 <body>
   <div class="layout">
+    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="profile">
         <div class="avatar"></div>
@@ -71,8 +98,10 @@
         <span class="toggle-label">toggle theme</span>
       </button>
     </aside>
+    <!-- Main Content -->
     <main class="main">
       <div class="content-columns">
+        <!-- Left Column -->
         <div class="left-column">
           <header>
             <h1>Interactive Projects.</h1>
@@ -84,6 +113,7 @@
               Hope it's useful!
             </p>
           </header>
+          <!-- SEARCH BAR -->
           <div class="search-section">
             <input type="text" id="search-input" placeholder="🔍 Search content & tools..." class="search-input" />
             <div id="search-results" class="search-results"></div>
@@ -92,6 +122,7 @@
             <section id="content">
               <h2>📚 Content</h2>
               <div class="grid">
+                <!-- IPCC Carbon Counting -->
                 <div class="card">
                   <h3>🌍 IPCC Carbon Counting</h3>
                   <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
@@ -100,6 +131,7 @@
                     <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">Simulation</a>
                   </div>
                 </div>
+                <!-- RED -->
                 <div class="card" id="simulation-red">
                   <h3>🧪 Salinity Gradient Model (RED)</h3>
                   <p><strong>The Chemical Waterfall:</strong> Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
@@ -110,6 +142,7 @@
                   </div>
                   <div class="coming-soon-text">COMING SOON</div>
                 </div>
+                <!-- GPE -->
                 <div class="card" id="simulation-gpe">
                   <h3>🏗️ Gravity Storage Calculator (GPE)</h3>
                   <p><strong>Storing Energy with Bricks:</strong> A calculator demonstrating the massive mass (<em>M</em>) and height (<em>H</em>) required to store large-scale renewable energy using the physics of potential energy.</p>
@@ -132,6 +165,7 @@
             <section id="tools">
               <h2>🔧 Tools</h2>
               <div class="grid">
+                <!-- Tool 1: PPTX to PDF Converter -->
                 <div class="card" id="tool-pptx">
                   <h3>📄 PPTX to PDF Converter</h3>
                   <p>Convert PowerPoint presentations to PDF format — no software needed.</p>
@@ -141,6 +175,7 @@
                     <a href="#" class="btn-simulation">Convert Now</a>
                   </div>
                 </div>
+                <!-- Tool 2: COMING SOON -->
                 <div class="card" id="tool-2">
                   <h3>⚙️ Tool 2</h3>
                   <p>Placeholder for future utility.</p>
@@ -151,6 +186,7 @@
                   </div>
                   <div class="coming-soon-text">COMING SOON</div>
                 </div>
+                <!-- Tool 3: COMING SOON -->
                 <div class="card" id="tool-3">
                   <h3>🧮 Tool 3</h3>
                   <p>Placeholder for future utility.</p>
@@ -161,6 +197,7 @@
                   </div>
                   <div class="coming-soon-text">COMING SOON</div>
                 </div>
+                <!-- Tool 4: COMING SOON -->
                 <div class="card" id="tool-4">
                   <h3>🌐 Tool 4</h3>
                   <p>Placeholder for future utility.</p>
@@ -175,6 +212,7 @@
             </section>
           </div>
         </div>
+        <!-- Right Column -->
         <div class="right-column">
           <section id="pulse">
             <h2>🌍 Today’s Pulse — For You</h2>
@@ -226,14 +264,6 @@
         </div>
       </div>
     </main>
-  </div>
-  <div id="modal-overlay" class="modal-overlay">
-    <div class="modal-content">
-      <button id="modal-close" class="modal-close">&times;</button>
-      <div id="modal-body" class="modal-body">
-        <!-- Modal content loaded here -->
-      </div>
-    </div>
   </div>
   <script>
     // ===== MODAL SYSTEM =====

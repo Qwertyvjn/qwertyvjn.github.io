@@ -6,7 +6,7 @@
   <title>IPCC Methodology</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background:#121212; color:#e0e0e0; font-family:Inter,system-ui; padding:0; margin:0; }
+    body { background:#121212; color:#e0e0e0; font-family:system-ui; margin:0; padding:0; }
     h1,h2,h3,h4 { color:#00b64c; }
     .term { cursor:help; border-bottom:2px dashed #00b64c; position:relative; display:inline-block; font-weight:bold; }
     .tooltip-box {
@@ -22,30 +22,18 @@
 </head>
 <body>
 
-  <!-- ONLY THIS PART GETS LOADED INTO MODAL -->
   <div class="content-body text-gray-200">
 
     <h1 class="text-3xl font-bold mb-6">IPCC Carbon Counting — Methodology</h1>
 
+    <!-- Your full content here -->
     <h2 class="text-xl font-semibold mt-8 mb-4">1 & 2. The Foundation</h2>
-    <p class="mb-4 text-sm text-gray-400">
-      <strong>Carbon Counting</strong> is quantifying greenhouse gases emitted directly/indirectly. The <strong>IPCC</strong> provides the science, and the <strong>GHG Protocol</strong> makes it practical.
-    </p>
-
-    <h2 class="text-xl font-semibold mt-8 mb-4">3. Why It Matters</h2>
-    <p class="mb-6 text-sm text-gray-400">
-      You cannot manage what you do not measure. Carbon counting finds hotspots so engineers can reduce emissions.
-    </p>
-
-    <h2 class="text-xl font-semibold mt-8 mb-4">4. The Formula</h2>
-    <div class="bg-neutral-700 p-5 rounded-lg text-center font-mono text-lg mb-6">
-      CO₂e = Activity Data × Emission Factor
-    </div>
+    <p class="mb-4 text-sm text-gray-400">Carbon Counting quantifies emissions. IPCC provides the science.</p>
 
     <h2 class="text-xl font-semibold mt-8 mb-4">5. Scopes & Tiers (Click rings)</h2>
     <div class="diagram-container">
       <svg viewBox="0 0 600 400" width="100%" height="400">
-        <circle class="scope-ring" data-scope="3" cx="300 cy200 r160 stroke="#00b64c" fill="rgba(0,182,76,0.05)" stroke-width="4"/>
+        <circle class="scope-ring" data-scope="3" cx="300" cy="200" r="160" stroke="#00b64c" fill="rgba(0,182,76,0.05)" stroke-width="4"/>
         <text x="465" y="195" fill="#00b64c" font-size="18" font-weight="bold">SCOPE 3</text>
         <text x="465" y="215" fill="#a0aec0" font-size="12">Value Chain</text>
 
@@ -60,32 +48,27 @@
     </div>
 
     <div id="detailed-scopes" class="mt-6">
-      <div id="scope-detail-1" class="scope-box hidden border-l-4 border-red-500 bg-red-900 bg-opacity-20 p-4 rounded" data-scope="1">
+      <div id="scope-detail-1" class="scope-box hidden p-4 bg-red-900 bg-opacity-20 border-l-4 border-red-500 rounded" data-scope="1">
         <h4 class="font-bold text-white">Scope 1: Direct Emissions</h4>
-        <p class="text-sm">From sources you own/control (fuel combustion, company vehicles, etc.)</p>
+        <p class="text-sm">From owned sources (fuel, processes, etc.)</p>
       </div>
-
-      <div id="scope-detail-2" class="scope-box hidden border-l-4 border-yellow-500 bg-yellow-900 bg-opacity-20 p-4 rounded" data-scope="2">
+      <div id="scope-detail-2" class="scope-box hidden p-4 bg-yellow-900 bg-opacity-20 border-l-4 border-yellow-500 rounded" data-scope="2">
         <h4 class="font-bold text-white">Scope 2: Purchased Energy</h4>
-        <p class="text-sm">Electricity, steam, heating/cooling you buy</p>
+        <p class="text-sm">Electricity, heating, cooling you buy</p>
       </div>
-
-      <div id="scope-detail-3" class="scope-box border-l-4 border-green-500 bg-green-900 bg-opacity-20 p-4 rounded" data-scope="3">
+      <div id="scope-detail-3" class="scope-box p-4 bg-green-900 bg-opacity-20 border-l-4 border-green-500 rounded" data-scope="3">
         <h4 class="font-bold text-white">Scope 3: Value Chain</h4>
-        <p class="text-sm">Everything else — supply chain, travel, waste, etc. Usually the largest</p>
+        <p class="text-sm">Supply chain, travel, waste — usually the largest</p>
       </div>
     </div>
 
-    <!-- Add the rest of your beautiful content here — everything you had before -->
-    <!-- ... your full text, examples, links, etc. ... -->
-
+    <!-- Add all your remaining content here -->
   </div>
-  <!-- End .content-body -->
 
   <script>
-    // Glossary tooltips
+    // Glossary
     document.querySelectorAll('.term').forEach(t => {
-      const tip = t.getAttribute('data-tooltip');
+      const tip = t.dataset.tooltip;
       if (tip) {
         const box = document.createElement('div');
         box.className = 'tooltip-box';
@@ -94,17 +77,16 @@
       }
     });
 
-    // Interactive diagram
+    // Diagram interaction
     document.querySelectorAll('.scope-ring').forEach(ring => {
-      const scope = ring.getAttribute('data-scope');
-      ring.onclick = () => {
-        document.querySelectorAll('.scope-box').forEach(b => b.classList.add('hidden'));
-        document.querySelector(`#scope-detail-${scope}`).classList.remove('hidden');
-        document.querySelectorAll('.scope-ring').forEach(r => r.style.strokeWidth = '4');
-        ring.style.strokeWidth = '8';
-      };
+      ring.addEventListener('click', () => {
+        const scope = ring.dataset.scope;
+        document.querySelectorAll('.scope-box').forEach(b => b.classList.toggle('hidden', b.dataset.scope !== scope));
+        document.querySelectorAll('.scope-ring').forEach(r => r.style.strokeWidth = r === ring ? '8' : '4');
+      });
     });
-    // Default show Scope 3
+
+    // Default: show Scope 3
     document.querySelector('[data-scope="3"]')?.click();
   </script>
 </body>

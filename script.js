@@ -202,3 +202,53 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 });
+
+// ===== MODAL SYSTEM =====
+document.addEventListener('DOMContentLoaded', () => {
+  const modalOverlay = document.getElementById('modal-overlay');
+  const modalBody = document.getElementById('modal-body');
+  const modalClose = document.getElementById('modal-close');
+  if (!modalOverlay || !modalBody) return;
+  // Open modal with remote HTML file
+  window.openModal = async function(url) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const html = await response.text();
+      modalBody.innerHTML = html;
+      modalOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    } catch (err) {
+      console.error('Modal load failed:', err);
+      modalBody.innerHTML = `
+        <h2 style="color:var(--accent);">⚠️ Content Unavailable</h2>
+        <p>Could not load: <code>${url}</code></p>
+        <p style="font-size:0.9rem; color:var(--dim);">
+          Check console for details, or try again later.
+        </p>
+      `;
+      modalOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+  };
+  // Close modal
+  function closeModal() {
+    if (!modalOverlay.classList.contains('active')) return;
+    modalOverlay.classList.remove('active');
+    setTimeout(() => {
+      modalBody.innerHTML = '';
+      document.body.style.overflow = '';
+    }, 300); // Match CSS transition
+  }
+  // Events
+  if (modalClose) modalClose.addEventListener('click', closeModal);
+  if (modalOverlay) {
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+  }
+  // ESC to close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+});

@@ -11,48 +11,40 @@
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
   <style>
-    /* Only the fixes we really need */
-    #search-input {
-      width: 100%; max-width: 600px; padding: 0.75rem 1rem;
-      font-family: 'Fira Code', monospace; font-size: 0.9rem;
-      background: var(--card); color: var(--text); border: 1px solid var(--border);
-      border-radius: 0.5rem; outline: none;
-    }
-    #search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,182,76,0.2); }
-
-    .search-results { margin-top: 1.5rem; display: none; }
-    .search-results.visible { display: block; }
-
-    /* MODAL */
+    /* Fixes for search mode - keep right column in place */
+    .content-columns { display: flex; flex-wrap: nowrap; }
+    .left-column { flex: 1 1 auto; min-width: 0; }
+    .right-column { flex: 0 0 320px; margin-left: 1.5rem; }
+    .search-active #main-content { display: none; }
+    .search-active .left-column { flex: 1 1 auto; }
+    .search-active .right-column { flex: 0 0 320px; }
+    
+    /* Modal styles */
     #modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.75);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.3s;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center;
+      z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s;
     }
     #modal-overlay.active { opacity: 1; visibility: visible; }
     .modal-content {
-      background: var(--card); color: var(--text);
-      width: 90%; max-width: 900px; max-height: 90vh;
-      border-radius: 0.5rem; overflow: 0.5rem; overflow: hidden; position: relative;
+      background: var(--card); color: var(--text); width: 90%; max-width: 900px;
+      max-height: 90vh; border-radius: 0.5rem; overflow: hidden; position: relative;
     }
     #modal-close {
-      position: absolute; top: 1rem; right: 1rem;
-      background: none; border: none; color: var(--dim);
-      font-size: 2rem; cursor: pointer; z-index: 10;
+      position: absolute; top: 1rem; right: 1rem; background: none; border: none;
+      color: var(--dim); font-size: 1.5rem; cursor: pointer;
     }
     #modal-close:hover { color: var(--accent); }
-    #modal-body { padding: 2rem; overflow-y: auto; max-height: calc(90vh - 4rem); }
+    #modal-body { padding: 1.5rem; overflow-y: auto; max-height: calc(90vh - 60px); }
 
-    /* KEEP RIGHT SIDEBAR FIXED DURING SEARCH - THIS IS THE KEY */
-    .search-active #main-content { display: none !important; }
-    .search-active .left-column { flex: 1 1 100%; max-width: none; }
-    .search-active .right-column { position: sticky; top: 2rem; align-self: flex-start; }
+    /* Search styles */
+    .search-results { margin-top: 1.5rem; display: none; }
+    .search-results.visible { display: block; }
+    .search-results .card { margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(0,182,76,0.15); border: 1px solid var(--accent); }
   </style>
 </head>
 <body>
   <div class="layout">
-    <!-- LEFT SIDEBAR -->
     <aside class="sidebar">
       <div class="profile">
         <div class="avatar"></div>
@@ -62,9 +54,9 @@
         <p class="tags">Air pollution • Unconventional energy • Sustainability</p>
       </div>
       <nav class="nav">
-        <a href="#content" class="nav-link">Content</a>
-        <a href="#data" class="nav-link">Live Data Feeds</a>
-        <a href="#tools" class="nav-link">Tools</a>
+        <a href="#content" class="nav-link">⚡️ Content</a>
+        <a href="#data" class="nav-link">📊 Live Data Feeds</a>
+        <a href="#tools" class="nav-link">🔧 Tools</a>
       </nav>
       <div class="links">
         <h3 class="section-title">connect</h3>
@@ -72,231 +64,368 @@
         <a href="mailto:glennalvin17@gmail.com" class="link">email</a>
         <a href="#" class="link">resume</a>
       </div>
-      <button id="theme-toggle" class="theme-toggle">
-        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark/light mode">
+        <div class="toggle-track">
+          <div class="toggle-thumb"></div>
+        </div>
         <span class="toggle-label">toggle theme</span>
       </button>
     </aside>
-
-    <!-- MAIN AREA -->
     <main class="main">
       <div class="content-columns">
-        <!-- LEFT COLUMN -->
         <div class="left-column">
           <header>
             <h1>Interactive Projects.</h1>
-            <p>Hi, I'm <strong>Glenn Alvin</strong>, an Indonesian Environmental Engineering student and enthusiastic knowledge-sharer. This site is my personal challenge to simplify complex environmental concepts—like <strong>air pollution</strong> and <strong>unconventional energy</strong>—through interactive models. Hope it's useful!</p>
+            <p>
+              Hi, I'm <strong>Glenn Alvin</strong>, an Indonesian Environmental Engineering student
+              and enthusiastic knowledge-sharer. This site is my personal challenge to simplify complex
+              environmental concepts—like <strong>air pollution</strong> and <strong>unconventional energy</strong>—
+              through interactive models, proving you don't have to be a master coder to share valuable knowledge.
+              Hope it's useful!
+            </p>
           </header>
-
-          <!-- SEARCH -->
-          <div class="search-section" style="margin:1.5rem 0;text-align:center;">
-            <input type="text" id="search-input" placeholder="Search content & tools..." />
+          <div class="search-section">
+            <input type="text" id="search-input" placeholder="🔍 Search content & tools..." class="search-input" />
             <div id="search-results" class="search-results"></div>
           </div>
-
-          <!-- MAIN CONTENT (hidden when searching) -->
           <div id="main-content">
             <section id="content">
-              <h2>Content</h2>
+              <h2>📚 Content</h2>
               <div class="grid">
                 <div class="card">
-                  <h3>IPCC Carbon Counting</h3>
+                  <h3>🌍 IPCC Carbon Counting</h3>
                   <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
                   <div class="button-group">
-                    <button class="btn-material" onclick="openModal('ipcc-methodology.html')">Methodology</button>
+                    <a href="#" class="btn-material" onclick="openModal('ipcc-methodology.html'); return false;">Methodology</a>
                     <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">Simulation</a>
                   </div>
                 </div>
-
-                <!-- Your other cards (RED, GPE, etc.) -->
                 <div class="card" id="simulation-red">
-                  <h3>Salinity Gradient Model (RED)</h3>
+                  <h3>🧪 Salinity Gradient Model (RED)</h3>
                   <p><strong>The Chemical Waterfall:</strong> Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
-                  <div class="embed-placeholder">Paste Insight Maker Embed Code Here</div>
+                  <div class="embed-placeholder" id="embed-red">Paste Insight Maker Embed Code Here</div>
+                  <div class="button-group">
+                    <a href="#" class="btn-material">Reading Material</a>
+                    <a href="#" class="btn-simulation">Simulation</a>
+                  </div>
                   <div class="coming-soon-text">COMING SOON</div>
                 </div>
-
                 <div class="card" id="simulation-gpe">
-                  <h3>Gravity Storage Calculator (GPE)</h3>
-                  <p><strong>Storing Energy with Bricks:</strong> A calculator demonstrating the massive mass and height required to store large-scale renewable energy using potential energy.</p>
-                  <div class="embed-placeholder">Paste Looker Studio Embed Here</div>
+                  <h3>🏗️ Gravity Storage Calculator (GPE)</h3>
+                  <p><strong>Storing Energy with Bricks:</strong> A calculator demonstrating the massive mass (<em>M</em>) and height (<em>H</em>) required to store large-scale renewable energy using the physics of potential energy.</p>
+                  <div class="embed-placeholder" id="embed-gpe">Paste Looker Studio or Custom Embed Here</div>
+                  <div class="button-group">
+                    <a href="#" class="btn-material">Reading Material</a>
+                    <a href="#" class="btn-simulation">Simulation</a>
+                  </div>
                   <div class="coming-soon-text">COMING SOON</div>
                 </div>
               </div>
             </section>
-
             <section id="data">
-              <h2>The Global Carbon Pulse</h2>
+              <h2>📊 The Global Carbon Pulse</h2>
+              <p>Tracking real-time indicators that define the challenge of climate mitigation and adaptation, powered by embedded public data feeds.</p>
               <div class="card full">
-                <div class="embed-placeholder large">Paste Dashboard Here</div>
+                <div class="embed-placeholder large" id="embed-data">Paste Interactive Looker Studio Dashboard Here</div>
               </div>
             </section>
-
             <section id="tools">
-              <h2>Tools</h2>
-              <div class="grid"><!-- your tools --></div>
+              <h2>🔧 Tools</h2>
+              <div class="grid">
+                <div class="card" id="tool-pptx">
+                  <h3>📄 PPTX to PDF Converter</h3>
+                  <p>Convert PowerPoint presentations to PDF format — no software needed.</p>
+                  <div class="embed-placeholder" id="embed-pptx">Coming Soon</div>
+                  <div class="button-group">
+                    <a href="#" class="btn-material">Documentation</a>
+                    <a href="#" class="btn-simulation">Convert Now</a>
+                  </div>
+                </div>
+                <div class="card" id="tool-2">
+                  <h3>⚙️ Tool 2</h3>
+                  <p>Placeholder for future utility.</p>
+                  <div class="embed-placeholder" id="embed-tool2">Coming Soon</div>
+                  <div class="button-group">
+                    <a href="#" class="btn-material">Learn More</a>
+                    <a href="#" class="btn-simulation">Try It</a>
+                  </div>
+                  <div class="coming-soon-text">COMING SOON</div>
+                </div>
+                <div class="card" id="tool-3">
+                  <h3>🧮 Tool 3</h3>
+                  <p>Placeholder for future utility.</p>
+                  <div class="embed-placeholder" id="embed-tool3">Coming Soon</div>
+                  <div class="button-group">
+                    <a href="#" class="btn-material">Learn More</a>
+                    <a href="#" class="btn-simulation">Try It</a>
+                  </div>
+                  <div class="coming-soon-text">COMING SOON</div>
+                </div>
+                <div class="card" id="tool-4">
+                  <h3>🌐 Tool 4</h3>
+                  <p>Placeholder for future utility.</p>
+                  <div class="embed-placeholder" id="embed-tool4">Coming Soon</div>
+                  <div class="button-group">
+                    <a href="#" class="btn-material">Learn More</a>
+                    <a href="#" class="btn-simulation">Try It</a>
+                  </div>
+                  <div class="coming-soon-text">COMING SOON</div>
+                </div>
+              </div>
             </section>
           </div>
         </div>
-
-        <!-- RIGHT COLUMN - ALWAYS STAYS ON THE RIGHT -->
         <div class="right-column">
           <section id="pulse">
-            <h2>Today’s Pulse — For You</h2>
+            <h2>🌍 Today’s Pulse — For You</h2>
             <div class="card">
-              <div id="location-data" class="loading">Detecting location...</div>
+              <div id="location-data" class="loading">📍 Detecting your location...</div>
               <div id="aqi-display" class="hidden">
-                <p><strong>City:</strong> <span id="city-name">-</span></p>
-                <p><strong>AQI:</strong> <span id="aqi-value">-</span> (<span id="aqi-category">-</span>)</p>
-                <p><strong>CO₂:</strong> <span id="co2-value">-</span> ppm</p>
-                <p><strong>Temp:</strong> <span id="temp-value">-</span>°C</p>
+                <div class="city-header">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.27-.13-.53-.23-.75C5.3 10.4 4 9.1 4 7.5 4 5.9 5.3 4.6 7 4.6c1.7 0 3 1.3 3 2.9 0 1.6-1.3 2.9-3 2.9 0 0-1 0-1-1h2c0 0 0 0 0 0"/>
+                  </svg>
+                  <span id="city-name">—</span>
+                </div>
+                <p><strong>Air Quality:</strong> <span id="aqi-value">—</span> (<span id="aqi-category">—</span>)</p>
+                <p><strong>CO₂:</strong> <span id="co2-value">—</span> ppm</p>
+                <p><strong>Temp:</strong> <span id="temp-value">—</span>°C</p>
               </div>
-              <p style="font-size:0.75rem;color:var(--dim);text-align:center;margin-top:0.8rem;">
-                Powered by <a href="https://www.iqair.com" target="_blank" style="color:var(--accent);">IQAir</a>
+              <p style="font-size: 0.75rem; color: var(--dim); margin-top: 0.5rem; text-align: center;">
+                📊 Data powered by <a href="https://www.iqair.com/air-pollution-data-api" target="_blank" style="color: var(--accent);">IQAir API</a>.
               </p>
             </div>
           </section>
-
           <section id="carbon">
-            <h2>Your Carbon Footprint — On This Site</h2>
+            <h2>📉 Your Carbon Footprint — On This Site</h2>
             <div class="card">
               <p>You’ve been here for <span id="time-spent">0</span> seconds.</p>
-              <p>Estimated footprint: <strong><span id="carbon-value">0.0</span> g CO₂</strong></p>
-              <p>That’s like <span id="equivalent">0.000 g of rice</span></p>
+              <p>Your estimated footprint: <strong><span id="carbon-value">0.0</span> g CO₂</strong></p>
+              <p>That’s like <span id="equivalent">0.001 g of rice</span></p>
+              <p id="rice-source" style="font-size: 0.75rem; color: var(--dim); margin-top: 0.5rem;">
+                Based on: 1g rice ≈ 1.8g CO₂e (Our World in Data)
+              </p>
             </div>
           </section>
-
           <section id="thesis">
-            <h2>Thesis Snippet</h2>
+            <h2>🎓 Thesis Snippet — Auto-Rotating</h2>
             <div class="card">
               <div id="thesis-content">Policy lag explains 62% of PM₂.₅ exceedance in Jakarta (2020–2024).</div>
             </div>
           </section>
-
           <section id="learn">
-            <h2>Learn With Me</h2>
+            <h2>📬 Learn With Me</h2>
             <div class="card">
               <p>Connect or tell me something interesting.</p>
-              <form><input type="email" placeholder="Your email" required><button>Send</button></form>
+              <form id="newsletter-form">
+                <input type="email" placeholder="Tell me something" class="input" required>
+                <button type="submit" class="btn">Send</button>
+              </form>
             </div>
           </section>
         </div>
       </div>
     </main>
   </div>
-
-  <!-- MODAL -->
-  <div id="modal-overlay" class="hidden">
+  <div id="modal-overlay" class="modal-overlay">
     <div class="modal-content">
-      <button id="modal-close">×</button>
-      <div id="modal-body"></div>
+      <button id="modal-close" class="modal-close">&times;</button>
+      <div id="modal-body" class="modal-body">
+        <!-- Modal content loaded here -->
+      </div>
     </div>
   </div>
-
   <script>
-    // MODAL — 100% WORKING
-    const modal = document.getElementById('modal-overlay');
-    const modalBody = document.getElementById('modal-body');
-    const closeBtn = document.getElementById('modal-close');
-
-    window.openModal = async function(url) {
-      try {
-        const r = await fetch(url);
-        if (!r.ok) throw '';
-        const text = await r.text();
-
-        const div = document.createElement('div');
-        div.innerHTML = text;
-        const content = div.querySelector('.content-body') || div;
-        modalBody.innerHTML = content.innerHTML;
-
-        // Re-execute scripts
-        div.querySelectorAll('script').forEach(s => {
-          const ns = document.createElement('script');
-          ns.textContent = s.textContent;
-          document.head.appendChild(ns).parentNode.removeChild(ns);
-        });
-
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      } catch {
-        modalBody.innerHTML = '<h2 style="color:var(--accent)">Cannot load file</h2>';
-        modal.classList.add('active');
+    // ===== MODAL SYSTEM =====
+    document.addEventListener('DOMContentLoaded', () => {
+      const modalOverlay = document.getElementById('modal-overlay');
+      const modalBody = document.getElementById('modal-body');
+      const modalClose = document.getElementById('modal-close');
+      window.openModal = async function(url) {
+        try {
+          const res = await fetch(url);
+          modalBody.innerHTML = await res.text();
+          modalOverlay.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        } catch (err) {
+          modalBody.innerHTML = `<h2 style="color:var(--accent)">⚠️ Failed to load</h2><p>${err.message}</p>`;
+          modalOverlay.classList.add('active');
+        }
+      };
+      function closeModal() {
+        modalOverlay.classList.remove('active');
+        setTimeout(() => modalBody.innerHTML = '', 300);
+        document.body.style.overflow = '';
       }
-    };
-
-    closeBtn.onclick = () => {
-      modal.classList.remove('active');
-      setTimeout(() => { modalBody.innerHTML = ''; document.body.style.overflow = ''; }, 300);
-    };
-    modal.onclick = (e) => { if (e.target === modal) closeBtn.click(); };
-    document.addEventListener('keydown', e => { if (e.key==='Escape') closeBtn.click(); });
-
-    // SEARCH — YOUR VERSION, UNTOUCHED AND WORKING
-    const input = document.getElementById('search-input');
-    const results = document.getElementById('search-results');
-    const layout = document.querySelector('.layout');
-
-    input.addEventListener('input', () => {
-      const q = input.value.trim().toLowerCase();
-      if (!q) {
-        layout.classList.remove('search-active');
-        results.classList.remove('visible');
-        results.innerHTML = '';
-        return;
-      }
-      layout.classList.add('search-active');
-      results.classList.add('visible');
-
-      const matches = [];
-      document.querySelectorAll('#content .card, #tools .card').forEach(c => {
-        if (c.textContent.toLowerCase().includes(q)) matches.push(c.cloneNode(true));
+      if (modalClose) modalClose.addEventListener('click', closeModal);
+      if (modalOverlay) modalOverlay.addEventListener('click', e => {
+        if (e.target === modalOverlay) closeModal();
       });
-
-      results.innerHTML = matches.length
-        ? `<h3 style="text-align:center;margin:1.5rem 0;color:var(--accent)">${matches.length} result${matches.length>1?'s':''} for "<strong>${input.value}</strong>"</h3>${matches.map(c=>c.outerHTML).join('')}`
-        : `<div class="card text-center p-8"><p>No results</p></div>`;
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeModal();
+      });
     });
-
-    // THEME TOGGLE
-    document.getElementById('theme-toggle')?.addEventListener('click', () => {
-      document.documentElement.classList.toggle('dark');
-      document.documentElement.classList.toggle('light');
-    });
-
-    // CARBON COUNTER
-    let s = 0;
-    setInterval(() => {
-      s++;
-      document.getElementById('time-spent').textContent = s;
-      const co2 = (s * 0.0003).toFixed(1);
-      document.getElementById('carbon-value').textContent = co2;
-      document.getElementById('equivalent').textContent = (co2 / 1.8).toFixed(3) + ' g of rice';
-    }, 1000);
-
-    // IQAIR
-    const KEY = 'f74e14f9-86c9-4246-8065-ec2018624690';
-    const loc = document.getElementById('location-data');
-    const disp = document.getElementById('aqi-display');
-    if (navigator.geolocation) {
-      loc.textContent = 'Detecting...';
-      navigator.geolocation.getCurrentPosition(p => {
-        fetch(`https://api.airvisual.com/v2/nearest_city?lat=${p.coords.latitude}&lon=${p.coords.longitude}&key=${KEY}`)
-          .then(r => r.json())
-          .then(d => {
-            if (d.status === 'success') {
-              document.getElementById('city-name').textContent = d.data.city;
-              document.getElementById('aqi-value').textContent = d.data.current.pollution.aqius;
-              document.getElementById('co2-value').textContent = Math.round(400 + d.data.current.pollution.aqius * 0.5);
-              document.getElementById('temp-value').textContent = d.data.current.weather.tp;
-              document.getElementById('aqi-category').textContent = ['Good','Moderate','Unhealthy for Sensitive','Unhealthy','Very Unhealthy','Hazardous']
-                [Math.min(5, Math.floor(d.data.current.pollution.aqius / 50))];
-              loc.classList.add('hidden');
-              disp.classList.remove('hidden');
+    // ===== SEARCH =====
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('search-input');
+      const searchResults = document.getElementById('search-results');
+      const layout = document.querySelector('.layout');
+      if (!searchInput) return;
+      searchInput.addEventListener('input', debounce(() => {
+        const q = searchInput.value.trim().toLowerCase();
+        if (!q) {
+          layout.classList.remove('search-active');
+          searchResults.innerHTML = '';
+          searchResults.classList.add('hidden');
+          return;
+        }
+        layout.classList.add('search-active');
+        searchResults.classList.remove('hidden');
+        const matches = [];
+        ['#content', '#tools'].forEach(sectionId => {
+          const section = document.querySelector(sectionId);
+          if (!section) return;
+          const cards = section.querySelectorAll('.card');
+          cards.forEach(card => {
+            const title = card.querySelector('h3')?.textContent || '';
+            const desc = card.querySelector('p')?.textContent || '';
+            const buttons = Array.from(card.querySelectorAll('a')).map(btn => btn.textContent).join(' ');
+            const fullText = `${title} ${desc} ${buttons}`.toLowerCase();
+            if (fullText.includes(q)) {
+              matches.push(card.cloneNode(true));
             }
           });
-      });
-    }
+        });
+        if (matches.length > 0) {
+          searchResults.innerHTML = `
+            <h3 style="text-align:center; margin-bottom:1rem; color:var(--accent);">
+              ${matches.length} result${matches.length !== 1 ? 's' : ''} for "<strong>${searchInput.value}</strong>"
+            </h3>
+            ${matches.map(c => c.outerHTML).join('')}
+          `;
+        } else {
+          searchResults.innerHTML = `
+            <div class="card" style="text-align:center; padding:2rem;">
+              <p>No results for "<strong>${searchInput.value}</strong>"</p>
+            </div>
+          `;
+        }
+      }, 150));
+      function debounce(fn, wait) {
+        let timeout;
+        return (...args) => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => fn.apply(this, args), wait);
+        };
+      }
+    });
+    // ===== IQAir API + CARBON FOOTPRINT COUNTER =====
+    document.addEventListener('DOMContentLoaded', () => {
+      // IQAir
+      const API_KEY = 'f74e14f9-86c9-4246-8065-ec2018624690';
+      const locationData = document.getElementById('location-data');
+      const aqiDisplay = document.getElementById('aqi-display');
+      const cityName = document.getElementById('city-name');
+      const aqiValue = document.getElementById('aqi-value');
+      const aqiCategory = document.getElementById('aqi-category');
+      const co2Value = document.getElementById('co2-value');
+      const tempValue = document.getElementById('temp-value');
+      function getLocation() {
+        if (!navigator.geolocation) {
+          locationData.textContent = '🔒 Geolocation not supported.';
+          return;
+        }
+        locationData.textContent = '📍 Detecting your location...';
+        navigator.geolocation.getCurrentPosition(
+          success => fetchIQAirData(success.coords.latitude, success.coords.longitude),
+          error => {
+            console.warn('Geolocation denied or failed:', error.message);
+            locationData.textContent = '🔒 Data Inaccessible';
+            locationData.style.color = '#ff7e00';
+            aqiDisplay.classList.add('hidden');
+          },
+          { timeout: 10000, enableHighAccuracy: false }
+        );
+      }
+      async function fetchIQAirData(lat, lon) {
+        try {
+          const url = `https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lon}&key=${API_KEY}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.status !== 'success' || !data.data) {
+            throw new Error(`Invalid response from IQAir. Status: ${data.status} | Message: ${data.data.message || 'No data.'}`);
+          }
+          const city = data.data.city || 'Nearby City';
+          const state = data.data.state || '';
+          const aqius = data.data.current.pollution.aqius;
+          const tempC = data.data.current.weather.tp;
+          const co2Estimate = Math.round(400 + (aqius / 300) * 150);
+          // AQI Category Mapping
+          const categories = [
+            { max: 50, name: 'Good', color: '#00e400' },
+            { max: 100, name: 'Moderate', color: '#ffff00' },
+            { max: 150, name: 'Unhealthy for Sensitive', color: '#ff7e00' },
+            { max: 200, name: 'Unhealthy', color: '#ff0000' },
+            { max: 300, name: 'Very Unhealthy', color: '#8f3f97' },
+            { max: Infinity, name: 'Hazardous', color: '#7e0023' }
+          ];
+          const category = categories.find(c => aqius <= c.max) || categories[0];
+          // Update DOM
+          cityName.textContent = `${city}${state ? `, ${state}` : ''}`;
+          aqiValue.textContent = aqius;
+          aqiCategory.textContent = category.name;
+          aqiCategory.style.color = category.color;
+          co2Value.textContent = co2Estimate;
+          tempValue.textContent = tempC;
+          // Show data, hide loading
+          locationData.classList.add('hidden');
+          aqiDisplay.classList.remove('hidden');
+        } catch (err) {
+          console.error('IQAir API error:', err);
+          locationData.textContent = `⚠️ Data unavailable. Check console.`;
+          aqiDisplay.classList.add('hidden');
+        }
+      }
+      // Carbon Counter
+      let secondsSpent = 0;
+      const timeSpentEl = document.getElementById('time-spent');
+      const carbonValueEl = document.getElementById('carbon-value');
+      const equivalentEl = document.getElementById('equivalent');
+      const sourceEl = document.getElementById('rice-source');
+      setInterval(() => {
+        secondsSpent++;
+        timeSpentEl.textContent = secondsSpent;
+        // Your CO2 calculation: (secondsSpent * 0.0003 g/s)
+        const co2Grams = (secondsSpent * 0.0003).toFixed(1);
+        carbonValueEl.textContent = co2Grams;
+        // REALISTIC RICE EQUIVALENT: 1g rice ≈ 1.8g CO₂e (based on avg from Our World in Data)
+        // So: g rice = g CO₂ / 1.8
+        const riceGrams = (parseFloat(co2Grams) / 1.8).toFixed(3);
+        equivalentEl.textContent = `${riceGrams} g of rice`;
+        // Optional: Update source text if element exists
+        if (sourceEl) {
+          sourceEl.textContent = 'Based on: 1g rice ≈ 1.8g CO₂e (Our World in Data)';
+        }
+      }, 1000);
+      // Init pulse
+      getLocation();
+    });
+    // ===== THEME TOGGLE =====
+    document.addEventListener('DOMContentLoaded', () => {
+      const themeToggle = document.getElementById('theme-toggle');
+      if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+          const htmlEl = document.documentElement;
+          if (htmlEl.classList.contains('light')) {
+            htmlEl.classList.remove('light');
+            htmlEl.classList.add('dark');
+          } else {
+            htmlEl.classList.remove('dark');
+            htmlEl.classList.add('light');
+          }
+        });
+      }
+    });
   </script>
 </body>
 </html>

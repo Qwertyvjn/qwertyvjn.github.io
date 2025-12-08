@@ -6,6 +6,8 @@
   <title>BrainFart | Interactive Environmental Engineering</title>
   <!-- ✅ CRITICAL: LINK TO STYLESHEET -->
   <link rel="stylesheet" href="styles.css">
+  <!-- ✅ SILENCE FAVICON 404 (optional: replace with real favicon.ico in repo) -->
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -314,7 +316,7 @@
     </div>
   </div>
   <script>
-    // ===== MODAL SYSTEM =====
+    // ===== MODAL SYSTEM (FIXED: Remove 'hidden' + better error handling) =====
     document.addEventListener('DOMContentLoaded', () => {
       const modalOverlay = document.getElementById('modal-overlay');
       const modalBody = document.getElementById('modal-body');
@@ -322,18 +324,26 @@
       window.openModal = async function(url) {
         try {
           const res = await fetch(url);
+          if (!res.ok) throw new Error(`Failed to load: HTTP ${res.status} (ensure '${url}' exists in repo root)`);
           modalBody.innerHTML = await res.text();
+          modalOverlay.classList.remove('hidden');
           modalOverlay.classList.add('active');
           document.body.style.overflow = 'hidden';
         } catch (err) {
-          modalBody.innerHTML = `<h2 style="color:var(--accent)">⚠️ Failed to load</h2><p>${err.message}</p>`;
+          console.error('Modal error:', err);
+          modalBody.innerHTML = `<h2 style="color:var(--accent)">⚠️ Failed to load</h2><p>${err.message}</p><p style="font-size:0.9rem;color:var(--dim);">Check console or GitHub repo for '${url}'.</p>`;
+          modalOverlay.classList.remove('hidden');
           modalOverlay.classList.add('active');
+          document.body.style.overflow = 'hidden';
         }
       };
       function closeModal() {
         modalOverlay.classList.remove('active');
-        setTimeout(() => modalBody.innerHTML = '', 300);
-        document.body.style.overflow = '';
+        setTimeout(() => {
+          modalBody.innerHTML = '';
+          modalOverlay.classList.add('hidden');
+          document.body.style.overflow = '';
+        }, 300);
       }
       if (modalClose) modalClose.addEventListener('click', closeModal);
       if (modalOverlay) modalOverlay.addEventListener('click', e => {
@@ -343,7 +353,7 @@
         if (e.key === 'Escape') closeModal();
       });
     });
-    // ===== SEARCH =====
+    // ===== SEARCH (FIXED: Use 'visible' class instead of 'hidden') =====
     document.addEventListener('DOMContentLoaded', () => {
       const searchInput = document.getElementById('search-input');
       const searchResults = document.getElementById('search-results');
@@ -354,11 +364,11 @@
         if (!q) {
           layout.classList.remove('search-active');
           searchResults.innerHTML = '';
-          searchResults.classList.add('hidden');
+          searchResults.classList.remove('visible');
           return;
         }
         layout.classList.add('search-active');
-        searchResults.classList.remove('hidden');
+        searchResults.classList.add('visible');
         const matches = [];
         ['#content', '#tools'].forEach(sectionId => {
           const section = document.querySelector(sectionId);

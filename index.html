@@ -271,60 +271,37 @@
         if (e.key === 'Escape') closeModal();
       });
     });
-    // ===== SEARCH =====
-    document.addEventListener('DOMContentLoaded', () => {
-      const searchInput = document.getElementById('search-input');
-      const searchResults = document.getElementById('search-results');
-      const layout = document.querySelector('.layout');
-      if (!searchInput) return;
-      searchInput.addEventListener('input', debounce(() => {
-        const q = searchInput.value.trim().toLowerCase();
-        if (!q) {
-          layout.classList.remove('search-active');
-          searchResults.innerHTML = '';
-          searchResults.classList.add('hidden');
-          return;
-        }
-        layout.classList.add('search-active');
-        searchResults.classList.remove('hidden');
-        const matches = [];
-        ['#content', '#tools'].forEach(sectionId => {
-          const section = document.querySelector(sectionId);
-          if (!section) return;
-          const cards = section.querySelectorAll('.card');
-          cards.forEach(card => {
-            const title = card.querySelector('h3')?.textContent || '';
-            const desc = card.querySelector('p')?.textContent || '';
-            const buttons = Array.from(card.querySelectorAll('a')).map(btn => btn.textContent).join(' ');
-            const fullText = `${title} ${desc} ${buttons}`.toLowerCase();
-            if (fullText.includes(q)) {
-              matches.push(card.cloneNode(true));
-            }
-          });
-        });
-        if (matches.length > 0) {
-          searchResults.innerHTML = `
-            <h3 style="text-align:center; margin-bottom:1rem; color:var(--accent);">
-              ${matches.length} result${matches.length !== 1 ? 's' : ''} for "<strong>${searchInput.value}</strong>"
-            </h3>
-            ${matches.map(c => c.outerHTML).join('')}
-          `;
-        } else {
-          searchResults.innerHTML = `
-            <div class="card" style="text-align:center; padding:2rem;">
-              <p>No results for "<strong>${searchInput.value}</strong>"</p>
-            </div>
-          `;
-        }
-      }, 150));
-      function debounce(fn, wait) {
-        let timeout;
-        return (...args) => {
-          clearTimeout(timeout);
-          timeout = setTimeout(() => fn.apply(this, args), wait);
-        };
-      }
-    });
+// FIXED SEARCH — FINDS ALL CARDS CORRECTLY
+const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+const layout = document.querySelector('.layout');
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (!q) {
+    layout.classList.remove('search-active');
+    searchResults.innerHTML = '';
+    return;
+  }
+
+  layout.classList.add('search-active');
+
+  // ROBUST SELECTOR: Finds ALL .card elements inside #main-content (works with your nesting)
+  const cards = document.querySelectorAll('#main-content .card');
+  const matches = Array.from(cards).filter(card => 
+    card.textContent.toLowerCase().includes(q)
+  );
+
+  if (matches.length === 0) {
+    searchResults.innerHTML = `<div class="card text-center p-8"><p>No results for "<strong>${searchInput.value}</strong>"</p></div>`;
+    return;
+  }
+
+  const header = `<h3 style="text-align:center;margin:1.5rem 0;color:var(--accent)">
+    ${matches.length} result${matches.length > 1 ? 's' : ''} for "<strong>${searchInput.value}</strong>"
+  </h3>`;
+  searchResults.innerHTML = header + matches.map(c => c.outerHTML).join('');
+});
     // ===== IQAir API + CARBON FOOTPRINT COUNTER =====
     document.addEventListener('DOMContentLoaded', () => {
       // IQAir

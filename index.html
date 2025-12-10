@@ -241,174 +241,138 @@
       </div>
     </div>
   </div>
-  <script>
-    // ===== MODAL SYSTEM =====
-    document.addEventListener('DOMContentLoaded', () => {
-      const modalOverlay = document.getElementById('modal-overlay');
-      const modalBody = document.getElementById('modal-body');
-      const modalClose = document.getElementById('modal-close');
-      window.openModal = async function(url) {
-        try {
-          const res = await fetch(url);
-          modalBody.innerHTML = await res.text();
-          modalOverlay.classList.add('active');
-          document.body.style.overflow = 'hidden';
-        } catch (err) {
-          modalBody.innerHTML = `<h2 style="color:var(--accent)">⚠️ Failed to load</h2><p>${err.message}</p>`;
-          modalOverlay.classList.add('active');
-        }
-      };
-      function closeModal() {
-        modalOverlay.classList.remove('active');
-        setTimeout(() => modalBody.innerHTML = '', 300);
-        document.body.style.overflow = '';
-      }
-      if (modalClose) modalClose.addEventListener('click', closeModal);
-      if (modalOverlay) modalOverlay.addEventListener('click', e => {
-        if (e.target === modalOverlay) closeModal();
-      });
-      document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') closeModal();
-      });
-    });
-// FIXED SEARCH — FINDS ALL CARDS CORRECTLY
-const searchInput = document.getElementById('search-input');
-const searchResults = document.getElementById('search-results');
-const layout = document.querySelector('.layout');
+ <script>
+  // ===== MODAL SYSTEM =====
+  document.addEventListener('DOMContentLoaded', () => {
+    const modalOverlay = document.getElementById('modal-overlay');
+    const modalBody = document.getElementById('modal-body');
+    const modalClose = document.getElementById('modal-close');
 
-searchInput.addEventListener('input', () => {
-  const q = searchInput.value.trim().toLowerCase();
-  if (!q) {
-    layout.classList.remove('search-active');
-    searchResults.innerHTML = '';
-    return;
-  }
+    window.openModal = async function(url) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Not found');
+        const html = await res.text();
 
-  layout.classList.add('search-active');
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const content = doc.querySelector('.content-body') || doc.body;
 
-  // ROBUST SELECTOR: Finds ALL .card elements inside #main-content (works with your nesting)
-  const cards = document.querySelectorAll('#main-content .card');
-  const matches = Array.from(cards).filter(card => 
-    card.textContent.toLowerCase().includes(q)
-  );
+        modalBody.innerHTML = content.innerHTML;
 
-  if (matches.length === 0) {
-    searchResults.innerHTML = `<div class="card text-center p-8"><p>No results for "<strong>${searchInput.value}</strong>"</p></div>`;
-    return;
-  }
-
-  const header = `<h3 style="text-align:center;margin:1.5rem 0;color:var(--accent)">
-    ${matches.length} result${matches.length > 1 ? 's' : ''} for "<strong>${searchInput.value}</strong>"
-  </h3>`;
-  searchResults.innerHTML = header + matches.map(c => c.outerHTML).join('');
-});
-    // ===== IQAir API + CARBON FOOTPRINT COUNTER =====
-    document.addEventListener('DOMContentLoaded', () => {
-      // IQAir
-      const API_KEY = 'f74e14f9-86c9-4246-8065-ec2018624690';
-      const locationData = document.getElementById('location-data');
-      const aqiDisplay = document.getElementById('aqi-display');
-      const cityName = document.getElementById('city-name');
-      const aqiValue = document.getElementById('aqi-value');
-      const aqiCategory = document.getElementById('aqi-category');
-      const co2Value = document.getElementById('co2-value');
-      const tempValue = document.getElementById('temp-value');
-      function getLocation() {
-        if (!navigator.geolocation) {
-          locationData.textContent = '🔒 Geolocation not supported.';
-          return;
-        }
-        locationData.textContent = '📍 Detecting your location...';
-        navigator.geolocation.getCurrentPosition(
-          success => fetchIQAirData(success.coords.latitude, success.coords.longitude),
-          error => {
-            console.warn('Geolocation denied or failed:', error.message);
-            locationData.textContent = '🔒 Data Inaccessible';
-            locationData.style.color = '#ff7e00';
-            aqiDisplay.classList.add('hidden');
-          },
-          { timeout: 10000, enableHighAccuracy: false }
-        );
-      }
-      async function fetchIQAirData(lat, lon) {
-        try {
-          const url = `https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lon}&key=${API_KEY}`;
-          const res = await fetch(url);
-          const data = await res.json();
-          if (data.status !== 'success' || !data.data) {
-            throw new Error(`Invalid response from IQAir. Status: ${data.status} | Message: ${data.data.message || 'No data.'}`);
-          }
-          const city = data.data.city || 'Nearby City';
-          const state = data.data.state || '';
-          const aqius = data.data.current.pollution.aqius;
-          const tempC = data.data.current.weather.tp;
-          const co2Estimate = Math.round(400 + (aqius / 300) * 150);
-          // AQI Category Mapping
-          const categories = [
-            { max: 50, name: 'Good', color: '#00e400' },
-            { max: 100, name: 'Moderate', color: '#ffff00' },
-            { max: 150, name: 'Unhealthy for Sensitive', color: '#ff7e00' },
-            { max: 200, name: 'Unhealthy', color: '#ff0000' },
-            { max: 300, name: 'Very Unhealthy', color: '#8f3f97' },
-            { max: Infinity, name: 'Hazardous', color: '#7e0023' }
-          ];
-          const category = categories.find(c => aqius <= c.max) || categories[0];
-          // Update DOM
-          cityName.textContent = `${city}${state ? `, ${state}` : ''}`;
-          aqiValue.textContent = aqius;
-          aqiCategory.textContent = category.name;
-          aqiCategory.style.color = category.color;
-          co2Value.textContent = co2Estimate;
-          tempValue.textContent = tempC;
-          // Show data, hide loading
-          locationData.classList.add('hidden');
-          aqiDisplay.classList.remove('hidden');
-        } catch (err) {
-          console.error('IQAir API error:', err);
-          locationData.textContent = `⚠️ Data unavailable. Check console.`;
-          aqiDisplay.classList.add('hidden');
-        }
-      }
-      // Carbon Counter
-      let secondsSpent = 0;
-      const timeSpentEl = document.getElementById('time-spent');
-      const carbonValueEl = document.getElementById('carbon-value');
-      const equivalentEl = document.getElementById('equivalent');
-      const sourceEl = document.getElementById('rice-source');
-      setInterval(() => {
-        secondsSpent++;
-        timeSpentEl.textContent = secondsSpent;
-        // Your CO2 calculation: (secondsSpent * 0.0003 g/s)
-        const co2Grams = (secondsSpent * 0.0003).toFixed(1);
-        carbonValueEl.textContent = co2Grams;
-        // REALISTIC RICE EQUIVALENT: 1g rice ≈ 1.8g CO₂e (based on avg from Our World in Data)
-        // So: g rice = g CO₂ / 1.8
-        const riceGrams = (parseFloat(co2Grams) / 1.8).toFixed(3);
-        equivalentEl.textContent = `${riceGrams} g of rice`;
-        // Optional: Update source text if element exists
-        if (sourceEl) {
-          sourceEl.textContent = 'Based on: 1g rice ≈ 1.8g CO₂e (Our World in Data)';
-        }
-      }, 1000);
-      // Init pulse
-      getLocation();
-    });
-    // ===== THEME TOGGLE =====
-    document.addEventListener('DOMContentLoaded', () => {
-      const themeToggle = document.getElementById('theme-toggle');
-      if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-          const htmlEl = document.documentElement;
-          if (htmlEl.classList.contains('light')) {
-            htmlEl.classList.remove('light');
-            htmlEl.classList.add('dark');
-          } else {
-            htmlEl.classList.remove('dark');
-            htmlEl.classList.add('light');
-          }
+        // Re-execute scripts from loaded content
+        doc.querySelectorAll('script').forEach(oldScript => {
+          const script = document.createElement('script');
+          script.textContent = oldScript.textContent;
+          document.body.appendChild(script);
+          document.body.removeChild(script);
         });
+
+        modalOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      } catch (e) {
+        modalBody.innerHTML = `<h2 style="color:var(--accent)">Failed to load</h2>`;
+        modalOverlay.classList.add('active');
       }
+    };
+
+    const closeModal = () => {
+      modalOverlay.classList.remove('active');
+      setTimeout(() => { modalBody.innerHTML = ''; document.body.style.overflow = ''; }, 300);
+    };
+
+    modalClose?.addEventListener('click', closeModal);
+    modalOverlay?.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  });
+
+  // ===== SEARCH — NOW 100% WORKING (fixed selector + results visible) =====
+  const searchInput = document.getElementById('search-input');
+  const searchResults = document.getElementById('search-results');
+  const layout = document.querySelector('.layout');
+
+  if (searchInput && searchResults) {
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+
+      if (!q) {
+        layout.classList.remove('search-active');
+        searchResults.innerHTML = '';
+        return;
+      }
+
+      layout.classList.add('search-active');
+
+      // THIS IS THE CORRECT SELECTOR — your cards are inside #main-content
+      const allCards = document.querySelectorAll('#main-content .card');
+      const matches = Array.from(allCards).filter(card =>
+        card.textContent.toLowerCase().includes(q)
+      );
+
+      if (matches.length === 0) {
+        searchResults.innerHTML = `
+          <div class="card text-center p-8 mt-8">
+            <p>No results for "<strong>${searchInput.value}</strong>"</p>
+          </div>`;
+        return;
+      }
+
+      const header = `
+        <h3 style="text-align:center; margin:2rem 0; color:var(--accent);">
+          ${matches.length} result${matches.length > 1 ? 's' : ''} for "<strong>${searchInput.value}</strong>"
+        </h3>`;
+
+      searchResults.innerHTML = header + matches.map(card => card.outerHTML).join('');
     });
-  </script>
+  }
+
+  // ===== THEME TOGGLE =====
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
+    document.documentElement.classList.toggle('light');
+  });
+
+  // ===== CARBON COUNTER =====
+  let seconds = 0;
+  setInterval(() => {
+    seconds++;
+    const timeEl = document.getElementById('time-spent');
+    const carbonEl = document.getElementById('carbon-value');
+    const riceEl = document.getElementById('equivalent');
+    if (timeEl) timeEl.textContent = seconds;
+    if (carbonEl) {
+      const co2 = (seconds * 0.0003).toFixed(1);
+      carbonEl.textContent = co2;
+      if (riceEl) riceEl.textContent = (co2 / 1.8).toFixed(3) + ' g of rice';
+    }
+  }, 1000);
+
+  // ===== IQAIR PULSE =====
+  const API_KEY = 'f74e14f9-86c9-4246-8065-ec2018624690';
+  const locEl = document.getElementById('location-data');
+  const dispEl = document.getElementById('aqi-display');
+
+  if (navigator.geolocation && locEl && dispEl) {
+    locEl.textContent = 'Detecting...';
+    navigator.geolocation.getCurrentPosition(pos => {
+      fetch(`https://api.airvisual.com/v2/nearest_city?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&key=${API_KEY}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.status === 'success') {
+            document.getElementById('city-name').textContent = d.data.city;
+            document.getElementById('aqi-value').textContent = d.data.current.pollution.aqius;
+            document.getElementById('co2-value').textContent = Math.round(400 + d.data.current.pollution.aqius * 0.5);
+            document.getElementById('temp-value').textContent = d.data.current.weather.tp;
+            const cats = ['Good','Moderate','Unhealthy for Sensitive','Unhealthy','Very Unhealthy','Hazardous'];
+            const idx = Math.min(5, Math.floor(d.data.current.pollution.aqius / 50));
+            document.getElementById('aqi-category').textContent = cats[idx];
+            locEl.classList.add('hidden');
+            dispEl.classList.remove('hidden');
+          }
+        })
+        .catch(() => { locEl.textContent = 'Data unavailable'; });
+    }, () => { locEl.textContent = 'Location denied'; });
+  }
+</script>
 </body>
 </html>

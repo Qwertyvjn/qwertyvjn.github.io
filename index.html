@@ -182,14 +182,30 @@
             </div>
           </section>
 
-          <section id="carbon">
-            <h2>🌿 Your Carbon Footprint — On This Site</h2>
-            <div class="card">
-              <p>You’ve been here for <span id="time-spent">0</span> seconds.</p>
-              <p>Your estimated footprint: <strong><span id="carbon-value">0.0</span> g CO₂</strong></p>
-              <p>That’s like <span id="equivalent">0.000 g of rice</span></p>
-            </div>
-          </section>
+<section id="carbon">
+  <h2>🌿 Your Carbon Footprint — On This Site</h2>
+  <div class="card relative">
+    <p>You’ve been here for <span id="time-spent">0</span> seconds.</p>
+    <p>Your estimated footprint: <strong><span id="carbon-value">0.0</span> g CO₂</strong></p>
+    <p>That’s like <span id="equivalent">0.000 g of rice</span></p>
+
+    <!-- INFO BUTTON WITH TOOLTIP -->
+    <div class="absolute top-4 right-4 group">
+      <button class="w-6 h-6 rounded-full bg-neutral-700 text-white text-sm font-bold flex items-center justify-center hover:bg-neutral-600 transition">
+        ?
+      </button>
+      <div class="absolute right-0 top-8 w-64 bg-neutral-800 text-white text-xs rounded-lg p-3 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 border border-neutral-600">
+        <p class="font-bold mb-2">How we estimate your footprint:</p>
+        <ul class="list-disc list-inside space-y-1">
+          <li><strong>Device energy:</strong> Power used by your phone/computer</li>
+          <li><strong>Server energy:</strong> Energy for hosting & processing this page</li>
+          <li><strong>Network energy:</strong> Data transfer over the internet</li>
+        </ul>
+        <p class="mt-2 text-neutral-400">Average: ~0.0003 g CO₂ per second (very low!)</p>
+      </div>
+    </div>
+  </div>
+</section>
 
           <section id="thesis">
             <h2>🎓 Thesis Snippet</h2>

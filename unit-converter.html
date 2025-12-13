@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Unit Converter (STEM)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styles for Inter font and dark theme */
+        body { font-family: 'Inter', sans-serif; background-color: #121212; color: #e0eeef; }
+        .card { background-color: #1e1e1e; }
+        .accent-green { color: #00b64c; }
+        .input-group label { transition: color 0.2s; }
+        .input-group input:focus + label { color: #00b64c; }
+    </style>
+    <script>
+        // Dictionary of conversion factors (Multiplier to convert FROM unit TO base unit)
+        // Base units: Length=Meter, Mass=Kilogram, Temp=Celsius, Volume=Liter
+        const CONVERSION_FACTORS = {
+            // --- LENGTH --- (Base: Meter)
+            'meter': { factor: 1, category: 'length' },
+            'foot': { factor: 0.3048, category: 'length' },
+            'inch': { factor: 0.0254, category: 'length' },
+            'kilometer': { factor: 1000, category: 'length' },
+            'mile': { factor: 1609.34, category: 'length' },
+
+            // --- MASS --- (Base: Kilogram)
+            'kilogram': { factor: 1, category: 'mass' },
+            'gram': { factor: 0.001, category: 'mass' },
+            'pound': { factor: 0.453592, category: 'mass' },
+            'tonne': { factor: 1000, category: 'mass' },
+
+            // --- VOLUME --- (Base: Liter)
+            'liter': { factor: 1, category: 'volume' },
+            'gallon_us': { factor: 3.78541, category: 'volume' },
+            'cubic_meter': { factor: 1000, category: 'volume' },
+            'milliliter': { factor: 0.001, category: 'volume' },
+            
+            // --- ENERGY --- (Base: Joule)
+            'joule': { factor: 1, category: 'energy' },
+            'kilojoule': { factor: 1000, category: 'energy' },
+            'kilocalorie': { factor: 4184, category: 'energy' },
+            'btu': { factor: 1055.06, category: 'energy' },
+            'kWh': { factor: 3600000, category: 'energy' },
+        };
+
+        // --- CORE CONVERSION LOGIC ---
+        function convert() {
+            const amount = parseFloat(document.getElementById('amount-input').value);
+            const unitFrom = document.getElementById('unit-from').value;
+            const unitTo = document.getElementById('unit-to').value;
+            const resultElement = document.getElementById('result');
+
+            if (isNaN(amount) || amount === 0) {
+                resultElement.textContent = 'Enter a valid number.';
+                return;
+            }
+
+            const fromInfo = CONVERSION_FACTORS[unitFrom];
+            const toInfo = CONVERSION_FACTORS[unitTo];
+
+            if (!fromInfo || !toInfo) {
+                resultElement.textContent = 'Invalid unit selection.';
+                return;
+            }
+
+            if (fromInfo.category !== toInfo.category) {
+                resultElement.textContent = `Error: Cannot convert ${fromInfo.category} to ${toInfo.category}.`;
+                return;
+            }
+
+            // 1. Convert initial amount TO the base unit
+            const baseAmount = amount * fromInfo.factor;
+
+            // 2. Convert base amount TO the target unit
+            const resultAmount = baseAmount / toInfo.factor;
+
+            resultElement.textContent = `${resultAmount.toFixed(4)}`;
+        }
+        
+        // --- UI Initialization and Filtering ---
+        
+        function getUnitName(key) {
+             const names = {
+                'meter': 'Meter (m)', 'foot': 'Foot (ft)', 'inch': 'Inch (in)', 
+                'kilometer': 'Kilometer (km)', 'mile': 'Mile (mi)',
+                'kilogram': 'Kilogram (kg)', 'gram': 'Gram (g)', 'pound': 'Pound (lb)', 
+                'tonne': 'Tonne (t)',
+                'liter': 'Liter (L)', 'gallon_us': 'Gallon (US)', 'cubic_meter': 'Cubic Meter (m³)', 
+                'milliliter': 'Milliliter (mL)',
+                'joule': 'Joule (J)', 'kilojoule': 'Kilojoule (kJ)', 'kilocalorie': 'Kilocalorie (kcal)',
+                'btu': 'BTU', 'kWh': 'Kilowatt-hour (kWh)'
+            };
+            return names[key] || key;
+        }
+
+        function populateUnitSelectors() {
+            const unitsFrom = document.getElementById('unit-from');
+            const unitsTo = document.getElementById('unit-to');
+            const unitsByCategory = {};
+
+            // Group units by category
+            Object.keys(CONVERSION_FACTORS).forEach(key => {
+                const category = CONVERSION_FACTORS[key].category;
+                if (!unitsByCategory[category]) {
+                    unitsByCategory[category] = [];
+                }
+                unitsByCategory[category].push(key);
+            });
+
+            // Populate selectors with optgroups
+            [unitsFrom, unitsTo].forEach(selector => {
+                selector.innerHTML = '';
+                for (const category in unitsByCategory) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = category.toUpperCase();
+                    unitsByCategory[category].forEach(unitKey => {
+                        const option = document.createElement('option');
+                        option.value = unitKey;
+                        option.textContent = getUnitName(unitKey);
+                        optgroup.appendChild(option);
+                    });
+                    selector.appendChild(optgroup);
+                }
+            });
+            
+            // Set initial defaults for demonstration
+            unitsFrom.value = 'meter';
+            unitsTo.value = 'foot';
+            document.getElementById('amount-input').value = 10;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateUnitSelectors();
+            document.querySelectorAll('#unit-from, #unit-to, #amount-input').forEach(element => {
+                element.addEventListener('change', convert);
+                element.addEventListener('keyup', convert);
+            });
+            convert(); // Initial conversion calculation
+        });
+    </script>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+    <div class="max-w-xl mx-auto">
+
+        <!-- PRIVACY BANNER -->
+        <div class="bg-[#00b64c] p-4 md:p-6 rounded-xl shadow-lg mb-8 flex items-center justify-center space-x-3">
+            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2V7a3 3 0 00-6 0v2h6z" clip-rule="evenodd"></path></svg>
+            <div>
+                <h1 class="text-xl md:text-2xl font-extrabold text-white">Client-Side Engineering Tool</h1>
+                <p class="text-sm text-gray-100">All conversions are calculated locally in your browser. No server connection required.</p>
+            </div>
+        </div>
+
+        <div class="card rounded-xl p-6 shadow-xl">
+            <h2 class="text-2xl font-bold mb-4 accent-green">Scientific Unit Converter</h2>
+            <p class="text-gray-400 mb-6">Quickly convert between common engineering units for Length, Mass, Volume, and Energy.</p>
+
+            <div class="flex flex-col space-y-6">
+                <!-- Input Group -->
+                <div class="input-group">
+                    <label for="amount-input" class="block text-sm font-medium mb-2 text-gray-300">Amount to Convert</label>
+                    <input type="number" id="amount-input" value="10" min="0" step="any"
+                           class="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:border-[#00b64c] focus:ring-[#00b64c] text-white text-lg"/>
+                </div>
+
+                <!-- FROM Unit Selector -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label for="unit-from" class="block text-sm font-medium mb-2 text-gray-300">Convert FROM:</label>
+                        <select id="unit-from" onchange="convert()"
+                                class="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:border-[#00b64c] focus:ring-[#00b64c] text-white">
+                            <!-- Options populated by JavaScript -->
+                        </select>
+                    </div>
+
+                    <!-- TO Unit Selector -->
+                    <div class="input-group">
+                        <label for="unit-to" class="block text-sm font-medium mb-2 text-gray-300">Convert TO:</label>
+                        <select id="unit-to" onchange="convert()"
+                                class="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:border-[#00b64c] focus:ring-[#00b64c] text-white">
+                            <!-- Options populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Result Display -->
+                <div class="mt-4 p-5 bg-neutral-700 rounded-lg border-l-4 border-[#00b64c]">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-1">Result:</h3>
+                    <p class="text-3xl font-extrabold accent-green truncate" id="result">0.0000</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

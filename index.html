@@ -189,17 +189,19 @@
     <p>Your estimated footprint: <strong><span id="carbon-value">0.0</span> g CO₂</strong></p>
     <p>That’s like <span id="equivalent">0.000 g of rice</span></p>
 
-    <!-- INFO BUTTON WITH HIDDEN TOOLTIP (only shows on hover) -->
+    <!-- HIDDEN TOOLTIP — ONLY APPEARS ON HOVER -->
     <div class="absolute top-4 right-4">
-      <div class="group relative">
-        <button class="w-6 h-6 rounded-full bg-neutral-700 text-white text-sm font-bold flex items-center justify-center hover:bg-neutral-600 transition">
+      <div class="relative inline-block">
+        <button class="w-6 h-6 rounded-full bg-neutral-700 text-white text-sm font-bold flex items-center justify-center hover:bg-neutral-600 transition focus:outline-none">
           ?
         </button>
-        
-        <!-- TOOLTIP — hidden by default, appears only on hover -->
+
+        <!-- TOOLTIP BOX — FULLY HIDDEN BY DEFAULT -->
         <div class="absolute right-0 top-8 w-72 bg-neutral-800 text-white text-xs rounded-lg p-4 shadow-2xl border border-neutral-700 
-                        opacity-0 invisible group-hover:opacity-100 group-hover:visible 
-                        transition-all duration-300 pointer-events-none z-20">
+                        opacity-0 invisible pointer-events-none 
+                        transition-all duration-300 z-20
+                        hover:opacity-100 hover:visible hover:pointer-events-auto
+                        peer-hover:opacity-100 peer-hover:visible">
           <p class="font-bold mb-3 text-sm">How we estimate your footprint:</p>
           <ul class="list-disc list-inside space-y-2">
             <li><strong>Device energy consumption:</strong> Power used by your phone/computer to load and view the page.</li>
@@ -212,7 +214,6 @@
     </div>
   </div>
 </section>
-
           <section id="thesis">
             <h2>🎓 Thesis Snippet</h2>
             <div class="card">

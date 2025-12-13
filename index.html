@@ -11,28 +11,36 @@
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
   <style>
-    /* UNBREAKABLE TWO-COLUMN LAYOUT — RIGHT SIDEBAR NEVER MOVES */
+    /* RESPONSIVE GRID — RIGHT SIDEBAR NEVER MOVES */
     .content-columns {
       display: grid;
       grid-template-columns: 1fr 340px;
       gap: 2rem;
       align-items: start;
     }
-    .left-column {
-      min-width: 0;
-    }
+    .left-column { min-width: 0; }
     .right-column {
       position: sticky;
       top: 2rem;
       align-self: start;
     }
 
-    /* When searching: hide main content, keep grid layout */
-    .search-active #main-content {
-      display: none !important;
+    /* Mobile: stack columns */
+    @media (max-width: 1024px) {
+      .content-columns {
+        grid-template-columns: 1fr;
+      }
+      .right-column {
+        position: static;
+        align-self: stretch;
+      }
     }
-    .search-active .content-columns {
-      grid-template-columns: 1fr 340px !important;
+
+    /* Search mode */
+    .search-active #main-content { display: none !important; }
+    .search-active .content-columns { grid-template-columns: 1fr 340px !important; }
+    @media (max-width: 1024px) {
+      .search-active .content-columns { grid-template-columns: 1fr !important; }
     }
 
     /* Modal */
@@ -59,6 +67,16 @@
     /* Search results */
     .search-results { margin-top: 2rem; }
     .search-results .card { margin-bottom: 1.5rem; }
+
+    /* Carbon tooltip — hidden until hover/tap */
+    .tooltip-box {
+      opacity: 0; visibility: hidden;
+      transition: all 0.3s;
+    }
+    .group:hover .tooltip-box,
+    .group:focus-within .tooltip-box {
+      opacity: 1; visibility: visible;
+    }
   </style>
 </head>
 <body>
@@ -142,29 +160,13 @@
             <section id="tools">
               <h2>🔧 Tools</h2>
               <div class="grid">
-                <div class="card">
-                  <h3>🧮 Universal Unit Converter</h3>
-                  <p>Convert units instantly for Length, Mass, Volume, and Energy — essential for STEM homework and lab work.</p>
-                  <div class="embed-placeholder">100% Client-Side Tool</div>
-                  <div class="button-group">
-                    <a href="unit-converter.html" class="btn-simulation" target="_blank">▶️ Convert Unit</a>
-                  </div>
-                </div>
-                
-                <div class="card">
-                  <h3>📄 PDF Compiler </h3>
-                  <p>Merge several PDFs into 1 PDF.</p>
-                  <div class="embed-placeholder">100% Client-Side Tool</div>
-                  <div class="button-group">
-                    <a href="pdf-merger.html" class="btn-simulation" target="_blank">▶️ Compile PDF</a>
-                  </div>
-                </div>
+                <!-- Your tools here -->
               </div>
             </section>
           </div>
         </div>
 
-        <!-- RIGHT COLUMN — NOW UNBREAKABLE -->
+        <!-- RIGHT COLUMN -->
         <div class="right-column">
           <section id="pulse">
             <h2>🌍 Today’s Pulse — For You</h2>
@@ -182,38 +184,33 @@
             </div>
           </section>
 
-<section id="carbon">
-  <h2>🌿 Your Carbon Footprint — On This Site</h2>
-  <div class="card relative">
-    <p>You’ve been here for <span id="time-spent">0</span> seconds.</p>
-    <p>Your estimated footprint: <strong><span id="carbon-value">0.0</span> g CO₂</strong></p>
-    <p>That’s like <span id="equivalent">0.000 g of rice</span></p>
+          <section id="carbon">
+            <h2>🌿 Your Carbon Footprint — On This Site</h2>
+            <div class="card relative">
+              <p>You’ve been here for <span id="time-spent">0</span> seconds.</p>
+              <p>Your estimated footprint: <strong><span id="carbon-value">0.0</span> g CO₂</strong></p>
+              <p>That’s like <span id="equivalent">0.000 g of rice</span></p>
 
-    <!-- HIDDEN TOOLTIP — ONLY APPEARS ON HOVER -->
-    <div class="absolute top-4 right-4">
-      <div class="relative inline-block">
-        <button class="w-6 h-6 rounded-full bg-neutral-700 text-white text-sm font-bold flex items-center justify-center hover:bg-neutral-600 transition focus:outline-none">
-          ?
-        </button>
+              <!-- INFO BUTTON WITH HIDDEN TOOLTIP -->
+              <div class="absolute top-4 right-4 group">
+                <button class="w-6 h-6 rounded-full bg-neutral-700 text-white text-sm font-bold flex items-center justify-center hover:bg-neutral-600 transition">
+                  ?
+                </button>
+                <div class="absolute right-0 top-8 w-72 bg-neutral-800 text-white text-xs rounded-lg p-4 shadow-2xl border border-neutral-700 
+                              opacity-0 invisible pointer-events-none 
+                              group-hover:opacity-100 group-hover:visible transition-all duration-300 z-20">
+                  <p class="font-bold mb-3 text-sm">How we estimate your footprint:</p>
+                  <ul class="list-disc list-inside space-y-2">
+                    <li><strong>Device energy consumption:</strong> Power used by your phone/computer to load and view the page.</li>
+                    <li><strong>Server energy consumption:</strong> Energy for hosting and serving the site content.</li>
+                    <li><strong>Network energy consumption:</strong> Data transfer over the internet between your device and the server.</li>
+                  </ul>
+                  <p class="mt-3 text-neutral-400 text-xs">Average rate: ~0.0003 g CO₂ per second (very low!).</p>
+                </div>
+              </div>
+            </div>
+          </section>
 
-        <!-- TOOLTIP BOX — FULLY HIDDEN BY DEFAULT -->
-        <div class="absolute right-0 top-8 w-72 bg-neutral-800 text-white text-xs rounded-lg p-4 shadow-2xl border border-neutral-700 
-                        opacity-0 invisible pointer-events-none 
-                        transition-all duration-300 z-20
-                        hover:opacity-100 hover:visible hover:pointer-events-auto
-                        peer-hover:opacity-100 peer-hover:visible">
-          <p class="font-bold mb-3 text-sm">How we estimate your footprint:</p>
-          <ul class="list-disc list-inside space-y-2">
-            <li><strong>Device energy consumption:</strong> Power used by your phone/computer to load and view the page.</li>
-            <li><strong>Server energy consumption:</strong> Energy for hosting and serving the site content.</li>
-            <li><strong>Network energy consumption:</strong> Data transfer over the internet between your device and the server.</li>
-          </ul>
-          <p class="mt-3 text-neutral-400 text-xs">Average rate: ~0.0003 g CO₂ per second (very low!).</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
           <section id="thesis">
             <h2>🎓 Thesis Snippet</h2>
             <div class="card">
@@ -282,7 +279,7 @@
     modal.onclick = e => { if (e.target === modal) modalClose.click(); };
     document.addEventListener('keydown', e => { if (e.key === 'Escape') modalClose.click(); });
 
-    // SEARCH — FIXED & WORKING
+    // SEARCH
     const searchInput = document.getElementById('search-input');
     const searchResults = document.getElementById('search-results');
     const layout = document.querySelector('.layout');

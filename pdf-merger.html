@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>100% Free PDF Merger</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load PDF-lib for client-side PDF merging -->
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+    <style>
+        /* Base styles for Inter font and dark theme */
+        body { font-family: 'Inter', sans-serif; background-color: #121212; color: #e0eeef; }
+        .card { background-color: #1e1e1e; }
+        .accent-green { color: #00b64c; }
+    </style>
+    <script>
+        // Use destructuring for the PDFLib object
+        const { PDFDocument } = PDFLib;
+
+        // Reads a File object and returns an ArrayBuffer
+        function readFileAsBuffer(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // Handles the core merging process
+        async function mergePdfs() {
+            const fileInput = document.getElementById('file-input');
+            const statusMessage = document.getElementById('status-message');
+            const files = fileInput.files;
+
+            if (files.length < 2) {
+                statusMessage.textContent = '⚠️ Please select at least two PDF files to merge.';
+                statusMessage.classList.add('text-red-500');
+                statusMessage.classList.remove('text-gray-400');
+                return;
+            }
+
+            statusMessage.textContent = 'Processing files... (This may take a moment for large files)';
+            statusMessage.classList.remove('text-red-500');
+            statusMessage.classList.add('text-yellow-500');
+            statusMessage.classList.remove('text-gray-400');
+
+            try {
+                // 1. Create a new, empty PDF document
+                const mergedPdf = await PDFDocument.create();
+                
+                let validPdfsCount = 0;
+
+                // 2. Iterate over selected files and copy their pages to the new document
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (file.type !== 'application/pdf') {
+                        console.warn(`Skipping file ${file.name}: Not a PDF.`);
+                        continue;
+                    }
+
+                    // Read the file buffer
+                    const pdfBuffer = await readFileAsBuffer(file);
+                    
+                    // Load the PDF using PDF-lib
+                    const pdf = await PDFDocument.load(pdfBuffer);
+                    
+                    // Copy all pages from the current PDF to the merged PDF
+                    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                    copiedPages.forEach((page) => {
+                        mergedPdf.addPage(page);
+                    });
+
+                    validPdfsCount++;
+                    statusMessage.textContent = `Processing file ${validPdfsCount} of ${files.length}...`;
+                }
+
+                if (validPdfsCount < 2) {
+                    throw new Error("Only one valid PDF file was selected. Select at least two to merge.");
+                }
+
+                // 3. Serialize the merged PDF document to bytes
+                const pdfBytes = await mergedPdf.save();
+
+                // 4. Create a Blob and initiate download (Client-side only)
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'merged_document.pdf';
+                
+                // Programmatically click the link to trigger download
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                statusMessage.textContent = `✅ Success! Merged ${validPdfsCount} PDFs. Download initiated.`;
+                statusMessage.classList.remove('text-yellow-500');
+                statusMessage.classList.add('accent-green');
+
+            } catch (error) {
+                console.error('PDF Merging Error:', error);
+                statusMessage.textContent = `❌ Error merging files: ${error.message}`;
+                statusMessage.classList.remove('text-yellow-500');
+                statusMessage.classList.add('text-red-500');
+            }
+        }
+
+        // Handles file input change to update the preview area
+        function handleFileChange(event) {
+            const previewArea = document.getElementById('preview-area');
+            const fileList = event.target.files;
+            previewArea.innerHTML = '';
+
+            if (fileList.length === 0) {
+                previewArea.innerHTML = '<p class="text-gray-500 italic p-4">No PDF files selected.</p>';
+                return;
+            }
+
+            Array.from(fileList).forEach((file, index) => {
+                const isValid = file.type === 'application/pdf';
+                const fileWrapper = document.createElement('div');
+                fileWrapper.className = `flex items-center space-x-3 p-2 border-b border-neutral-700 last:border-b-0 ${isValid ? '' : 'bg-red-900 bg-opacity-20'}`;
+                fileWrapper.innerHTML = `
+                    <span class="text-lg ${isValid ? 'accent-green' : 'text-red-500'}">${index + 1}.</span>
+                    <span class="text-sm truncate">${file.name}</span>
+                    <span class="text-xs text-gray-400 ml-auto">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                    ${isValid ? '' : '<span class="text-red-500 text-xs font-bold ml-2">NOT PDF</span>'}
+                `;
+                previewArea.appendChild(fileWrapper);
+            });
+        }
+    </script>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+    <div class="max-w-4xl mx-auto">
+
+        <!-- PRIVACY BANNER (MANDATORY REQUIREMENT) -->
+        <div class="bg-[#00b64c] p-4 md:p-6 rounded-xl shadow-lg mb-8 flex items-center justify-center space-x-3">
+            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2V7a3 3 0 00-6 0v2h6z" clip-rule="evenodd"></path></svg>
+            <div>
+                <h1 class="text-xl md:text-2xl font-extrabold text-white">100% Free - Zero Data Collection</h1>
+                <p class="text-sm text-gray-100">All PDF merging and processing happens directly in your browser. Your files never leave your device.</p>
+            </div>
+        </div>
+        <!-- END PRIVACY BANNER -->
+
+        <div class="card rounded-xl p-6 shadow-xl">
+            <h2 class="text-2xl font-bold mb-4 accent-green">PDF Merger Tool (Combine PDFs)</h2>
+            <p class="text-gray-400 mb-6">Select two or more PDF files to combine them into a single, merged PDF document.</p>
+
+            <!-- File Input -->
+            <div class="mb-6">
+                <label for="file-input" class="block text-sm font-medium mb-2 text-gray-300">1. Select PDF Files (Multi-select required):</label>
+                <input type="file" id="file-input" accept="application/pdf" multiple 
+                       onchange="handleFileChange(event)"
+                       class="w-full text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#00b64c] file:text-white hover:file:bg-opacity-80"/>
+            </div>
+            
+            <!-- Preview Area -->
+            <div class="mb-6 border border-neutral-700 rounded-lg max-h-60 overflow-y-auto" id="preview-area">
+                <p class="text-gray-500 italic p-4">Selected files will be listed here.</p>
+            </div>
+
+            <!-- Control Button -->
+            <button onclick="mergePdfs()" 
+                    class="w-full py-3 bg-[#00b64c] text-white font-bold rounded-lg shadow-md hover:bg-opacity-80 transition duration-150">
+                🚀 Merge and Download PDF
+            </button>
+            
+            <!-- Status Message -->
+            <p id="status-message" class="mt-4 text-center text-sm text-gray-400">Ready to merge files.</p>
+        </div>
+    </div>
+</body>
+</html>

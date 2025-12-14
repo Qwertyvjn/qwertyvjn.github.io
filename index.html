@@ -1,367 +1,412 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BrainFart | Interactive Environmental Engineering</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BrainFart | Interactive Environmental Engineering</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
-  <style>
-    /* RESPONSIVE GRID — RIGHT SIDEBAR NEVER MOVES */
-    .content-columns {
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 2rem;
-      align-items: start;
+  <style>
+    /* New: Define the outer layout grid for Sidebar + Main Content */
+    .layout {
+        display: grid;
+        grid-template-columns: 280px 1fr; /* Fixed 280px sidebar + remaining main content */
+        gap: 2rem;
+        min-height: 100vh;
+        padding: 2rem;
     }
-    .left-column { min-width: 0; }
-    .right-column {
-      position: sticky;
-      top: 2rem;
-      align-self: start;
+    .sidebar {
+        /* This is now correctly positioned in the first grid column */
     }
-
-    /* Mobile: stack columns */
-    @media (max-width: 1024px) {
-      .content-columns {
-        grid-template-columns: 1fr;
-      }
-      .right-column {
-        position: static;
-        align-self: stretch;
-      }
+    .main {
+        /* Main content takes the second column and uses its own internal grid */
+        min-width: 0; /* Prevents overflow issues */
     }
 
-    /* Search mode */
-    .search-active #main-content { display: none !important; }
-    .search-active .content-columns { grid-template-columns: 1fr 340px !important; }
-    @media (max-width: 1024px) {
-      .search-active .content-columns { grid-template-columns: 1fr !important; }
-    }
 
-    /* Modal */
-    #modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.8);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.3s;
-    }
-    #modal-overlay.active { opacity: 1; visibility: visible; }
-    .modal-content {
-      background: var(--card); color: var(--text);
-      width: 90%; max-width: 960px; max-height: 90vh;
-      border-radius: 0.75rem; overflow: hidden; position: relative;
-      display: flex; flex-direction: column;
-    }
-    #modal-close {
-      position: absolute; top: 1rem; right: 1.5rem;
-      background: none; border: none; color: var(--dim);
-      font-size: 2rem; cursor: pointer; z-index: 10;
-    }
-    #modal-close:hover { color: var(--accent); }
-    #modal-body { padding: 2rem; overflow-y: auto; flex: 1; }
+    /* RESPONSIVE GRID — RIGHT SIDEBAR NEVER MOVES */
+    .content-columns {
+      display: grid;
+      grid-template-columns: 1fr 340px; /* Inner grid for left content + right sticky bar */
+      gap: 2rem;
+      align-items: start;
+    }
+    .left-column { min-width: 0; }
+    .right-column {
+      position: sticky;
+      top: 2rem;
+      align-self: start;
+    }
 
-    /* Search results */
-    .search-results { margin-top: 2rem; }
-    .search-results .card { margin-bottom: 1.5rem; }
+    /* Mobile: stack columns */
+    @media (max-width: 1024px) {
+        /* FIX: Collapse the outer layout grid first */
+        .layout {
+            grid-template-columns: 1fr; 
+            gap: 1rem;
+            padding: 1rem;
+        }
+      .content-columns {
+        grid-template-columns: 1fr;
+      }
+      .right-column {
+        position: static;
+        align-self: stretch;
+      }
+    }
 
-    /* Carbon tooltip — hidden until hover/tap */
-    .tooltip-box {
-      opacity: 0; visibility: hidden;
-      transition: all 0.3s;
-    }
-    .group:hover .tooltip-box,
-    .group:focus-within .tooltip-box {
-      opacity: 1; visibility: visible;
-    }
-  </style>
+    /* Search mode */
+    .search-active #main-content { display: none !important; }
+    /* Keeping inner grid structure for search results */
+    .search-active .content-columns { grid-template-columns: 1fr 340px !important; }
+    @media (max-width: 1024px) {
+      .search-active .content-columns { grid-template-columns: 1fr !important; }
+    }
+
+    /* Modal */
+    #modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.3s;
+    }
+    #modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-content {
+      background: var(--card); color: var(--text);
+      width: 90%; max-width: 960px; max-height: 90vh;
+      border-radius: 0.75rem; overflow: hidden; position: relative;
+      display: flex; flex-direction: column;
+    }
+    #modal-close {
+      position: absolute; top: 1rem; right: 1.5rem;
+      background: none; border: none; color: var(--dim);
+      font-size: 2rem; cursor: pointer; z-index: 10;
+    }
+    #modal-close:hover { color: var(--accent); }
+    #modal-body { padding: 2rem; overflow-y: auto; flex: 1; }
+
+    /* Search results */
+    .search-results { margin-top: 2rem; }
+    .search-results .card { margin-bottom: 1.5rem; }
+
+    /* Carbon tooltip — hidden until hover/tap */
+    .tooltip-box {
+      opacity: 0; visibility: hidden;
+      transition: all 0.3s;
+    }
+    .group:hover .tooltip-box,
+    .group:focus-within .tooltip-box {
+      opacity: 1; visibility: visible;
+    }
+  </style>
 </head>
 <body>
-  <div class="layout">
-    <!-- LEFT SIDEBAR -->
-    <aside class="sidebar">
-      <div class="profile">
-        <div class="avatar"></div>
-        <div class="cut-text">BrainFart</div>
-        <p class="name">Glenn Alvin</p>
-        <p class="bio">Environmental Engineering · Indonesia</p>
-        <p class="tags">Air pollution • Unconventional energy • Sustainability</p>
-      </div>
-      <nav class="nav">
-        <a href="#content" class="nav-link">⚡️ Content</a>
-        <a href="#data" class="nav-link">📊 Live Data Feeds</a>
-        <a href="#tools" class="nav-link">🔧 Tools</a>
-      </nav>
-      <div class="links">
-        <h3 class="section-title">connect</h3>
-        <a href="https://www.linkedin.com/in/glenn-alvin-ab1533255/" target="_blank" class="link glow">linkedin</a>
-        <a href="mailto:glennalvin17@gmail.com" class="link">email</a>
-        <a href="#" class="link">resume</a>
-      </div>
-      <button id="theme-toggle" class="theme-toggle">
-        <div class="toggle-track"><div class="toggle-thumb"></div></div>
-        <span class="toggle-label">toggle theme</span>
-      </button>
-    </aside>
+  <div class="layout">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="profile">
+        <div class="avatar"></div>
+        <div class="cut-text">BrainFart</div>
+        <p class="name">Glenn Alvin</p>
+        <p class="bio">Environmental Engineering · Indonesia</p>
+        <p class="tags">Air pollution • Unconventional energy • Sustainability</p>
+      </div>
+      <nav class="nav">
+        <a href="#content" class="nav-link">⚡️ Content</a>
+        <a href="#data" class="nav-link">📊 Live Data Feeds</a>
+        <a href="#tools" class="nav-link">🔧 Tools</a>
+      </nav>
+      <div class="links">
+        <h3 class="section-title">connect</h3>
+        <a href="https://www.linkedin.com/in/glenn-alvin-ab1533255/" target="_blank" class="link glow">linkedin</a>
+        <a href="mailto:glennalvin17@gmail.com" class="link">email</a>
+        <a href="#" class="link">resume</a>
+      </div>
+      <button id="theme-toggle" class="theme-toggle">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        <span class="toggle-label">toggle theme</span>
+      </button>
+    </aside>
 
-    <!-- MAIN -->
-    <main class="main">
-      <div class="content-columns">
-        <!-- LEFT COLUMN -->
-        <div class="left-column">
-          <header>
-            <h1>Interactive Projects.</h1>
-            <p>Hi, I'm <strong>Glenn Alvin</strong>, an Indonesian Environmental Engineering student and enthusiastic knowledge-sharer. This site is my personal challenge to simplify complex environmental concepts—like <strong>air pollution</strong> and <strong>unconventional energy</strong>—through interactive models. Hope it's useful!</p>
-          </header>
+    <!-- MAIN CONTENT AREA -->
+    <main class="main">
+      <div class="content-columns">
+        <!-- LEFT CONTENT COLUMN (Projects, Tools, etc.) -->
+        <div class="left-column">
+          <header>
+            <h1>Interactive Projects.</h1>
+            <p>Hi, I'm <strong>Glenn Alvin</strong>, an Indonesian Environmental Engineering student and enthusiastic knowledge-sharer. This site is my personal challenge to simplify complex environmental concepts—like <strong>air pollution</strong> and <strong>unconventional energy</strong>—through interactive models. Hope it's useful!</p>
+          </header>
 
-          <div class="search-section" style="margin:2rem 0;text-align:center;">
-            <input type="text" id="search-input" placeholder="🔍 Search content & tools..." />
-            <div id="search-results" class="search-results"></div>
-          </div>
+          <div class="search-section" style="margin:2rem 0;text-align:center;">
+            <input type="text" id="search-input" placeholder="🔍 Search content & tools..." />
+            <div id="search-results" class="search-results"></div>
+          </div>
 
-          <div id="main-content">
-            <section id="content">
-              <h2>📚 Content</h2>
-              <div class="grid">
-                <div class="card">
-                  <h3>🌍 IPCC Carbon Counting</h3>
-                  <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
-                  <div class="button-group">
-                    <a href="ipcc-methodology.html" class="btn-material" target="_blank">📘 Methodology</a>
-                    <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">▶️ Simulation</a>
-                  </div>
-                </div>
-                <div class="card" id="simulation-red">
-                  <h3>🧪 Salinity Gradient Model (RED)</h3>
-                  <p><strong>The Chemical Waterfall:</strong> Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
-                  <div class="embed-placeholder" id="embed-red">Paste Insight Maker Embed Code Here</div>
-                  <div class="coming-soon-text">COMING SOON</div>
-                </div>
-                <div class="card" id="simulation-gpe">
-                  <h3>🏗️ Gravity Storage Calculator (GPE)</h3>
-                  <p><strong>Storing Energy with Bricks:</strong> A calculator demonstrating the massive mass and height required to store large-scale renewable energy using potential energy.</p>
-                  <div class="embed-placeholder" id="embed-gpe">Paste Looker Studio or Custom Embed Here</div>
-                  <div class="coming-soon-text">COMING SOON</div>
-                </div>
-              </div>
-            </section>
+          <div id="main-content">
+            <section id="content">
+              <h2>📚 Content</h2>
+              <div class="grid">
+                <div class="card">
+                  <h3>🌍 IPCC Carbon Counting</h3>
+                  <p><strong>Track Your Footprint:</strong> Estimate your carbon emissions based on IPCC guidelines — for individuals, households, and small businesses.</p>
+                  <div class="button-group">
+                    <a href="ipcc-methodology.html" class="btn-material" target="_blank" onclick="window.openModal('ipcc-methodology.html'); return false;">📘 Methodology</a>
+                    <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">▶️ Simulation</a>
+                  </div>
+                </div>
+                <div class="card" id="simulation-red">
+                  <h3>🧪 Salinity Gradient Model (RED)</h3>
+                  <p><strong>The Chemical Waterfall:</strong> Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
+                  <div class="embed-placeholder" id="embed-red">Paste Insight Maker Embed Code Here</div>
+                  <div class="coming-soon-text">COMING SOON</div>
+                </div>
+                <div class="card" id="simulation-gpe">
+                  <h3>🏗️ Gravity Storage Calculator (GPE)</h3>
+                  <p><strong>Storing Energy with Bricks:</strong> A calculator demonstrating the massive mass and height required to store large-scale renewable energy using potential energy.</p>
+                  <div class="embed-placeholder" id="embed-gpe">Paste Looker Studio or Custom Embed Here</div>
+                  <div class="coming-soon-text">COMING SOON</div>
+                </div>
+              </div>
+            </section>
 
-            <section id="data">
-              <h2>📊 The Global Carbon Pulse</h2>
-              <p>Tracking real-time indicators...</p>
-              <div class="card full">
-                <div class="embed-placeholder large" id="embed-data">Paste Dashboard Here</div>
-              </div>
-            </section>
+            <section id="data">
+              <h2>📊 The Global Carbon Pulse</h2>
+              <p>Tracking real-time indicators...</p>
+              <div class="card full">
+                <div class="embed-placeholder large" id="embed-data">Paste Dashboard Here</div>
+              </div>
+            </section>
 
-            <section id="tools">
-              <h2>🔧 Tools</h2>
-              <div class="grid">
-                <div class="card" id="tool-3">
-    <h3>🧮 Universal Unit Converter</h3>
-    <p>Convert units instantly for Length, Mass, Volume, and Energy. Essential for STEM homework and lab work.</p>
-    <div class="button-group">
-        <a href="unit-converter.html" class="btn-simulation" target="_blank">Start Converting</a>
-    </div>
-</div>
-        <h3>🧮 PDF Compiler</h3>
-    <p>Compile multiple PDFs into 1.</p>
-    <div class="button-group">
-        <a href="pdf-merger" class="btn-simulation" target="_blank">Start Compiling</a>
-    </div>
-</div>
-              </div>
-            </section>
-          </div>
-        </div>
+            <section id="tools">
+              <h2>🔧 Tools</h2>
+              <div class="grid">
+                <!-- Tool 1: PPTX Placeholder -->
+                <div class="card" id="tool-1">
+                  <h3>📄 PPTX to PDF Converter</h3>
+                  <p>Convert PowerPoint presentations to PDF format — no software needed.</p>
+                  <div class="embed-placeholder" id="embed-pptx">Coming Soon</div>
+                  <div class="button-group">
+                    <a href="#" class="btn-material">Documentation</a>
+                    <a href="#" class="btn-simulation">Convert Now</a>
+                  </div>
+                </div>
+                <!-- Tool 2: PDF Merger -->
+                <div class="card" id="tool-2">
+                  <h3>📚 PDF Merger Tool</h3>
+                  <p>Compile multiple PDFs into 1. 100% client-side safe.</p>
+                  <div class="button-group">
+                    <a href="pdf_merger.html" class="btn-simulation" target="_blank">Start Compiling</a>
+                  </div>
+                </div>
+                <!-- Tool 3: Universal Unit Converter (FIXED CARD) -->
+                <div class="card" id="tool-3">
+                  <h3>🧮 Universal Unit Converter</h3>
+                  <p>Convert units instantly for Length, Mass, Volume, and Energy. Essential for STEM homework and lab work.</p>
+                  <div class="button-group">
+                    <a href="unit_converter.html" class="btn-simulation" target="_blank">Start Converting</a>
+                  </div>
+                </div>
+                <!-- Tool 4: Markdown to PDF (Cleaned up placeholder) -->
+                <div class="card" id="tool-4">
+                  <h3>📝 Markdown to PDF Report</h3>
+                  <p>Convert formatted notes (.md) into a clean, paginated PDF report.</p>
+                  <div class="button-group">
+                    <a href="markdown_to_pdf.html" class="btn-simulation" target="_blank">Create Report</a>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
 
-        <!-- RIGHT COLUMN -->
-        <div class="right-column">
-          <section id="pulse">
-            <h2>🌍 Today’s Pulse — For You</h2>
-            <div class="card">
-              <div id="location-data" class="loading">📍 Detecting your location...</div>
-              <div id="aqi-display" class="hidden">
-                <p><strong>City:</strong> <span id="city-name">-</span></p>
-                <p><strong>AQI:</strong> <span id="aqi-value">-</span> (<span id="aqi-category">-</span>)</p>
-                <p><strong>CO₂:</strong> <span id="co2-value">-</span> ppm</p>
-                <p><strong>Temp:</strong> <span id="temp-value">-</span>°C</p>
-              </div>
-              <p style="font-size: 0.75rem; color: var(--dim); margin-top: 0.5rem; text-align: center;">
-                📊 Data powered by <a href="https://www.iqair.com/air-pollution-data-api" target="_blank" style="color: var(--accent);">IQAir API</a>.
-              </p>
-            </div>
-          </section>
+        <!-- RIGHT COLUMN (STAYS STICKY) -->
+        <div class="right-column">
+          <section id="pulse">
+            <h2>🌍 Today’s Pulse — For You</h2>
+            <div class="card">
+              <div id="location-data" class="loading">📍 Detecting your location...</div>
+              <div id="aqi-display" class="hidden">
+                <p><strong>City:</strong> <span id="city-name">-</span></p>
+                <p><strong>AQI:</strong> <span id="aqi-value">-</span> (<span id="aqi-category">-</span>)</p>
+                <p><strong>CO₂:</strong> <span id="co2-value">-</span> ppm</p>
+                <p><strong>Temp:</strong> <span id="temp-value">-</span>°C</p>
+              </div>
+              <p style="font-size: 0.75rem; color: var(--dim); margin-top: 0.5rem; text-align: center;">
+                📊 Data powered by <a href="https://www.iqair.com/air-pollution-data-api" target="_blank" style="color: var(--accent);">IQAir API</a>.
+              </p>
+            </div>
+          </section>
 
-          <section id="carbon">
-            <h2>🌿 Your Carbon Footprint — On This Site</h2>
-            <div class="card relative">
-              <p>You’ve been here for <span id="time-spent">0</span> seconds.</p>
-              <p>Your estimated footprint: <strong><span id="carbon-value">0.0</span> g CO₂</strong></p>
-              <p>That’s like <span id="equivalent">0.000 g of rice</span></p>
+          <section id="carbon">
+            <h2>🌿 Your Carbon Footprint — On This Site</h2>
+            <div class="card relative">
+              <p>You’ve been here for <span id="time-spent">0</span> seconds.</p>
+              <p>Your estimated footprint: <strong><span id="carbon-value">0.0</span> g CO₂</strong></p>
+              <p>That’s like <span id="equivalent">0.000 g of rice</span></p>
 
-              <!-- INFO BUTTON WITH HIDDEN TOOLTIP -->
-              <div class="absolute top-4 right-4 group">
-                <button class="w-6 h-6 rounded-full bg-neutral-700 text-white text-sm font-bold flex items-center justify-center hover:bg-neutral-600 transition">
-                  ?
-                </button>
-                <div class="absolute right-0 top-8 w-72 bg-neutral-800 text-white text-xs rounded-lg p-4 shadow-2xl border border-neutral-700 
-                              opacity-0 invisible pointer-events-none 
-                              group-hover:opacity-100 group-hover:visible transition-all duration-300 z-20">
-                  <p class="font-bold mb-3 text-sm">How we estimate your footprint:</p>
-                  <ul class="list-disc list-inside space-y-2">
-                    <li><strong>Device energy consumption:</strong> Power used by your phone/computer to load and view the page.</li>
-                    <li><strong>Server energy consumption:</strong> Energy for hosting and serving the site content.</li>
-                    <li><strong>Network energy consumption:</strong> Data transfer over the internet between your device and the server.</li>
-                  </ul>
-                  <p class="mt-3 text-neutral-400 text-xs">Average rate: ~0.0003 g CO₂ per second (very low!).</p>
-                </div>
-              </div>
-            </div>
-          </section>
+              <!-- INFO BUTTON WITH HIDDEN TOOLTIP -->
+              <div class="absolute top-4 right-4 group">
+                <button class="w-6 h-6 rounded-full bg-neutral-700 text-white text-sm font-bold flex items-center justify-center hover:bg-neutral-600 transition">
+                  ?
+                </button>
+                <div class="absolute right-0 top-8 w-72 bg-neutral-800 text-white text-xs rounded-lg p-4 shadow-2xl border border-neutral-700 
+                              opacity-0 invisible pointer-events-none 
+                              group-hover:opacity-100 group-hover:visible transition-all duration-300 z-20">
+                  <p class="font-bold mb-3 text-sm">How we estimate your footprint:</p>
+                  <ul class="list-disc list-inside space-y-2">
+                    <li><strong>Device energy consumption:</strong> Power used by your phone/computer to load and view the page.</li>
+                    <li><strong>Server energy consumption:</strong> Energy for hosting and serving the site content.</li>
+                    <li><strong>Network energy consumption:</strong> Data transfer over the internet between your device and the server.</li>
+                  </ul>
+                  <p class="mt-3 text-neutral-400 text-xs">Average rate: ~0.0003 g CO₂ per second (very low!).</p>
+                </div>
+              </div>
+            </div>
+          </section>
 
-          <section id="thesis">
-            <h2>🎓 Thesis Snippet</h2>
-            <div class="card">
-              <div id="thesis-content">Policy lag explains 62% of PM₂.₅ exceedance in Jakarta (2020–2024).</div>
-            </div>
-          </section>
+          <section id="thesis">
+            <h2>🎓 Thesis Snippet</h2>
+            <div class="card">
+              <div id="thesis-content">Policy lag explains 62% of PM₂.₅ exceedance in Jakarta (2020–2024).</div>
+            </div>
+          </section>
 
-          <section id="learn">
-            <h2>📬 Learn With Me</h2>
-            <div class="card">
-              <p>Connect or tell me something interesting.</p>
-              <form id="newsletter-form">
-                <input type="email" placeholder="Tell me something" class="input" required>
-                <button type="submit" class="btn">Send</button>
-              </form>
-            </div>
-          </section>
-        </div>
-      </div>
-    </main>
-  </div>
+          <section id="learn">
+            <h2>📬 Learn With Me</h2>
+            <div class="card">
+              <p>Connect or tell me something interesting.</p>
+              <form id="newsletter-form">
+                <input type="email" placeholder="Tell me something" class="input" required>
+                <button type="submit" class="btn">Send</button>
+              </form>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
 
-  <!-- MODAL -->
-  <div id="modal-overlay">
-    <div class="modal-content">
-      <button id="modal-close">×</button>
-      <div id="modal-body"></div>
-    </div>
-  </div>
+  <!-- MODAL -->
+  <div id="modal-overlay">
+    <div class="modal-content">
+      <button id="modal-close">×</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
 
-  <script>
-    // MODAL
-    const modal = document.getElementById('modal-overlay');
-    const modalBody = document.getElementById('modal-body');
-    const modalClose = document.getElementById('modal-close');
+  <script>
+    // MODAL
+    const modal = document.getElementById('modal-overlay');
+    const modalBody = document.getElementById('modal-body');
+    const modalClose = document.getElementById('modal-close');
 
-    window.openModal = async function(url) {
-      try {
-        const res = await fetch(url);
-        if (!res.ok) throw '';
-        const html = await res.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const content = doc.querySelector('.content-body') || doc.body;
-        modalBody.innerHTML = content.innerHTML;
+    window.openModal = async function(url) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw '';
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const content = doc.querySelector('.content-body') || doc.body;
+        modalBody.innerHTML = content.innerHTML;
 
-        doc.querySelectorAll('script').forEach(s => {
-          const ns = document.createElement('script');
-          ns.textContent = s.textContent;
-          document.body.appendChild(ns);
-          document.body.removeChild(ns);
-        });
+        doc.querySelectorAll('script').forEach(s => {
+          const ns = document.createElement('script');
+          ns.textContent = s.textContent;
+          document.body.appendChild(ns);
+          document.body.removeChild(ns);
+        });
 
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      } catch {
-        modalBody.innerHTML = '<h2 style="color:#00b64c">Failed to load</h2>';
-        modal.classList.add('active');
-      }
-    };
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      } catch {
+        modalBody.innerHTML = '<h2 style="color:#00b64c">Failed to load</h2>';
+        modal.classList.add('active');
+      }
+    };
 
-    modalClose.onclick = () => {
-      modal.classList.remove('active');
-      setTimeout(() => { modalBody.innerHTML = ''; document.body.style.overflow = ''; }, 300);
-    };
-    modal.onclick = e => { if (e.target === modal) modalClose.click(); };
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') modalClose.click(); });
+    modalClose.onclick = () => {
+      modal.classList.remove('active');
+      setTimeout(() => { modalBody.innerHTML = ''; document.body.style.overflow = ''; }, 300);
+    };
+    modal.onclick = e => { if (e.target === modal) modalClose.click(); };
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') modalClose.click(); });
 
-    // SEARCH
-    const searchInput = document.getElementById('search-input');
-    const searchResults = document.getElementById('search-results');
-    const layout = document.querySelector('.layout');
+    // SEARCH
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+    const layout = document.querySelector('.layout');
 
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value.trim().toLowerCase();
-      if (!q) {
-        layout.classList.remove('search-active');
-        searchResults.innerHTML = '';
-        return;
-      }
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      if (!q) {
+        layout.classList.remove('search-active');
+        searchResults.innerHTML = '';
+        return;
+      }
 
-      layout.classList.add('search-active');
+      layout.classList.add('search-active');
 
-      const cards = document.querySelectorAll('#main-content .card');
-      const matches = Array.from(cards).filter(card => 
-        card.textContent.toLowerCase().includes(q)
-      );
+      const cards = document.querySelectorAll('#main-content .card');
+      const matches = Array.from(cards).filter(card => 
+        card.textContent.toLowerCase().includes(q)
+      );
 
-      if (matches.length === 0) {
-        searchResults.innerHTML = `<div class="card text-center p-8"><p>No results for "<strong>${searchInput.value}</strong>"</p></div>`;
-        return;
-      }
+      if (matches.length === 0) {
+        searchResults.innerHTML = `<div class="card text-center p-8"><p>No results for "<strong>${searchInput.value}</strong>"</p></div>`;
+        return;
+      }
 
-      const header = `<h3 style="text-align:center;margin:1.5rem 0;color:var(--accent)">
-        ${matches.length} result${matches.length > 1 ? 's' : ''} for "<strong>${searchInput.value}</strong>"
-      </h3>`;
-      searchResults.innerHTML = header + matches.map(c => c.outerHTML).join('');
-    });
+      const header = `<h3 style="text-align:center;margin:1.5rem 0;color:var(--accent)">
+        ${matches.length} result${matches.length > 1 ? 's' : ''} for "<strong>${searchInput.value}</strong>"
+      </h3>`;
+      searchResults.innerHTML = header + matches.map(c => c.outerHTML).join('');
+    });
 
-    // THEME TOGGLE
-    document.getElementById('theme-toggle')?.addEventListener('click', () => {
-      document.documentElement.classList.toggle('dark');
-      document.documentElement.classList.toggle('light');
-    });
+    // THEME TOGGLE
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      document.documentElement.classList.toggle('light');
+    });
 
-    // CARBON COUNTER
-    let seconds = 0;
-    setInterval(() => {
-      seconds++;
-      document.getElementById('time-spent').textContent = seconds;
-      const co2 = (seconds * 0.0003).toFixed(1);
-      document.getElementById('carbon-value').textContent = co2;
-      document.getElementById('equivalent').textContent = (co2 / 1.8).toFixed(3) + ' g of rice';
-    }, 1000);
+    // CARBON COUNTER
+    let seconds = 0;
+    setInterval(() => {
+      seconds++;
+      document.getElementById('time-spent').textContent = seconds;
+      const co2 = (seconds * 0.0003).toFixed(1);
+      document.getElementById('carbon-value').textContent = co2;
+      document.getElementById('equivalent').textContent = (co2 / 1.8).toFixed(3) + ' g of rice';
+    }, 1000);
 
-    // IQAIR
-    const KEY = 'f74e14f9-86c9-4246-8065-ec2018624690';
-    const locEl = document.getElementById('location-data');
-    const dispEl = document.getElementById('aqi-display');
-    if (navigator.geolocation) {
-      locEl.textContent = 'Detecting...';
-      navigator.geolocation.getCurrentPosition(p => {
-        fetch(`https://api.airvisual.com/v2/nearest_city?lat=${p.coords.latitude}&lon=${p.coords.longitude}&key=${KEY}`)
-          .then(r => r.json())
-          .then(d => {
-            if (d.status === 'success') {
-              document.getElementById('city-name').textContent = d.data.city;
-              document.getElementById('aqi-value').textContent = d.data.current.pollution.aqius;
-              document.getElementById('co2-value').textContent = Math.round(400 + d.data.current.pollution.aqius * 0.5);
-              document.getElementById('temp-value').textContent = d.data.current.weather.tp;
-              const cats = ['Good','Moderate','Unhealthy for Sensitive','Unhealthy','Very Unhealthy','Hazardous'];
-              const idx = Math.min(5, Math.floor(d.data.current.pollution.aqius / 50));
-              document.getElementById('aqi-category').textContent = cats[idx];
-              locEl.classList.add('hidden');
-              dispEl.classList.remove('hidden');
-            }
-          });
-      });
-    }
-  </script>
+    // IQAIR
+    const KEY = 'f74e14f9-86c9-4246-8065-ec2018624690';
+    const locEl = document.getElementById('location-data');
+    const dispEl = document.getElementById('aqi-display');
+    if (navigator.geolocation) {
+      locEl.textContent = 'Detecting...';
+      navigator.geolocation.getCurrentPosition(p => {
+        fetch(`https://api.airvisual.com/v2/nearest_city?lat=${p.coords.latitude}&lon=${p.coords.longitude}&key=${KEY}`)
+          .then(r => r.json())
+          .then(d => {
+            if (d.status === 'success') {
+              document.getElementById('city-name').textContent = d.data.city;
+              document.getElementById('aqi-value').textContent = d.data.current.pollution.aqius;
+              document.getElementById('co2-value').textContent = Math.round(400 + d.data.current.pollution.aqius * 0.5);
+              document.getElementById('temp-value').textContent = d.data.current.weather.tp;
+              const cats = ['Good','Moderate','Unhealthy for Sensitive','Unhealthy','Very Unhealthy','Hazardous'];
+              const idx = Math.min(5, Math.floor(d.data.current.pollution.aqius / 50));
+              document.getElementById('aqi-category').textContent = cats[idx];
+              locEl.classList.add('hidden');
+              dispEl.classList.remove('hidden');
+            }
+          });
+      });
+    }
+  </script>
 </body>
 </html>

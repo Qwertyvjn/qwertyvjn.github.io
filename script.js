@@ -202,3 +202,32 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 });
+
+// CARBON FOOTPRINT TOOLTIP — WORKS ON HOVER (DESKTOP) & TAP (MOBILE)
+const carbonBtn = document.getElementById('carbon-info-btn');
+const carbonTooltip = document.getElementById('carbon-tooltip');
+
+if (carbonBtn && carbonTooltip) {
+  // Desktop: hover
+  carbonBtn.addEventListener('mouseenter', () => {
+    carbonTooltip.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
+  });
+  carbonBtn.addEventListener('mouseleave', () => {
+    carbonTooltip.classList.add('opacity-0', 'invisible', 'pointer-events-none');
+  });
+
+  // Mobile: tap to toggle
+  carbonBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    carbonTooltip.classList.toggle('opacity-0');
+    carbonTooltip.classList.toggle('invisible');
+    carbonTooltip.classList.toggle('pointer-events-none');
+  });
+
+  // Close tooltip when tapping elsewhere (mobile)
+  document.addEventListener('click', () => {
+    if (!carbonTooltip.classList.contains('opacity-0')) {
+      carbonTooltip.classList.add('opacity-0', 'invisible', 'pointer-events-none');
+    }
+  });
+}

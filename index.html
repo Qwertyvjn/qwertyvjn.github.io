@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
   <style>
-    /* Mobile-first responsive grid */
+    /* RESPONSIVE GRID — RIGHT SIDEBAR NEVER MOVES */
     .content-columns {
       display: grid;
       grid-template-columns: 1fr;
@@ -24,14 +24,12 @@
       align-self: start;
       z-index: 10;
     }
-
     @media (min-width: 1024px) {
       .content-columns {
         grid-template-columns: 1fr 340px;
       }
     }
 
-    /* Search mode - keep right column visible */
     .search-active #main-content { display: none !important; }
 
     /* Modal */
@@ -55,7 +53,6 @@
     #modal-close:hover { color: var(--accent); }
     #modal-body { padding: 2rem; overflow-y: auto; flex: 1; }
 
-    /* Search results */
     .search-results { margin-top: 2rem; }
   </style>
 </head>
@@ -111,14 +108,55 @@
                     <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">▶️ Simulation</a>
                   </div>
                 </div>
-                <!-- other cards -->
+                <div class="card" id="simulation-red">
+                  <h3>🧪 Salinity Gradient Model (RED)</h3>
+                  <p><strong>The Chemical Waterfall:</strong> Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
+                  <div class="embed-placeholder" id="embed-red">Paste Insight Maker Embed Code Here</div>
+                  <div class="coming-soon-text">COMING SOON</div>
+                </div>
+                <div class="card" id="simulation-gpe">
+                  <h3>🏗️ Gravity Storage Calculator (GPE)</h3>
+                  <p><strong>Storing Energy with Bricks:</strong> A calculator demonstrating the massive mass and height required to store large-scale renewable energy using potential energy.</p>
+                  <div class="embed-placeholder" id="embed-gpe">Paste Looker Studio or Custom Embed Here</div>
+                  <div class="coming-soon-text">COMING SOON</div>
+                </div>
               </div>
             </section>
-            <!-- data & tools sections -->
+
+            <section id="data">
+              <h2>📊 The Global Carbon Pulse</h2>
+              <p>Tracking real-time indicators...</p>
+              <div class="card full">
+                <div class="embed-placeholder large" id="embed-data">Paste Dashboard Here</div>
+              </div>
+            </section>
+
+            <section id="tools">
+              <h2>🔧 Tools</h2>
+              <div class="grid">
+                <div class="card">
+                  <h3>🧮 Universal Unit Converter</h3>
+                  <p>Convert units instantly for Length, Mass, Volume, Energy — essential for STEM and engineering.</p>
+                  <div class="embed-placeholder">100% Client-Side • No Data Sent</div>
+                  <div class="button-group">
+                    <a href="tools/unit-converter.html" class="btn-simulation" target="_blank">▶️ Convert Units</a>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <h3>📄 PDF Compiler</h3>
+                  <p>Merge PDFs, images, Word, and PowerPoint into one PDF — instantly and privately.</p>
+                  <div class="embed-placeholder">100% Client-Side • No Uploads</div>
+                  <div class="button-group">
+                    <a href="tools/pdf-compiler.html" class="btn-simulation" target="_blank">▶️ Compile PDF</a>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
 
-        <!-- RIGHT COLUMN — PERFECT ON MOBILE -->
+        <!-- RIGHT COLUMN -->
         <div class="right-column">
           <section id="pulse">
             <h2>🌍 Today's Pulse — For You</h2>
@@ -130,6 +168,9 @@
                 <p><strong>CO₂:</strong> <span id="co2-value">-</span> ppm</p>
                 <p><strong>Temp:</strong> <span id="temp-value">-</span>°C</p>
               </div>
+              <p style="font-size: 0.75rem; color: var(--dim); margin-top: 0.5rem; text-align: center;">
+                📊 Data powered by <a href="https://www.iqair.com/air-pollution-data-api" target="_blank" style="color: var(--accent);">IQAir API</a>.
+              </p>
             </div>
           </section>
 
@@ -140,14 +181,13 @@
               <p>Your estimated footprint: <strong><span id="carbon-value">0.0</span> g CO₂</strong></p>
               <p>That’s like <span id="equivalent">0.000 g of rice</span></p>
 
-              <!-- PERFECT TOOLTIP — HIDDEN UNTIL HOVER/TAP -->
+              <!-- "?" BUTTON WITH PERFECT TOOLTIP -->
               <div class="absolute top-3 right-3">
-                <button id="carbon-info-btn" class="w-8 h-8 rounded-full bg-neutral-700 text-white text-lg font-bold flex items-center justify-center hover:bg-neutral-600 transition">
+                <button id="carbon-info-btn" class="w-8 h-8 rounded-full bg-neutral-700 text-white font-bold flex items-center justify-center hover:bg-neutral-600 active:bg-neutral-500 transition">
                   ?
                 </button>
 
-                <!-- Tooltip — completely hidden until triggered -->
-                <div id="carbon-tooltip" class="absolute right-0 top-10 w-80 bg-neutral-800 text-white text-xs rounded-lg p-4 shadow-2xl border border-neutral-700 
+                <div id="carbon-tooltip" class="absolute right-0 top-10 w-72 max-w-[calc(100vw-2rem)] bg-neutral-800 text-white text-xs rounded-lg p-4 shadow-2xl border border-neutral-700 
                                         opacity-0 invisible pointer-events-none 
                                         transition-all duration-300 z-30">
                   <p class="font-bold mb-3 text-sm">How we estimate your footprint:</p>
@@ -156,7 +196,7 @@
                     <li><strong>Server energy:</strong> Energy for hosting this page</li>
                     <li><strong>Network energy:</strong> Data transfer over the internet</li>
                   </ul>
-                  <p class="mt-3 text-neutral-400 text-xs">Average: ~0.0003 g CO₂ per second (extremely low!)</p>
+                  <p class="mt-3 text-neutral-400 text-xs">Average: ~0.0003 g CO₂ per second (very low!)</p>
                 </div>
               </div>
             </div>
@@ -193,7 +233,7 @@
   </div>
 
   <script>
-    // MODAL (your working version)
+    // MODAL
     const modal = document.getElementById('modal-overlay');
     const modalBody = document.getElementById('modal-body');
     const modalClose = document.getElementById('modal-close');
@@ -228,25 +268,7 @@
     modal.onclick = e => { if (e.target === modal) modalClose.click(); };
     document.addEventListener('keydown', e => { if (e.key === 'Escape') modalClose.click(); });
 
-    // CARBON TOOLTIP — NOW WORKS ON MOBILE TOO
-    const infoBtn = document.getElementById('carbon-info-btn');
-    const tooltip = document.getElementById('carbon-tooltip');
-
-    infoBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      tooltip.classList.toggle('opacity-0');
-      tooltip.classList.toggle('invisible');
-      tooltip.classList.toggle('pointer-events-none');
-    });
-
-    // Hide tooltip when clicking elsewhere
-    document.addEventListener('click', () => {
-      if (!tooltip.classList.contains('opacity-0')) {
-        tooltip.classList.add('opacity-0', 'invisible', 'pointer-events-none');
-      }
-    });
-
-    // SEARCH — WORKING
+    // SEARCH
     const searchInput = document.getElementById('search-input');
     const searchResults = document.getElementById('search-results');
     const layout = document.querySelector('.layout');
@@ -266,8 +288,73 @@
         : `<div class="card text-center p-8"><p>No results</p></div>`;
     });
 
-    // THEME TOGGLE + CARBON COUNTER + IQAIR (your working code)
-    // ... keep your existing working scripts here ...
+    // CARBON TOOLTIP — WORKS ON DESKTOP HOVER & MOBILE TAP
+    const carbonBtn = document.getElementById('carbon-info-btn');
+    const carbonTooltip = document.getElementById('carbon-tooltip');
+
+    if (carbonBtn && carbonTooltip) {
+      // Desktop hover
+      carbonBtn.addEventListener('mouseenter', () => {
+        carbonTooltip.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
+      });
+      carbonBtn.addEventListener('mouseleave', () => {
+        carbonTooltip.classList.add('opacity-0', 'invisible', 'pointer-events-none');
+      });
+
+      // Mobile tap
+      carbonBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        carbonTooltip.classList.toggle('opacity-0');
+        carbonTooltip.classList.toggle('invisible');
+        carbonTooltip.classList.toggle('pointer-events-none');
+      });
+
+      // Close on outside tap
+      document.addEventListener('click', () => {
+        carbonTooltip.classList.add('opacity-0', 'invisible', 'pointer-events-none');
+      });
+    }
+
+    // THEME TOGGLE
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      document.documentElement.classList.toggle('light');
+    });
+
+    // CARBON COUNTER
+    let seconds = 0;
+    setInterval(() => {
+      seconds++;
+      document.getElementById('time-spent').textContent = seconds;
+      const co2 = (seconds * 0.0003).toFixed(1);
+      document.getElementById('carbon-value').textContent = co2;
+      document.getElementById('equivalent').textContent = (co2 / 1.8).toFixed(3) + ' g of rice';
+    }, 1000);
+
+    // IQAIR
+    const KEY = 'f74e14f9-86c9-4246-8065-ec2018624690';
+    const locEl = document.getElementById('location-data');
+    const dispEl = document.getElementById('aqi-display');
+    if (navigator.geolocation) {
+      locEl.textContent = 'Detecting...';
+      navigator.geolocation.getCurrentPosition(p => {
+        fetch(`https://api.airvisual.com/v2/nearest_city?lat=${p.coords.latitude}&lon=${p.coords.longitude}&key=${KEY}`)
+          .then(r => r.json())
+          .then(d => {
+            if (d.status === 'success') {
+              document.getElementById('city-name').textContent = d.data.city;
+              document.getElementById('aqi-value').textContent = d.data.current.pollution.aqius;
+              document.getElementById('co2-value').textContent = Math.round(400 + d.data.current.pollution.aqius * 0.5);
+              document.getElementById('temp-value').textContent = d.data.current.weather.tp;
+              const cats = ['Good','Moderate','Unhealthy for Sensitive','Unhealthy','Very Unhealthy','Hazardous'];
+              const idx = Math.min(5, Math.floor(d.data.current.pollution.aqius / 50));
+              document.getElementById('aqi-category').textContent = cats[idx];
+              locEl.classList.add('hidden');
+              dispEl.classList.remove('hidden');
+            }
+          });
+      });
+    }
   </script>
 </body>
 </html>

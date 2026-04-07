@@ -92,7 +92,7 @@ function closeModal() {
 // ===== CARBON + IQAir — SAFE INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   // IQAir (Fixed URL typo)
-  const API_KEY = 'f74e14f9-86c9-4246-8065-ec2018624690';
+  const API_KEY = 'YOUR_API_KEY_HERE';
   const el = {
     loc: document.getElementById('location-data'),
     aqi: document.getElementById('aqi-display'),

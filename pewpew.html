@@ -163,6 +163,36 @@
     }
     #play-again:hover { background: #00d45a; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,182,76,0.4); }
 
+    /* Mode select */
+    #mode-select {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.5rem;
+      z-index: 200;
+    }
+    #mode-select.active { display: flex; }
+    .mode-btn {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 0.5rem;
+      padding: 1rem 2.5rem;
+      color: #e0e0e0;
+      font-family: 'Fira Code', monospace;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      transition: all 0.2s;
+    }
+    .mode-btn:hover { border-color: #00b64c; background: #0f1f0f; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,182,76,0.2); }
+    .pvp-col { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+    .pvp-label { font-size: 0.7rem; letter-spacing: 0.12em; margin-bottom: 0.25rem; }
+
     /* Overtime flash */
     #overtime-banner {
       display: none;
@@ -213,6 +243,17 @@
     <span id="select-timer">15s to choose or lose the wave</span>
   </div>
 
+  <!-- Mode select -->
+  <div id="mode-select" class="active">
+    <div class="title" style="font-size:2.2rem">PEW PEW</div>
+    <div style="color:#444;font-size:0.75rem;letter-spacing:0.12em;margin-top:-0.75rem">CHOOSE YOUR BATTLE</div>
+    <div style="display:flex;gap:1rem;margin-top:0.5rem">
+      <button class="mode-btn" onclick="startMode('bot')">🤖 vs Bot</button>
+      <button class="mode-btn" onclick="startMode('pvp')">👥 Local PvP</button>
+    </div>
+    <a href="index.html" style="font-size:0.7rem;color:#333;text-decoration:none;margin-top:0.5rem">← back to brainfart</a>
+  </div>
+
   <!-- End screen -->
   <div id="end-screen">
     <div id="end-title"></div>
@@ -224,6 +265,8 @@
   <div id="overtime-banner">SUDDEN PEW</div>
 
   <script>
+  let gameMode = 'bot'; // 'bot' | 'pvp'
+
   // ═══════════════════════════════════════════
   // CONFIG
   // ═══════════════════════════════════════════
@@ -298,6 +341,8 @@
       flashes:   [],
       floaters:  [],
       shake: 0,
+      placingTowerRed: null,
+      pvpRedPicked: false, pvpBluePicked: false,
       mouseX: -1, mouseY: -1,
       score:     { blue: 0, red: 0, total: 0 },
       stats:     { blueDestroyed: 0, redDestroyed: 0, iceDestroyed: 0 },
@@ -338,26 +383,54 @@
   // ═══════════════════════════════════════════
   let selectInterval = null;
 
-  function showSelect(isStart) {
-    const options = [...TOWER_KEYS].sort(() => Math.random() - 0.5).slice(0, 3);
-    const overlay = document.getElementById('tower-select');
-    document.getElementById('select-title').textContent = isStart ? 'PICK YOUR FIRST TOWER' : 'PICK A TOWER';
-    document.getElementById('tower-options').innerHTML = options.map(k => {
-      const d = TOWER_DEFS[k];
-      return `<div class="tower-card" onclick="selectTower('${k}')">
-        <div class="tower-icon">${d.icon}</div>
-        <div class="tower-name">${d.name}</div>
-        <div class="tower-desc">${d.desc}</div>
-      </div>`;
-    }).join('');
-    overlay.classList.add('active');
+  function towerCard(k, onclick, accent) {
+    const d = TOWER_DEFS[k];
+    return `<div class="tower-card" id="tc-${accent}-${k}" style="border-color:${accent === 'red' ? '#3a1a1a' : '#1a3a6a'}" onclick="${onclick}">
+      <div class="tower-icon">${d.icon}</div>
+      <div class="tower-name">${d.name}</div>
+      <div class="tower-desc">${d.desc}</div>
+    </div>`;
+  }
 
-    let s = isStart ? 15 : 4;
-    document.getElementById('select-timer').textContent = `${s}s to choose or lose the wave`;
+  function showSelect(isStart) {
+    const overlay = document.getElementById('tower-select');
+    state.pvpRedPicked = false; state.pvpBluePicked = false;
+
+    if (gameMode === 'pvp') {
+      const ro = [...TOWER_KEYS].sort(() => Math.random() - 0.5).slice(0, 3);
+      const bo = [...TOWER_KEYS].sort(() => Math.random() - 0.5).slice(0, 3);
+      document.getElementById('select-title').textContent = isStart ? 'EACH PLAYER PICKS A TOWER' : 'PICK YOUR TOWERS';
+      document.getElementById('tower-options').innerHTML = `
+        <div style="display:flex;gap:2.5rem;justify-content:center;width:100%">
+          <div class="pvp-col">
+            <div class="pvp-label" style="color:#ff6666">🔴 RED — click top half to place</div>
+            <div style="display:flex;gap:0.5rem">${ro.map(k => towerCard(k, `selectTowerPvp('red','${k}')`, 'red')).join('')}</div>
+          </div>
+          <div class="pvp-col">
+            <div class="pvp-label" style="color:#4a9eff">🔵 BLUE — click bottom half to place</div>
+            <div style="display:flex;gap:0.5rem">${bo.map(k => towerCard(k, `selectTowerPvp('blue','${k}')`, 'blue')).join('')}</div>
+          </div>
+        </div>`;
+    } else {
+      const options = [...TOWER_KEYS].sort(() => Math.random() - 0.5).slice(0, 3);
+      document.getElementById('select-title').textContent = isStart ? 'PICK YOUR FIRST TOWER' : 'PICK A TOWER';
+      document.getElementById('tower-options').innerHTML = options.map(k => {
+        const d = TOWER_DEFS[k];
+        return `<div class="tower-card" onclick="selectTower('${k}')">
+          <div class="tower-icon">${d.icon}</div>
+          <div class="tower-name">${d.name}</div>
+          <div class="tower-desc">${d.desc}</div>
+        </div>`;
+      }).join('');
+    }
+
+    overlay.classList.add('active');
+    let s = isStart ? 15 : 5;
+    document.getElementById('select-timer').textContent = `${s}s`;
     clearInterval(selectInterval);
     selectInterval = setInterval(() => {
       s--;
-      document.getElementById('select-timer').textContent = `${s}s to choose or lose the wave`;
+      document.getElementById('select-timer').textContent = `${s}s`;
       if (s <= 0) { clearInterval(selectInterval); closeSelect(); }
     }, 1000);
   }
@@ -370,8 +443,33 @@
     state.phase = isStart ? 'placing_start' : 'playing';
   };
 
+  window.selectTowerPvp = function(team, key) {
+    const accent = team === 'red' ? '#ff4a4a' : '#4a9eff';
+    // Highlight chosen card, dim others in the same section
+    document.querySelectorAll(`[id^="tc-${team}-"]`).forEach(el => {
+      el.style.opacity = '0.35';
+      el.style.borderColor = team === 'red' ? '#3a1a1a' : '#1a3a6a';
+    });
+    const chosen = document.getElementById(`tc-${team}-${key}`);
+    if (chosen) { chosen.style.opacity = '1'; chosen.style.borderColor = accent; }
+
+    if (team === 'red')  { state.placingTowerRed = key; state.pvpRedPicked  = true; }
+    else                 { state.placingTower    = key; state.pvpBluePicked = true; }
+
+    if (state.pvpRedPicked && state.pvpBluePicked) {
+      clearInterval(selectInterval);
+      document.getElementById('tower-select').classList.remove('active');
+      if (state.phase === 'start') state.phase = 'placing_start';
+    }
+  };
+
   function closeSelect() {
     document.getElementById('tower-select').classList.remove('active');
+    // Auto-assign random towers for players who didn't pick in time
+    if (gameMode === 'pvp') {
+      if (!state.pvpBluePicked) state.placingTower    = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
+      if (!state.pvpRedPicked)  state.placingTowerRed = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
+    }
     if (state.phase === 'start' || state.phase === 'selecting') state.phase = 'playing';
   }
 
@@ -397,7 +495,7 @@
     state.hoverRow = Math.floor((e.clientY - r.top)  / C.TILE);
     state.mouseX   = e.clientX - r.left;
     state.mouseY   = e.clientY - r.top;
-    if (state.placingTower) canvas.style.cursor = 'grabbing';
+    if (state.placingTower || state.placingTowerRed) canvas.style.cursor = 'grabbing';
     else canvas.style.cursor = 'crosshair';
   });
 
@@ -411,16 +509,33 @@
   });
 
   canvas.addEventListener('mouseup', e => {
-    if (!state.placingTower) return;
     const r   = canvas.getBoundingClientRect();
     const col = Math.floor((e.clientX - r.left) / C.TILE);
     const row = Math.floor((e.clientY - r.top)  / C.TILE);
-    if (canPlace(col, row, C.BLUE)) {
-      placeTower(col, row, state.placingTower, C.BLUE);
-      state.placingTower = null;
-      canvas.style.cursor = 'crosshair';
-      isDragging = false;
-      if (state.phase === 'placing_start') { state.phase = 'playing'; startGameLoop(); }
+
+    if (gameMode === 'pvp') {
+      let placed = false;
+      if (row < C.ROWS / 2 && state.placingTowerRed && canPlace(col, row, C.RED)) {
+        placeTower(col, row, state.placingTowerRed, C.RED);
+        state.placingTowerRed = null; placed = true;
+      } else if (row >= C.ROWS / 2 && state.placingTower && canPlace(col, row, C.BLUE)) {
+        placeTower(col, row, state.placingTower, C.BLUE);
+        state.placingTower = null; placed = true;
+      }
+      if (placed) {
+        canvas.style.cursor = 'crosshair'; isDragging = false;
+        if (state.phase === 'placing_start' && !state.placingTower && !state.placingTowerRed) {
+          state.phase = 'playing'; startGameLoop();
+        }
+      }
+    } else {
+      if (!state.placingTower) return;
+      if (canPlace(col, row, C.BLUE)) {
+        placeTower(col, row, state.placingTower, C.BLUE);
+        state.placingTower = null;
+        canvas.style.cursor = 'crosshair'; isDragging = false;
+        if (state.phase === 'placing_start') { state.phase = 'playing'; startGameLoop(); }
+      }
     }
   });
 
@@ -1056,6 +1171,26 @@
       }
     }
 
+    // PvP: red ghost cursor for P2
+    if (gameMode === 'pvp' && state.placingTowerRed && state.hoverCol >= 0 && state.hoverRow >= 0) {
+      const hc2 = state.hoverCol, hr2 = state.hoverRow;
+      const ok2 = canPlace(hc2, hr2, C.RED);
+      ctx.fillStyle   = ok2 ? 'rgba(255,74,74,0.25)' : 'rgba(74,74,74,0.15)';
+      ctx.strokeStyle = ok2 ? '#ff4a4a' : '#555';
+      ctx.lineWidth = 2;
+      ctx.fillRect(hc2*C.TILE, hr2*C.TILE, C.TILE, C.TILE);
+      ctx.strokeRect(hc2*C.TILE, hr2*C.TILE, C.TILE, C.TILE);
+      if (state.mouseX >= 0) {
+        const def2 = TOWER_DEFS[state.placingTowerRed];
+        ctx.globalAlpha = 0.75;
+        ctx.font = `${C.TILE * 0.55}px serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(def2.icon, state.mouseX, state.mouseY - 14);
+        ctx.globalAlpha = 1;
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+      }
+    }
+
     // Restore shake transform
     if (sx || sy) ctx.restore();
 
@@ -1085,19 +1220,34 @@
   // BOT AI
   // ═══════════════════════════════════════════
   function botPlaceTower() {
-    const type = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
-    // Find col with fewest bot towers → attack there
-    const colCount = Array(C.COLS).fill(0);
-    state.towers.filter(t => t.owner === C.RED).forEach(t => colCount[t.col]++);
+    const { blue, red, total } = state.score;
+    const redPct = total ? red / total : 0.5;
+
+    // Adaptive tower type based on score
+    let pool;
+    if (redPct < 0.38)      pool = ['blaster','sniper','lobber','cannon','splitter','blaster','sniper'];
+    else if (redPct > 0.62) pool = ['blocker','amplifier','zapper','plinker','blocker'];
+    else                    pool = TOWER_KEYS.filter(k => k !== 'amplifier');
+    const type = pool[Math.floor(Math.random() * pool.length)];
+
+    // Column scoring: target cols with most blue tiles, avoid stacking
+    const colBlue = Array(C.COLS).fill(0);
+    for (let r = 0; r < C.ROWS; r++)
+      for (let c = 0; c < C.COLS; c++)
+        if (state.grid[r][c] === C.BLUE) colBlue[c]++;
+
+    const botCols = Array(C.COLS).fill(0);
+    state.towers.filter(t => t.owner === C.RED).forEach(t => botCols[t.col]++);
 
     const candidates = [];
-    for (let r = 0; r < C.ROWS/2; r++)
+    for (let r = 0; r < Math.floor(C.ROWS / 2); r++)
       for (let c = 0; c < C.COLS; c++)
-        if (canPlace(c, r, C.RED)) candidates.push({ c, r, score: -colCount[c] });
+        if (canPlace(c, r, C.RED))
+          candidates.push({ c, r, score: colBlue[c] * 3 - botCols[c] * 5 + Math.random() * 2 });
 
     if (!candidates.length) return;
     candidates.sort((a, b) => b.score - a.score);
-    const pick = candidates[Math.floor(Math.random() * Math.min(5, candidates.length))];
+    const pick = candidates[Math.floor(Math.random() * Math.min(3, candidates.length))];
     placeTower(pick.c, pick.r, type, C.RED);
   }
 
@@ -1107,7 +1257,7 @@
   let timerInterval = null;
 
   function startGameLoop() {
-    botPlaceTower();
+    if (gameMode === 'bot') botPlaceTower();
     timerInterval = setInterval(() => {
       if (state.phase !== 'playing') return;
 
@@ -1120,7 +1270,12 @@
       document.getElementById('wave-timer').textContent = state.waveCountdown + 's';
       if (state.waveCountdown <= 0) {
         state.waveCountdown = 5;
-        botPlaceTower();
+        if (gameMode === 'bot') {
+          // Scale bot placements: 1 → 2 → 3 over the game
+          const elapsed = 90 - state.gameCountdown;
+          const botCount = Math.min(3, 1 + Math.floor(elapsed / 25));
+          for (let i = 0; i < botCount; i++) botPlaceTower();
+        }
         showSelect(false);
       }
 
@@ -1173,6 +1328,14 @@
     document.getElementById('end-screen').classList.add('active');
   }
 
+  window.startMode = function(mode) {
+    gameMode = mode;
+    document.getElementById('mode-select').classList.remove('active');
+    state = initState();
+    countScore();
+    showSelect(true);
+  };
+
   window.restartGame = function() {
     clearInterval(timerInterval);
     document.getElementById('end-screen').classList.remove('active');
@@ -1180,7 +1343,7 @@
     document.getElementById('wave-timer').textContent = '5s';
     state = initState();
     countScore();
-    showSelect(true);
+    document.getElementById('mode-select').classList.add('active');
   };
 
   // ═══════════════════════════════════════════
@@ -1215,7 +1378,6 @@
   // ═══════════════════════════════════════════
   state = initState();
   countScore();
-  showSelect(true);
   requestAnimationFrame(loop);
   </script>
 </body>

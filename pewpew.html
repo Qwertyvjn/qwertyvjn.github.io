@@ -243,11 +243,15 @@
   };
 
   const TOWER_DEFS = {
-    plinker: { name:'Plinker', icon:'🔫', desc:'Fast · Full range · 1 col', hp:3,  fireRate:45,  range:C.ROWS, spread:1, dmg:1 },
-    blaster: { name:'Blaster', icon:'💥', desc:'Slow · Short range · Wide', hp:5,  fireRate:100, range:5,      spread:5, dmg:1 },
-    lobber:  { name:'Lobber',  icon:'💣', desc:'Skips 5-10 tiles · 3×3 splash', hp:5, fireRate:120, range:0, spread:0, dmg:2, mortar:true },
-    zapper:  { name:'Zapper',  icon:'⚡', desc:'Continuous · 2 cols',      hp:3,  fireRate:25,  range:C.ROWS, spread:2, dmg:1 },
-    blocker: { name:'Blocker', icon:'🛡️', desc:'No attack · High HP',      hp:15, fireRate:0,  range:0,      spread:0, dmg:0 },
+    plinker:   { name:'Plinker',   icon:'🔫', desc:'Fast · 8 range · single col',       hp:3,  fireRate:45,  range:8,  spread:1, dmg:1, speed:3.5 },
+    blaster:   { name:'Blaster',   icon:'💥', desc:'Slow · 5 range · wide spread',       hp:5,  fireRate:100, range:5,  spread:5, dmg:1, speed:3.5 },
+    lobber:    { name:'Lobber',    icon:'💣', desc:'Skips 5–10 tiles · 3×3 splash',      hp:5,  fireRate:120, range:0,  spread:0, dmg:2, mortar:true },
+    zapper:    { name:'Zapper',    icon:'⚡', desc:'Fast · 6 range · 2 cols',            hp:3,  fireRate:25,  range:6,  spread:2, dmg:1, speed:4.5 },
+    blocker:   { name:'Blocker',   icon:'🛡️', desc:'No attack · high HP wall',           hp:15, fireRate:0,   range:0,  spread:0, dmg:0 },
+    sniper:    { name:'Sniper',    icon:'🎯', desc:'12 range · slow · high damage',      hp:3,  fireRate:180, range:12, spread:1, dmg:3, speed:6 },
+    cannon:    { name:'Cannon',    icon:'🧨', desc:'6 range · slow · 3×3 splash hit',   hp:6,  fireRate:150, range:6,  spread:1, dmg:2, splash:true, speed:2 },
+    freezer:   { name:'Freezer',   icon:'❄️', desc:'4 range · neutralizes enemy tiles', hp:4,  fireRate:80,  range:4,  spread:1, dmg:1, freeze:true, speed:3 },
+    amplifier: { name:'Amplifier', icon:'📡', desc:'No attack · +30% fire rate nearby', hp:4,  fireRate:0,   range:0,  spread:0, dmg:0 },
   };
   const TOWER_KEYS = Object.keys(TOWER_DEFS);
 
@@ -428,16 +432,21 @@
     const dir   = tower.owner === C.BLUE ? -1 : 1;
     const cx    = tower.col * C.TILE + C.TILE / 2;
     const cy    = tower.row * C.TILE + C.TILE / 2;
-    const speed = 3.5;
+    const speed = def.speed || 3.5;
+    const size  = tower.type === 'cannon' ? 5 : tower.type === 'sniper' ? 2 : def.spread > 2 ? 3 : 2.5;
 
     for (let s = 0; s < def.spread; s++) {
       const offset = (s - (def.spread - 1) / 2) * 0.35;
       state.bullets.push({
         x: cx, y: cy,
         dx: offset, dy: dir * speed,
-        owner: tower.owner,
-        dmg: def.dmg,
-        size: def.spread > 2 ? 3 : 2.5,
+        owner:    tower.owner,
+        dmg:      def.dmg,
+        range:    def.range,
+        startRow: tower.row,
+        splash:   def.splash  || false,
+        freeze:   def.freeze  || false,
+        size,
         lastCol: tower.col, lastRow: tower.row,
       });
     }
@@ -507,6 +516,38 @@
     state.shake = 5; // screen shake on impact
   }
 
+  // Cannon 3×3 direct-fire splash
+  function landSplash(col, row, owner, dmg) {
+    const acc = owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC;
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        const r = row + dr, c = col + dc;
+        if (r < 0 || r >= C.ROWS || c < 0 || c >= C.COLS) continue;
+        const tile = state.grid[r][c];
+        if (tile === C.ICE) {
+          const key = `${c},${r}`;
+          state.iceHP[key] = (state.iceHP[key] ?? 3) - 2;
+          if (state.iceHP[key] <= 0) { state.grid[r][c] = C.NEUTRAL; state.stats.iceDestroyed++; }
+          spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, '#aaddee', 5);
+        } else {
+          state.grid[r][c] = owner;
+        }
+        const hit = state.towers.find(t => t.col === c && t.row === r && t.owner !== owner);
+        if (hit) {
+          hit.hp -= dmg;
+          if (hit.hp <= 0) {
+            if (hit.owner === C.RED) state.stats.blueDestroyed++;
+            else state.stats.redDestroyed++;
+            state.towers = state.towers.filter(t => t !== hit);
+          }
+        }
+        spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, acc, 4);
+      }
+    }
+    spawnParticles(col*C.TILE+C.TILE/2, row*C.TILE+C.TILE/2, acc, 18);
+    state.shake = 4;
+  }
+
   function updateBullets() {
     const toRemove = new Set();
     state.bullets.forEach((b, bi) => {
@@ -519,13 +560,20 @@
 
       // Out of bounds
       if (col < 0 || col >= C.COLS || row < 0 || row >= C.ROWS) { toRemove.add(bi); return; }
+
+      // Range limit
+      if (b.range > 0 && Math.abs(row - b.startRow) >= b.range) { toRemove.add(bi); return; }
+
       if (col === b.lastCol && row === b.lastRow) return;
       b.lastCol = col; b.lastRow = row;
 
       const tile = state.grid[row][col];
+      const enemyOwner = b.owner === C.BLUE ? C.RED : C.BLUE;
+      const isEnemy = tile === enemyOwner;
 
       // Hit ice
       if (tile === C.ICE) {
+        if (b.splash) { landSplash(col, row, b.owner, b.dmg); toRemove.add(bi); return; }
         const key = `${col},${row}`;
         state.iceHP[key] = (state.iceHP[key] ?? 3) - b.dmg;
         spawnParticles(b.x, b.y, '#88c0d0', 6);
@@ -540,6 +588,7 @@
       // Hit enemy tower
       const hit = state.towers.find(t => t.col === col && t.row === row && t.owner !== b.owner);
       if (hit) {
+        if (b.splash) { landSplash(col, row, b.owner, b.dmg); toRemove.add(bi); return; }
         hit.hp -= b.dmg;
         spawnParticles(b.x, b.y, b.owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC, 5);
         if (hit.hp <= 0) {
@@ -564,7 +613,20 @@
         toRemove.add(bi); toRemove.add(collide); return;
       }
 
-      // Claim tile
+      // Splash cannon: explode on first enemy tile
+      if (b.splash && isEnemy) { landSplash(col, row, b.owner, b.dmg); toRemove.add(bi); return; }
+
+      // Freezer: neutralize enemy tile, pass through friendly/neutral
+      if (b.freeze) {
+        if (isEnemy) {
+          state.grid[row][col] = C.NEUTRAL;
+          spawnParticles(b.x, b.y, '#88d0ff', 10);
+          toRemove.add(bi);
+        }
+        return; // freeze bullets never claim tiles
+      }
+
+      // Regular bullets: claim tile
       if (tile !== b.owner) state.grid[row][col] = b.owner;
     });
 
@@ -768,15 +830,17 @@
         ctx.lineWidth = 0.5;
 
         if (state.placingTower === 'plinker') {
-          for (let r = hr - 1; r >= 0; r--) {
+          for (let step = 1; step <= 8; step++) {
+            const r = hr - step; if (r < 0) break;
             ctx.fillRect(hc*C.TILE, r*C.TILE, C.TILE, C.TILE);
             ctx.strokeRect(hc*C.TILE, r*C.TILE, C.TILE, C.TILE);
           }
         } else if (state.placingTower === 'zapper') {
-          for (let dc = -0; dc <= 1; dc++) {
-            const c = hc + dc - 0;
-            for (let r = hr - 1; r >= 0; r--) {
-              if (c < 0 || c >= C.COLS) continue;
+          for (let dc = 0; dc <= 1; dc++) {
+            const c = hc + dc;
+            if (c < 0 || c >= C.COLS) continue;
+            for (let step = 1; step <= 6; step++) {
+              const r = hr - step; if (r < 0) break;
               ctx.fillRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
               ctx.strokeRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
             }
@@ -786,8 +850,43 @@
             const c = hc + dc;
             if (c < 0 || c >= C.COLS) continue;
             for (let step = 1; step <= 5; step++) {
-              const r = hr - step;
-              if (r < 0) break;
+              const r = hr - step; if (r < 0) break;
+              ctx.fillRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
+              ctx.strokeRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
+            }
+          }
+        } else if (state.placingTower === 'sniper') {
+          for (let step = 1; step <= 12; step++) {
+            const r = hr - step; if (r < 0) break;
+            ctx.fillRect(hc*C.TILE, r*C.TILE, C.TILE, C.TILE);
+            ctx.strokeRect(hc*C.TILE, r*C.TILE, C.TILE, C.TILE);
+          }
+        } else if (state.placingTower === 'cannon') {
+          for (let dc = -1; dc <= 1; dc++) {
+            const c = hc + dc;
+            if (c < 0 || c >= C.COLS) continue;
+            for (let step = 1; step <= 6; step++) {
+              const r = hr - step; if (r < 0) break;
+              ctx.fillRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
+              ctx.strokeRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
+            }
+          }
+        } else if (state.placingTower === 'freezer') {
+          ctx.fillStyle = 'rgba(100,210,255,0.09)';
+          ctx.strokeStyle = 'rgba(100,210,255,0.3)';
+          for (let step = 1; step <= 4; step++) {
+            const r = hr - step; if (r < 0) break;
+            ctx.fillRect(hc*C.TILE, r*C.TILE, C.TILE, C.TILE);
+            ctx.strokeRect(hc*C.TILE, r*C.TILE, C.TILE, C.TILE);
+          }
+        } else if (state.placingTower === 'amplifier') {
+          ctx.fillStyle = 'rgba(255,220,50,0.09)';
+          ctx.strokeStyle = 'rgba(255,220,50,0.3)';
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              if (dr === 0 && dc === 0) continue;
+              const r = hr + dr, c = hc + dc;
+              if (r < 0 || r >= C.ROWS || c < 0 || c >= C.COLS) continue;
               ctx.fillRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
               ctx.strokeRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
             }
@@ -847,6 +946,19 @@
       ctx.lineWidth = 6;
       ctx.strokeRect(3, 3, W-6, H-6);
     }
+  }
+
+  // ═══════════════════════════════════════════
+  // AMPLIFIER
+  // ═══════════════════════════════════════════
+  function hasAdjacentAmplifier(tower) {
+    return state.towers.some(t =>
+      t !== tower &&
+      t.type === 'amplifier' &&
+      t.owner === tower.owner &&
+      Math.abs(t.col - tower.col) <= 1 &&
+      Math.abs(t.row - tower.row) <= 1
+    );
   }
 
   // ═══════════════════════════════════════════
@@ -961,7 +1073,8 @@
         const def = TOWER_DEFS[t.type];
         if (!def.fireRate) return;
         t.fireTick++;
-        if (t.fireTick >= def.fireRate) { t.fireTick = 0; fireBullet(t); }
+        const effectiveRate = hasAdjacentAmplifier(t) ? Math.floor(def.fireRate * 0.7) : def.fireRate;
+        if (t.fireTick >= effectiveRate) { t.fireTick = 0; fireBullet(t); }
       });
       updateBullets();
       updateMortars();

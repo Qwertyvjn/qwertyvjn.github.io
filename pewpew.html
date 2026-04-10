@@ -291,6 +291,7 @@
       mortars:   [],
       particles: [],
       shake: 0,
+      mouseX: -1, mouseY: -1,
       score:     { blue: 0, red: 0, total: 0 },
       stats:     { blueDestroyed: 0, redDestroyed: 0, iceDestroyed: 0 },
       tick: 0,
@@ -381,15 +382,28 @@
     state.towers.push({ col, row, type, owner, hp: TOWER_DEFS[type].hp, fireTick: 0 });
   }
 
+  let isDragging = false;
+
   canvas.addEventListener('mousemove', e => {
     const r = canvas.getBoundingClientRect();
     state.hoverCol = Math.floor((e.clientX - r.left) / C.TILE);
     state.hoverRow = Math.floor((e.clientY - r.top)  / C.TILE);
+    state.mouseX   = e.clientX - r.left;
+    state.mouseY   = e.clientY - r.top;
+    if (state.placingTower) canvas.style.cursor = 'grabbing';
+    else canvas.style.cursor = 'crosshair';
   });
 
-  canvas.addEventListener('mouseleave', () => { state.hoverCol = -1; state.hoverRow = -1; });
+  canvas.addEventListener('mouseleave', () => {
+    state.hoverCol = -1; state.hoverRow = -1;
+    state.mouseX = -1;   state.mouseY  = -1;
+  });
 
-  canvas.addEventListener('click', e => {
+  canvas.addEventListener('mousedown', e => {
+    if (state.placingTower) isDragging = true;
+  });
+
+  canvas.addEventListener('mouseup', e => {
     if (!state.placingTower) return;
     const r   = canvas.getBoundingClientRect();
     const col = Math.floor((e.clientX - r.left) / C.TILE);
@@ -397,6 +411,8 @@
     if (canPlace(col, row, C.BLUE)) {
       placeTower(col, row, state.placingTower, C.BLUE);
       state.placingTower = null;
+      canvas.style.cursor = 'crosshair';
+      isDragging = false;
       if (state.phase === 'placing_start') { state.phase = 'playing'; startGameLoop(); }
     }
   });
@@ -739,14 +755,86 @@
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
 
-    // Placement hover
+    // Range shadow + ghost tower while placing
     if (state.placingTower && state.hoverCol >= 0 && state.hoverRow >= 0) {
-      const ok = canPlace(state.hoverCol, state.hoverRow, C.BLUE);
-      ctx.fillStyle   = ok ? 'rgba(0,182,76,0.2)' : 'rgba(255,74,74,0.15)';
+      const hc  = state.hoverCol, hr = state.hoverRow;
+      const ok  = canPlace(hc, hr, C.BLUE);
+      const def = TOWER_DEFS[state.placingTower];
+
+      if (ok) {
+        // Range shadow
+        ctx.fillStyle = 'rgba(0,182,76,0.09)';
+        ctx.strokeStyle = 'rgba(0,182,76,0.25)';
+        ctx.lineWidth = 0.5;
+
+        if (state.placingTower === 'plinker') {
+          for (let r = hr - 1; r >= 0; r--) {
+            ctx.fillRect(hc*C.TILE, r*C.TILE, C.TILE, C.TILE);
+            ctx.strokeRect(hc*C.TILE, r*C.TILE, C.TILE, C.TILE);
+          }
+        } else if (state.placingTower === 'zapper') {
+          for (let dc = -0; dc <= 1; dc++) {
+            const c = hc + dc - 0;
+            for (let r = hr - 1; r >= 0; r--) {
+              if (c < 0 || c >= C.COLS) continue;
+              ctx.fillRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
+              ctx.strokeRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
+            }
+          }
+        } else if (state.placingTower === 'blaster') {
+          for (let dc = -2; dc <= 2; dc++) {
+            const c = hc + dc;
+            if (c < 0 || c >= C.COLS) continue;
+            for (let step = 1; step <= 5; step++) {
+              const r = hr - step;
+              if (r < 0) break;
+              ctx.fillRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
+              ctx.strokeRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
+            }
+          }
+        } else if (state.placingTower === 'lobber') {
+          ctx.fillStyle = 'rgba(255,160,50,0.09)';
+          ctx.strokeStyle = 'rgba(255,160,50,0.25)';
+          for (let dr = 5; dr <= 10; dr++) {
+            for (let dc = -2; dc <= 2; dc++) {
+              const r = hr - dr, c = hc + dc;
+              if (r < 0 || r >= C.ROWS || c < 0 || c >= C.COLS) continue;
+              ctx.fillRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
+              ctx.strokeRect(c*C.TILE, r*C.TILE, C.TILE, C.TILE);
+            }
+          }
+        }
+
+        // Direction arrow
+        ctx.strokeStyle = 'rgba(0,182,76,0.6)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(hc*C.TILE + C.TILE/2, hr*C.TILE + 4);
+        ctx.lineTo(hc*C.TILE + C.TILE/2, hr*C.TILE - 10);
+        ctx.moveTo(hc*C.TILE + C.TILE/2 - 5, hr*C.TILE - 5);
+        ctx.lineTo(hc*C.TILE + C.TILE/2, hr*C.TILE - 10);
+        ctx.lineTo(hc*C.TILE + C.TILE/2 + 5, hr*C.TILE - 5);
+        ctx.stroke();
+      }
+
+      // Placement cell highlight
+      ctx.fillStyle   = ok ? 'rgba(0,182,76,0.25)' : 'rgba(255,74,74,0.15)';
       ctx.strokeStyle = ok ? '#00b64c' : '#ff4a4a';
       ctx.lineWidth = 2;
-      ctx.fillRect(state.hoverCol*C.TILE, state.hoverRow*C.TILE, C.TILE, C.TILE);
-      ctx.strokeRect(state.hoverCol*C.TILE, state.hoverRow*C.TILE, C.TILE, C.TILE);
+      ctx.fillRect(hc*C.TILE, hr*C.TILE, C.TILE, C.TILE);
+      ctx.strokeRect(hc*C.TILE, hr*C.TILE, C.TILE, C.TILE);
+
+      // Ghost tower icon following cursor
+      if (state.mouseX >= 0) {
+        ctx.globalAlpha = 0.75;
+        ctx.font = `${C.TILE * 0.55}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(def.icon, state.mouseX, state.mouseY - 14);
+        ctx.globalAlpha = 1;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+      }
     }
 
     // Restore shake transform

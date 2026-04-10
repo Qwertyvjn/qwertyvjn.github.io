@@ -252,6 +252,7 @@
     cannon:    { name:'Cannon',    icon:'🧨', desc:'6 range · slow · 3×3 splash hit',   hp:6,  fireRate:150, range:6,  spread:1, dmg:2, splash:true, speed:2 },
     freezer:   { name:'Freezer',   icon:'❄️', desc:'4 range · neutralizes enemy tiles', hp:4,  fireRate:80,  range:4,  spread:1, dmg:1, freeze:true, speed:3 },
     amplifier: { name:'Amplifier', icon:'📡', desc:'No attack · +30% fire rate nearby', hp:4,  fireRate:0,   range:0,  spread:0, dmg:0 },
+    splitter:  { name:'Splitter',  icon:'🪃', desc:'Diagonal fire · covers the sides',  hp:3,  fireRate:80,  range:6,  spread:2, dmg:1, diagonal:true, speed:5 },
   };
   const TOWER_KEYS = Object.keys(TOWER_DEFS);
 
@@ -435,20 +436,35 @@
     const speed = def.speed || 3.5;
     const size  = tower.type === 'cannon' ? 5 : tower.type === 'sniper' ? 2 : def.spread > 2 ? 3 : 2.5;
 
+    const mkBullet = (dx, dy) => ({
+      x: cx, y: cy, dx, dy,
+      owner: tower.owner, dmg: def.dmg,
+      range: def.range, startRow: tower.row,
+      splash: def.splash || false, freeze: def.freeze || false,
+      size, lastCol: tower.col, lastRow: tower.row,
+    });
+
+    // Zapper: aim each bullet precisely at its target column
+    if (tower.type === 'zapper') {
+      const frames = (def.range * C.TILE) / speed;
+      [0, 1].forEach(dc => {
+        const targetX = Math.min(C.COLS - 1, tower.col + dc) * C.TILE + C.TILE / 2;
+        state.bullets.push(mkBullet((targetX - cx) / frames, dir * speed));
+      });
+      return;
+    }
+
+    // Splitter: two 45° diagonal bullets
+    if (def.diagonal) {
+      const d = speed * 0.707;
+      state.bullets.push(mkBullet(-d, dir * d));
+      state.bullets.push(mkBullet( d, dir * d));
+      return;
+    }
+
     for (let s = 0; s < def.spread; s++) {
       const offset = (s - (def.spread - 1) / 2) * 0.35;
-      state.bullets.push({
-        x: cx, y: cy,
-        dx: offset, dy: dir * speed,
-        owner:    tower.owner,
-        dmg:      def.dmg,
-        range:    def.range,
-        startRow: tower.row,
-        splash:   def.splash  || false,
-        freeze:   def.freeze  || false,
-        size,
-        lastCol: tower.col, lastRow: tower.row,
-      });
+      state.bullets.push(mkBullet(offset, dir * speed));
     }
   }
 
@@ -865,9 +881,32 @@
           const [y, h] = clampY(hr - 12, hr);
           drawShape(hc * C.TILE, y, C.TILE, h, ...G);
         } else if (pt === 'cannon') {
-          const [x, w] = clampX(hc - 1, hc + 2);
+          // Trajectory: 1 col straight up
           const [y, h] = clampY(hr - 6, hr);
-          drawShape(x, y, w, h, ...OR);
+          drawShape(hc * C.TILE, y, C.TILE, h, ...OR);
+          // Dashed 3×3 splash zone at max range
+          const splashR = Math.max(0, hr - 6);
+          const [sx, sw] = clampX(hc - 1, hc + 2);
+          ctx.strokeStyle = OR[1]; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+          ctx.strokeRect(sx, splashR * C.TILE, sw, 3 * C.TILE);
+          ctx.setLineDash([]);
+        } else if (pt === 'splitter') {
+          // Two 45° diagonal strips drawn as rotated rectangles
+          const ox = hc * C.TILE + C.TILE / 2;
+          const oy = hr * C.TILE + C.TILE / 2;
+          const rng = TOWER_DEFS.splitter.range;
+          ctx.save();
+          ctx.translate(ox, oy);
+          [-1, 1].forEach(side => {
+            ctx.save();
+            ctx.rotate(side * Math.PI / 4);
+            ctx.fillStyle = OR[0]; ctx.strokeStyle = OR[1]; ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(-C.TILE * 0.4, -rng * C.TILE, C.TILE * 0.8, rng * C.TILE, 3);
+            ctx.fill(); ctx.stroke();
+            ctx.restore();
+          });
+          ctx.restore();
         } else if (pt === 'freezer') {
           const [y, h] = clampY(hr - 4, hr);
           drawShape(hc * C.TILE, y, C.TILE, h, ...CY);

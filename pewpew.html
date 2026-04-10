@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pew Pew</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0a;
+      color: #e0e0e0;
+      font-family: 'Fira Code', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 1rem;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    .title {
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: #00b64c;
+      text-shadow: 0 0 20px rgba(0,182,76,0.6), 0 0 60px rgba(0,182,76,0.2);
+    }
+    .subtitle {
+      font-size: 0.8rem;
+      color: #444;
+      letter-spacing: 0.1em;
+      margin-top: -0.5rem;
+    }
+
+    #game-wrapper {
+      display: flex;
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+
+    #game-canvas {
+      display: block;
+      border: 1px solid #1e1e1e;
+      border-radius: 6px;
+      cursor: crosshair;
+    }
+
+    /* Score bar */
+    #score-bar-wrap {
+      width: 30px;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #1e1e1e;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #111;
+      position: relative;
+    }
+    #score-red  { background: #8a1a1a; transition: height 0.4s ease; }
+    #score-blue { background: #1a4a8a; flex: 1; transition: height 0.4s ease; }
+    .score-pct {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      font-size: 0.5rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.7);
+      pointer-events: none;
+    }
+    #pct-red  { top: 5px; }
+    #pct-blue { bottom: 5px; }
+
+    /* HUD */
+    #hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 865px;
+      font-size: 0.75rem;
+      color: #555;
+    }
+    #game-timer { font-size: 1.1rem; font-weight: 700; color: #e0e0e0; }
+    .hud-accent { color: #00b64c; font-weight: 600; }
+
+    /* Tower select overlay */
+    #tower-select {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.5rem;
+      z-index: 100;
+    }
+    #tower-select.active { display: flex; }
+    #tower-select h2 { color: #00b64c; font-size: 1.4rem; letter-spacing: 0.15em; }
+    .tower-options { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .tower-card {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 0.5rem;
+      padding: 1.25rem 1.5rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      min-width: 130px;
+    }
+    .tower-card:hover { border-color: #00b64c; background: #0f1f0f; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,182,76,0.2); }
+    .tower-icon { font-size: 2rem; margin-bottom: 0.4rem; }
+    .tower-name { font-weight: 600; font-size: 0.9rem; color: #e0e0e0; }
+    .tower-desc { font-size: 0.65rem; color: #555; margin-top: 0.25rem; }
+    #select-timer { color: #ff6b6b; font-size: 0.8rem; }
+
+    /* End screen */
+    #end-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.5rem;
+      z-index: 200;
+    }
+    #end-screen.active { display: flex; }
+    #end-title { font-size: 2.5rem; font-weight: 700; letter-spacing: 0.1em; }
+    .end-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+      color: #777;
+    }
+    .stat-box {
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      text-align: center;
+    }
+    .stat-val { font-size: 1.4rem; font-weight: 700; color: #e0e0e0; }
+    .stat-label { font-size: 0.65rem; color: #555; margin-top: 0.2rem; }
+    #play-again {
+      background: #00b64c;
+      color: #000;
+      border: none;
+      padding: 0.75rem 2rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      letter-spacing: 0.1em;
+      transition: all 0.2s;
+    }
+    #play-again:hover { background: #00d45a; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,182,76,0.4); }
+
+    /* Overtime flash */
+    #overtime-banner {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #ff4a4a;
+      text-shadow: 0 0 30px rgba(255,74,74,0.8);
+      letter-spacing: 0.2em;
+      z-index: 300;
+      pointer-events: none;
+      animation: flashIn 0.5s ease forwards;
+    }
+    @keyframes flashIn {
+      from { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+      to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="title">PEW PEW</div>
+  <div class="subtitle">deploy towers · claim tiles · no thoughts</div>
+
+  <div id="game-wrapper">
+    <canvas id="game-canvas"></canvas>
+    <div id="score-bar-wrap">
+      <div id="score-red"  style="height:50%"></div>
+      <div id="score-blue" style="height:50%"></div>
+      <span class="score-pct" id="pct-red">50%</span>
+      <span class="score-pct" id="pct-blue">50%</span>
+    </div>
+  </div>
+
+  <div id="hud">
+    <span>🔵 click to place</span>
+    <span id="game-timer">1:30</span>
+    <span>next wave: <span class="hud-accent" id="wave-timer">8s</span></span>
+  </div>
+
+  <!-- Tower select overlay -->
+  <div id="tower-select">
+    <h2 id="select-title">PICK YOUR FIRST TOWER</h2>
+    <div class="tower-options" id="tower-options"></div>
+    <span id="select-timer">15s to choose or lose the wave</span>
+  </div>
+
+  <!-- End screen -->
+  <div id="end-screen">
+    <div id="end-title"></div>
+    <div class="end-stats" id="end-stats"></div>
+    <button id="play-again" onclick="restartGame()">PLAY AGAIN</button>
+    <a href="index.html" style="font-size:0.75rem;color:#555;text-decoration:none;">← back to brainfart</a>
+  </div>
+
+  <div id="overtime-banner">SUDDEN PEW</div>
+
+  <script>
+  // ═══════════════════════════════════════════
+  // CONFIG
+  // ═══════════════════════════════════════════
+  const C = {
+    COLS: 24, ROWS: 14, TILE: 36,
+    NEUTRAL: 0, BLUE: 1, RED: 2, ICE: 3,
+    COL: {
+      0: '#181818',
+      1: '#1a3f7a',
+      2: '#7a1a1a',
+      3: '#2a5566',
+      GRID: '#1e1e1e',
+      BG: '#0d0d0d',
+      BLUE_ACC: '#4a9eff',
+      RED_ACC:  '#ff4a4a',
+    }
+  };
+
+  const TOWER_DEFS = {
+    plinker: { name:'Plinker', icon:'🔫', desc:'Fast · Full range · 1 col', hp:3,  fireRate:18, range:C.ROWS, spread:1, dmg:1 },
+    blaster: { name:'Blaster', icon:'💥', desc:'Slow · Short range · Wide', hp:5,  fireRate:55, range:5,      spread:5, dmg:1 },
+    lobber:  { name:'Lobber',  icon:'💣', desc:'Medium · Splash damage',    hp:5,  fireRate:40, range:8,      spread:1, dmg:2, splash:true },
+    zapper:  { name:'Zapper',  icon:'⚡', desc:'Continuous · 2 cols',      hp:3,  fireRate:8,  range:C.ROWS, spread:2, dmg:1 },
+    blocker: { name:'Blocker', icon:'🛡️', desc:'No attack · High HP',      hp:15, fireRate:0,  range:0,      spread:0, dmg:0 },
+  };
+  const TOWER_KEYS = Object.keys(TOWER_DEFS);
+
+  // ═══════════════════════════════════════════
+  // CANVAS
+  // ═══════════════════════════════════════════
+  const canvas = document.getElementById('game-canvas');
+  const ctx    = canvas.getContext('2d');
+  const W = C.COLS * C.TILE;
+  const H = C.ROWS * C.TILE;
+  canvas.width  = W;
+  canvas.height = H;
+
+  // ═══════════════════════════════════════════
+  // STATE
+  // ═══════════════════════════════════════════
+  let state = {};
+
+  function initState() {
+    // Build grid
+    const grid = Array.from({ length: C.ROWS }, (_, r) =>
+      Array.from({ length: C.COLS }, () => r < C.ROWS / 2 ? C.RED : C.BLUE)
+    );
+
+    // Ice blocks (scattered in middle rows 5–8)
+    const iceHP = {};
+    const iceSeeds = [
+      [5,3],[5,10],[5,18],[5,21],
+      [6,6],[6,14],[6,20],
+      [7,2],[7,8],[7,16],[7,22],
+      [8,4],[8,11],[8,17],
+    ];
+    iceSeeds.forEach(([r,c]) => {
+      if (c < C.COLS) { grid[r][c] = C.ICE; iceHP[`${c},${r}`] = 3; }
+    });
+
+    return {
+      grid, iceHP,
+      towers:    [],
+      bullets:   [],
+      particles: [],
+      score:     { blue: 0, red: 0, total: 0 },
+      stats:     { blueDestroyed: 0, redDestroyed: 0, iceDestroyed: 0 },
+      tick: 0,
+      phase: 'start',
+      placingTower: null,
+      hoverCol: -1, hoverRow: -1,
+      overtime: false,
+      gameCountdown: 90,
+      waveCountdown: 8,
+    };
+  }
+
+  // ═══════════════════════════════════════════
+  // SCORE
+  // ═══════════════════════════════════════════
+  function countScore() {
+    let blue = 0, red = 0, total = 0;
+    for (let r = 0; r < C.ROWS; r++)
+      for (let c = 0; c < C.COLS; c++) {
+        const t = state.grid[r][c];
+        if (t === C.BLUE)    { blue++; total++; }
+        else if (t === C.RED){ red++;  total++; }
+        else if (t === C.NEUTRAL) total++;
+      }
+    state.score = { blue, red, total };
+
+    const redPct  = total ? red  / total * 100 : 50;
+    const bluePct = total ? blue / total * 100 : 50;
+    document.getElementById('score-red').style.height  = redPct  + '%';
+    document.getElementById('score-blue').style.height = bluePct + '%';
+    document.getElementById('pct-red').textContent  = Math.round(redPct)  + '%';
+    document.getElementById('pct-blue').textContent = Math.round(bluePct) + '%';
+  }
+
+  // ═══════════════════════════════════════════
+  // TOWER SELECT
+  // ═══════════════════════════════════════════
+  let selectInterval = null;
+
+  function showSelect(isStart) {
+    const options = [...TOWER_KEYS].sort(() => Math.random() - 0.5).slice(0, 3);
+    const overlay = document.getElementById('tower-select');
+    document.getElementById('select-title').textContent = isStart ? 'PICK YOUR FIRST TOWER' : 'PICK A TOWER';
+    document.getElementById('tower-options').innerHTML = options.map(k => {
+      const d = TOWER_DEFS[k];
+      return `<div class="tower-card" onclick="selectTower('${k}')">
+        <div class="tower-icon">${d.icon}</div>
+        <div class="tower-name">${d.name}</div>
+        <div class="tower-desc">${d.desc}</div>
+      </div>`;
+    }).join('');
+    overlay.classList.add('active');
+
+    let s = isStart ? 15 : 4;
+    document.getElementById('select-timer').textContent = `${s}s to choose or lose the wave`;
+    clearInterval(selectInterval);
+    selectInterval = setInterval(() => {
+      s--;
+      document.getElementById('select-timer').textContent = `${s}s to choose or lose the wave`;
+      if (s <= 0) { clearInterval(selectInterval); closeSelect(); }
+    }, 1000);
+  }
+
+  window.selectTower = function(key) {
+    clearInterval(selectInterval);
+    state.placingTower = key;
+    closeSelect();
+    if (state.phase === 'start') state.phase = 'placing_start';
+  };
+
+  function closeSelect() {
+    document.getElementById('tower-select').classList.remove('active');
+    if (state.phase === 'start') state.phase = 'playing';
+  }
+
+  // ═══════════════════════════════════════════
+  // PLACEMENT
+  // ═══════════════════════════════════════════
+  function canPlace(col, row, owner) {
+    if (col < 0 || col >= C.COLS || row < 0 || row >= C.ROWS) return false;
+    if (state.grid[row][col] !== owner) return false;
+    if (state.towers.find(t => t.col === col && t.row === row)) return false;
+    return true;
+  }
+
+  function placeTower(col, row, type, owner) {
+    state.towers.push({ col, row, type, owner, hp: TOWER_DEFS[type].hp, fireTick: 0 });
+  }
+
+  canvas.addEventListener('mousemove', e => {
+    const r = canvas.getBoundingClientRect();
+    state.hoverCol = Math.floor((e.clientX - r.left) / C.TILE);
+    state.hoverRow = Math.floor((e.clientY - r.top)  / C.TILE);
+  });
+
+  canvas.addEventListener('mouseleave', () => { state.hoverCol = -1; state.hoverRow = -1; });
+
+  canvas.addEventListener('click', e => {
+    if (!state.placingTower) return;
+    const r   = canvas.getBoundingClientRect();
+    const col = Math.floor((e.clientX - r.left) / C.TILE);
+    const row = Math.floor((e.clientY - r.top)  / C.TILE);
+    if (canPlace(col, row, C.BLUE)) {
+      placeTower(col, row, state.placingTower, C.BLUE);
+      state.placingTower = null;
+      if (state.phase === 'placing_start') { state.phase = 'playing'; startGameLoop(); }
+    }
+  });
+
+  // ═══════════════════════════════════════════
+  // BULLETS
+  // ═══════════════════════════════════════════
+  function fireBullet(tower) {
+    const def = TOWER_DEFS[tower.type];
+    if (!def.fireRate) return;
+    const dir = tower.owner === C.BLUE ? -1 : 1;
+    const cx  = tower.col * C.TILE + C.TILE / 2;
+    const cy  = tower.row * C.TILE + C.TILE / 2;
+    const speed = 3.5;
+
+    for (let s = 0; s < def.spread; s++) {
+      const offset = (s - (def.spread - 1) / 2) * 0.35;
+      state.bullets.push({
+        x: cx, y: cy,
+        dx: offset, dy: dir * speed,
+        owner: tower.owner,
+        dmg: def.dmg,
+        splash: def.splash || false,
+        size: def.splash ? 5 : def.spread > 2 ? 3 : 2.5,
+        lastCol: tower.col, lastRow: tower.row,
+      });
+    }
+  }
+
+  function updateBullets() {
+    const toRemove = new Set();
+    state.bullets.forEach((b, bi) => {
+      if (toRemove.has(bi)) return;
+      b.x += b.dx;
+      b.y += b.dy;
+
+      const col = Math.floor(b.x / C.TILE);
+      const row = Math.floor(b.y / C.TILE);
+
+      // Out of bounds
+      if (col < 0 || col >= C.COLS || row < 0 || row >= C.ROWS) { toRemove.add(bi); return; }
+      if (col === b.lastCol && row === b.lastRow) return;
+      b.lastCol = col; b.lastRow = row;
+
+      const tile = state.grid[row][col];
+
+      // Hit ice
+      if (tile === C.ICE) {
+        const key = `${col},${row}`;
+        state.iceHP[key] = (state.iceHP[key] ?? 3) - b.dmg;
+        spawnParticles(b.x, b.y, '#88c0d0', 6);
+        if (state.iceHP[key] <= 0) {
+          state.grid[row][col] = C.NEUTRAL;
+          state.stats.iceDestroyed++;
+          spawnParticles(b.x, b.y, '#aaddee', 12);
+        }
+        toRemove.add(bi); return;
+      }
+
+      // Hit enemy tower
+      const hit = state.towers.find(t => t.col === col && t.row === row && t.owner !== b.owner);
+      if (hit) {
+        hit.hp -= b.dmg;
+        spawnParticles(b.x, b.y, b.owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC, 5);
+        if (hit.hp <= 0) {
+          if (hit.owner === C.RED) state.stats.blueDestroyed++;
+          else state.stats.redDestroyed++;
+          state.towers = state.towers.filter(t => t !== hit);
+          spawnParticles(b.x, b.y, b.owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC, 14);
+        }
+        toRemove.add(bi); return;
+      }
+
+      // Check collision with opposing bullet on same tile
+      const collide = state.bullets.findIndex((ob, oi) =>
+        !toRemove.has(oi) && oi !== bi &&
+        Math.floor(ob.x / C.TILE) === col &&
+        Math.floor(ob.y / C.TILE) === row &&
+        ob.owner !== b.owner
+      );
+      if (collide !== -1) {
+        state.grid[row][col] = C.NEUTRAL;
+        spawnParticles(b.x, b.y, '#ffffff', 8);
+        toRemove.add(bi); toRemove.add(collide); return;
+      }
+
+      // Claim tile
+      if (tile !== b.owner) state.grid[row][col] = b.owner;
+    });
+
+    state.bullets = state.bullets.filter((_, i) => !toRemove.has(i));
+  }
+
+  // ═══════════════════════════════════════════
+  // PARTICLES
+  // ═══════════════════════════════════════════
+  function spawnParticles(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = 1.5 + Math.random() * 3;
+      state.particles.push({ x, y, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp, life: 1, color });
+    }
+  }
+
+  function updateParticles() {
+    state.particles = state.particles.filter(p => {
+      p.x += p.vx; p.y += p.vy;
+      p.vx *= 0.9; p.vy *= 0.9;
+      p.life -= 0.045;
+      return p.life > 0;
+    });
+  }
+
+  // ═══════════════════════════════════════════
+  // RENDER
+  // ═══════════════════════════════════════════
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = C.COL.BG;
+    ctx.fillRect(0, 0, W, H);
+
+    // Tiles
+    for (let r = 0; r < C.ROWS; r++) {
+      for (let c = 0; c < C.COLS; c++) {
+        const tile = state.grid[r][c];
+        const x = c * C.TILE, y = r * C.TILE;
+        const hp = tile === C.ICE ? (state.iceHP[`${c},${r}`] ?? 3) : 0;
+
+        ctx.fillStyle = tile === C.ICE
+          ? (hp === 3 ? '#2a5566' : hp === 2 ? '#1e4455' : '#153344')
+          : C.COL[tile];
+        ctx.fillRect(x + 1, y + 1, C.TILE - 2, C.TILE - 2);
+
+        // Ice cracks
+        if (tile === C.ICE) {
+          ctx.strokeStyle = 'rgba(180,230,255,0.35)';
+          ctx.lineWidth = 1;
+          if (hp <= 2) {
+            ctx.beginPath();
+            ctx.moveTo(x + C.TILE*.25, y + C.TILE*.15);
+            ctx.lineTo(x + C.TILE*.55, y + C.TILE*.65);
+            ctx.lineTo(x + C.TILE*.45, y + C.TILE*.85);
+            ctx.stroke();
+          }
+          if (hp <= 1) {
+            ctx.beginPath();
+            ctx.moveTo(x + C.TILE*.65, y + C.TILE*.2);
+            ctx.lineTo(x + C.TILE*.35, y + C.TILE*.75);
+            ctx.stroke();
+          }
+        }
+
+        // Grid lines
+        ctx.strokeStyle = C.COL.GRID;
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(x, y, C.TILE, C.TILE);
+      }
+    }
+
+    // Center divider
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(0, H/2); ctx.lineTo(W, H/2);
+    ctx.stroke();
+    ctx.restore();
+
+    // Bullets + trails
+    state.bullets.forEach(b => {
+      const col = b.owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC;
+      // Trail
+      ctx.globalAlpha = 0.25;
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.arc(b.x - b.dx*5, b.y - b.dy*5, b.size * 0.7, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 0.12;
+      ctx.beginPath();
+      ctx.arc(b.x - b.dx*10, b.y - b.dy*10, b.size * 0.4, 0, Math.PI*2);
+      ctx.fill();
+      // Bullet
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.size, 0, Math.PI*2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    // Particles
+    state.particles.forEach(p => {
+      ctx.globalAlpha = p.life * 0.9;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2.5, 0, Math.PI*2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    // Towers
+    state.towers.forEach(t => {
+      const def = TOWER_DEFS[t.type];
+      const x = t.col * C.TILE, y = t.row * C.TILE;
+      const hpPct = t.hp / def.hp;
+
+      // Glow
+      ctx.shadowColor = t.owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC;
+      ctx.shadowBlur  = 6;
+      ctx.fillStyle   = t.owner === C.BLUE ? 'rgba(26,63,122,0.9)' : 'rgba(122,26,26,0.9)';
+      ctx.beginPath();
+      ctx.roundRect(x+3, y+3, C.TILE-6, C.TILE-6, 5);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Border
+      ctx.strokeStyle = t.owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(x+3, y+3, C.TILE-6, C.TILE-6, 5);
+      ctx.stroke();
+
+      // Icon
+      ctx.font = `${C.TILE * 0.42}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(def.icon, x + C.TILE/2, y + C.TILE/2 - 2);
+
+      // HP bar
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(x+4, y+C.TILE-9, C.TILE-8, 5);
+      ctx.fillStyle = hpPct > 0.5 ? '#00b64c' : hpPct > 0.25 ? '#f9ca24' : '#ff4a4a';
+      ctx.fillRect(x+4, y+C.TILE-9, (C.TILE-8)*hpPct, 5);
+    });
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+
+    // Placement hover
+    if (state.placingTower && state.hoverCol >= 0 && state.hoverRow >= 0) {
+      const ok = canPlace(state.hoverCol, state.hoverRow, C.BLUE);
+      ctx.fillStyle   = ok ? 'rgba(0,182,76,0.2)' : 'rgba(255,74,74,0.15)';
+      ctx.strokeStyle = ok ? '#00b64c' : '#ff4a4a';
+      ctx.lineWidth = 2;
+      ctx.fillRect(state.hoverCol*C.TILE, state.hoverRow*C.TILE, C.TILE, C.TILE);
+      ctx.strokeRect(state.hoverCol*C.TILE, state.hoverRow*C.TILE, C.TILE, C.TILE);
+    }
+
+    // Overtime border pulse
+    if (state.overtime) {
+      const pulse = 0.4 + 0.4 * Math.sin(state.tick * 0.1);
+      ctx.strokeStyle = `rgba(255,74,74,${pulse})`;
+      ctx.lineWidth = 6;
+      ctx.strokeRect(3, 3, W-6, H-6);
+    }
+  }
+
+  // ═══════════════════════════════════════════
+  // BOT AI
+  // ═══════════════════════════════════════════
+  function botPlaceTower() {
+    const type = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
+    // Find col with fewest bot towers → attack there
+    const colCount = Array(C.COLS).fill(0);
+    state.towers.filter(t => t.owner === C.RED).forEach(t => colCount[t.col]++);
+
+    const candidates = [];
+    for (let r = 0; r < C.ROWS/2; r++)
+      for (let c = 0; c < C.COLS; c++)
+        if (canPlace(c, r, C.RED)) candidates.push({ c, r, score: -colCount[c] });
+
+    if (!candidates.length) return;
+    candidates.sort((a, b) => b.score - a.score);
+    const pick = candidates[Math.floor(Math.random() * Math.min(5, candidates.length))];
+    placeTower(pick.c, pick.r, type, C.RED);
+  }
+
+  // ═══════════════════════════════════════════
+  // GAME LOOP (1s interval for timers)
+  // ═══════════════════════════════════════════
+  let timerInterval = null;
+
+  function startGameLoop() {
+    botPlaceTower();
+    timerInterval = setInterval(() => {
+      if (state.phase !== 'playing') return;
+
+      state.gameCountdown--;
+      const m = Math.floor(state.gameCountdown / 60);
+      const s = state.gameCountdown % 60;
+      document.getElementById('game-timer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+
+      state.waveCountdown--;
+      document.getElementById('wave-timer').textContent = state.waveCountdown + 's';
+      if (state.waveCountdown <= 0) {
+        state.waveCountdown = 8;
+        botPlaceTower();
+        showSelect(false);
+      }
+
+      if (state.gameCountdown <= 0) {
+        clearInterval(timerInterval);
+        checkOvertime();
+      }
+    }, 1000);
+  }
+
+  function checkOvertime() {
+    const { blue, red, total } = state.score;
+    const diff = Math.abs(blue - red) / (total || 1);
+    if (diff < 0.10) {
+      // Within 10% — sudden death overtime
+      state.overtime = true;
+      const banner = document.getElementById('overtime-banner');
+      banner.style.display = 'block';
+      setTimeout(() => { banner.style.display = 'none'; }, 2000);
+
+      let ot = 20;
+      timerInterval = setInterval(() => {
+        ot--;
+        document.getElementById('game-timer').textContent = `OT ${ot}s`;
+        if (ot <= 0) { clearInterval(timerInterval); endGame(); }
+      }, 1000);
+    } else {
+      endGame();
+    }
+  }
+
+  function endGame() {
+    state.phase = 'end';
+    countScore();
+    const { blue, red } = state.score;
+    const win = blue > red ? 'blue' : red > blue ? 'red' : 'draw';
+
+    document.getElementById('end-title').textContent =
+      win === 'blue' ? 'Turf secured. 😤' :
+      win === 'red'  ? 'Your turf got yoinked. 💀' : "It's a draw. 🤝";
+    document.getElementById('end-title').style.color =
+      win === 'blue' ? '#4a9eff' : win === 'red' ? '#ff4a4a' : '#e0e0e0';
+
+    document.getElementById('end-stats').innerHTML = `
+      <div class="stat-box"><div class="stat-val" style="color:#4a9eff">${blue}</div><div class="stat-label">blue tiles</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:#ff4a4a">${red}</div><div class="stat-label">red tiles</div></div>
+      <div class="stat-box"><div class="stat-val">${state.stats.blueDestroyed}</div><div class="stat-label">towers destroyed</div></div>
+      <div class="stat-box"><div class="stat-val">${state.stats.iceDestroyed}</div><div class="stat-label">ice blocks broken</div></div>
+    `;
+    document.getElementById('end-screen').classList.add('active');
+  }
+
+  window.restartGame = function() {
+    clearInterval(timerInterval);
+    document.getElementById('end-screen').classList.remove('active');
+    document.getElementById('game-timer').textContent = '1:30';
+    document.getElementById('wave-timer').textContent = '8s';
+    state = initState();
+    countScore();
+    showSelect(true);
+  };
+
+  // ═══════════════════════════════════════════
+  // ANIMATION LOOP
+  // ═══════════════════════════════════════════
+  function loop() {
+    state.tick++;
+    if (state.phase === 'playing') {
+      state.towers.forEach(t => {
+        const def = TOWER_DEFS[t.type];
+        if (!def.fireRate) return;
+        t.fireTick++;
+        if (t.fireTick >= def.fireRate) { t.fireTick = 0; fireBullet(t); }
+      });
+      updateBullets();
+      updateParticles();
+      if (state.tick % 30 === 0) countScore();
+    }
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ═══════════════════════════════════════════
+  // START
+  // ═══════════════════════════════════════════
+  state = initState();
+  countScore();
+  showSelect(true);
+  requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

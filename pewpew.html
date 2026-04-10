@@ -245,7 +245,7 @@
   const TOWER_DEFS = {
     plinker: { name:'Plinker', icon:'🔫', desc:'Fast · Full range · 1 col', hp:3,  fireRate:18, range:C.ROWS, spread:1, dmg:1 },
     blaster: { name:'Blaster', icon:'💥', desc:'Slow · Short range · Wide', hp:5,  fireRate:55, range:5,      spread:5, dmg:1 },
-    lobber:  { name:'Lobber',  icon:'💣', desc:'Medium · Splash damage',    hp:5,  fireRate:40, range:8,      spread:1, dmg:2, splash:true },
+    lobber:  { name:'Lobber',  icon:'💣', desc:'Skips 5-10 tiles · 3×3 splash', hp:5, fireRate:50, range:0, spread:0, dmg:2, mortar:true },
     zapper:  { name:'Zapper',  icon:'⚡', desc:'Continuous · 2 cols',      hp:3,  fireRate:8,  range:C.ROWS, spread:2, dmg:1 },
     blocker: { name:'Blocker', icon:'🛡️', desc:'No attack · High HP',      hp:15, fireRate:0,  range:0,      spread:0, dmg:0 },
   };
@@ -288,7 +288,9 @@
       grid, iceHP,
       towers:    [],
       bullets:   [],
+      mortars:   [],
       particles: [],
+      shake: 0,
       score:     { blue: 0, red: 0, total: 0 },
       stats:     { blueDestroyed: 0, redDestroyed: 0, iceDestroyed: 0 },
       tick: 0,
@@ -405,9 +407,11 @@
   function fireBullet(tower) {
     const def = TOWER_DEFS[tower.type];
     if (!def.fireRate) return;
-    const dir = tower.owner === C.BLUE ? -1 : 1;
-    const cx  = tower.col * C.TILE + C.TILE / 2;
-    const cy  = tower.row * C.TILE + C.TILE / 2;
+    if (def.mortar) { fireMortar(tower); return; }
+
+    const dir   = tower.owner === C.BLUE ? -1 : 1;
+    const cx    = tower.col * C.TILE + C.TILE / 2;
+    const cy    = tower.row * C.TILE + C.TILE / 2;
     const speed = 3.5;
 
     for (let s = 0; s < def.spread; s++) {
@@ -417,11 +421,74 @@
         dx: offset, dy: dir * speed,
         owner: tower.owner,
         dmg: def.dmg,
-        splash: def.splash || false,
-        size: def.splash ? 5 : def.spread > 2 ? 3 : 2.5,
+        size: def.spread > 2 ? 3 : 2.5,
         lastCol: tower.col, lastRow: tower.row,
       });
     }
+  }
+
+  // ═══════════════════════════════════════════
+  // MORTARS
+  // ═══════════════════════════════════════════
+  function fireMortar(tower) {
+    const dir      = tower.owner === C.BLUE ? -1 : 1;
+    const minRange = 5, maxRange = 10;
+    const range    = minRange + Math.floor(Math.random() * (maxRange - minRange + 1));
+    const targetRow = Math.max(0, Math.min(C.ROWS - 1, tower.row + dir * range));
+    const colSpread = Math.floor(Math.random() * 5) - 2;
+    const targetCol = Math.max(0, Math.min(C.COLS - 1, tower.col + colSpread));
+
+    state.mortars.push({
+      startX: tower.col * C.TILE + C.TILE / 2,
+      startY: tower.row * C.TILE + C.TILE / 2,
+      targetCol, targetRow,
+      targetX: targetCol * C.TILE + C.TILE / 2,
+      targetY: targetRow * C.TILE + C.TILE / 2,
+      owner:    tower.owner,
+      progress: 0,
+    });
+  }
+
+  function updateMortars() {
+    state.mortars = state.mortars.filter(m => {
+      m.progress += 0.022;
+      if (m.progress >= 1) { landMortar(m); return false; }
+      return true;
+    });
+  }
+
+  function landMortar(m) {
+    const acc = m.owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC;
+    // 3×3 splash
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        const r = m.targetRow + dr;
+        const c = m.targetCol + dc;
+        if (r < 0 || r >= C.ROWS || c < 0 || c >= C.COLS) continue;
+        const tile = state.grid[r][c];
+        if (tile === C.ICE) {
+          const key = `${c},${r}`;
+          state.iceHP[key] = (state.iceHP[key] ?? 3) - 2;
+          if (state.iceHP[key] <= 0) { state.grid[r][c] = C.NEUTRAL; state.stats.iceDestroyed++; }
+          spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, '#aaddee', 6);
+        } else {
+          state.grid[r][c] = m.owner;
+        }
+        // Damage towers in splash radius
+        const hit = state.towers.find(t => t.col === c && t.row === r && t.owner !== m.owner);
+        if (hit) {
+          hit.hp -= 2;
+          if (hit.hp <= 0) {
+            if (hit.owner === C.RED) state.stats.blueDestroyed++;
+            else state.stats.redDestroyed++;
+            state.towers = state.towers.filter(t => t !== hit);
+          }
+        }
+        spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, acc, 5);
+      }
+    }
+    spawnParticles(m.targetX, m.targetY, acc, 20);
+    state.shake = 5; // screen shake on impact
   }
 
   function updateBullets() {
@@ -513,6 +580,14 @@
   // ═══════════════════════════════════════════
   function render() {
     ctx.clearRect(0, 0, W, H);
+    // Screen shake
+    let sx = 0, sy = 0;
+    if (state.shake > 0) {
+      sx = (Math.random() - 0.5) * state.shake;
+      sy = (Math.random() - 0.5) * state.shake;
+      state.shake = Math.max(0, state.shake - 0.5);
+      ctx.save(); ctx.translate(sx, sy);
+    }
     ctx.fillStyle = C.COL.BG;
     ctx.fillRect(0, 0, W, H);
 
@@ -563,6 +638,37 @@
     ctx.moveTo(0, H/2); ctx.lineTo(W, H/2);
     ctx.stroke();
     ctx.restore();
+
+    // Mortar landing shadows
+    state.mortars.forEach(m => {
+      const pulse = 0.15 + 0.15 * Math.sin(m.progress * Math.PI * 6);
+      ctx.fillStyle = m.owner === C.BLUE
+        ? `rgba(74,158,255,${pulse})`
+        : `rgba(255,74,74,${pulse})`;
+      ctx.beginPath();
+      ctx.ellipse(m.targetX, m.targetY, C.TILE*1.6, C.TILE*0.5, 0, 0, Math.PI*2);
+      ctx.fill();
+    });
+
+    // Mortar projectiles (arc)
+    state.mortars.forEach(m => {
+      const t = m.progress;
+      const x = m.startX + (m.targetX - m.startX) * t;
+      const arcH = (Math.abs(m.targetY - m.startY) + 80) * 0.7;
+      const y = m.startY + (m.targetY - m.startY) * t - arcH * Math.sin(t * Math.PI);
+      const col = m.owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC;
+      // Trail
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc(x - (m.targetX - m.startX)*0.04, y + arcH*Math.sin((t-0.04)*Math.PI) - arcH*Math.sin(t*Math.PI), 4, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+      // Shell
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(x-1, y-1, 2, 0, Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
 
     // Bullets + trails
     state.bullets.forEach(b => {
@@ -642,6 +748,9 @@
       ctx.fillRect(state.hoverCol*C.TILE, state.hoverRow*C.TILE, C.TILE, C.TILE);
       ctx.strokeRect(state.hoverCol*C.TILE, state.hoverRow*C.TILE, C.TILE, C.TILE);
     }
+
+    // Restore shake transform
+    if (sx || sy) ctx.restore();
 
     // Overtime border pulse
     if (state.overtime) {
@@ -767,6 +876,7 @@
         if (t.fireTick >= def.fireRate) { t.fireTick = 0; fireBullet(t); }
       });
       updateBullets();
+      updateMortars();
       updateParticles();
       if (state.tick % 30 === 0) countScore();
     }

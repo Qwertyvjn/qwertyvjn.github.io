@@ -505,10 +505,6 @@
   });
 
   canvas.addEventListener('mousedown', e => {
-    if (state.placingTower) isDragging = true;
-  });
-
-  canvas.addEventListener('mouseup', e => {
     const r   = canvas.getBoundingClientRect();
     const col = Math.floor((e.clientX - r.left) / C.TILE);
     const row = Math.floor((e.clientY - r.top)  / C.TILE);
@@ -523,7 +519,7 @@
         state.placingTower = null; placed = true;
       }
       if (placed) {
-        canvas.style.cursor = 'crosshair'; isDragging = false;
+        canvas.style.cursor = 'crosshair';
         if (state.phase === 'placing_start' && !state.placingTower && !state.placingTowerRed) {
           state.phase = 'playing'; startGameLoop();
         }
@@ -533,7 +529,7 @@
       if (canPlace(col, row, C.BLUE)) {
         placeTower(col, row, state.placingTower, C.BLUE);
         state.placingTower = null;
-        canvas.style.cursor = 'crosshair'; isDragging = false;
+        canvas.style.cursor = 'crosshair';
         if (state.phase === 'placing_start') { state.phase = 'playing'; startGameLoop(); }
       }
     }
@@ -1119,22 +1115,18 @@
           ctx.strokeRect(sx, splashR * C.TILE, sw, 3 * C.TILE);
           ctx.setLineDash([]);
         } else if (pt === 'splitter') {
-          // Two 45° diagonal strips drawn as rotated rectangles
-          const ox = hc * C.TILE + C.TILE / 2;
-          const oy = hr * C.TILE + C.TILE / 2;
+          // Highlight the exact diagonal tile path (V-shape)
           const rng = TOWER_DEFS.splitter.range;
-          ctx.save();
-          ctx.translate(ox, oy);
-          [-1, 1].forEach(side => {
-            ctx.save();
-            ctx.rotate(side * Math.PI / 4);
-            ctx.fillStyle = OR[0]; ctx.strokeStyle = OR[1]; ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.roundRect(-C.TILE * 0.4, -rng * C.TILE * Math.SQRT2, C.TILE * 0.8, rng * C.TILE * Math.SQRT2, 3);
-            ctx.fill(); ctx.stroke();
-            ctx.restore();
-          });
-          ctx.restore();
+          for (let step = 1; step <= rng; step++) {
+            [[-1, -1], [1, -1]].forEach(([dc, dr]) => {
+              const c = hc + dc * step, r = hr + dr * step;
+              if (r < 0 || r >= C.ROWS || c < 0 || c >= C.COLS) return;
+              ctx.fillStyle = G[0]; ctx.strokeStyle = G[1]; ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.roundRect(c * C.TILE + 2, r * C.TILE + 2, C.TILE - 4, C.TILE - 4, 3);
+              ctx.fill(); ctx.stroke();
+            });
+          }
         } else if (pt === 'freezer') {
           const [y, h] = clampY(hr - 4, hr);
           drawShape(hc * C.TILE, y, C.TILE, h, ...CY);

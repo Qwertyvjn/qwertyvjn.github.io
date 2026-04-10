@@ -23,28 +23,22 @@ html.light {
   --border: #ddd;
 }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  transition: background 0.3s, color 0.3s;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-html.light body {
-  background-image: radial-gradient(circle, rgba(0,0,0,0.07) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body, .layout {
   overflow-x: hidden;
 }
 body {
   font-family: 'Fira Code', monospace;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
   color: var(--text);
-  transition: background 0.3s, color 0.3s;
+  transition: background-color 0.3s, color 0.3s;
   line-height: 1.6;
+}
+html.light body {
+  background-image: radial-gradient(circle, rgba(0,0,0,0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
 .layout { display: flex; min-height: 100vh; }
@@ -113,7 +107,7 @@ html.dark .toggle-track { background: var(--accent); }
 .toggle-label { font-size: 0.875rem; font-weight: 500; }
 
 .main {
-  flex: 1; padding: 2rem 3rem; max-width: 1200px;
+  flex: 1; padding: 2rem 3rem;
 }
 .content-columns {
   display: flex; gap: 2rem;

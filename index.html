@@ -167,10 +167,28 @@
             <div class="card">
               <div id="location-data" class="loading">📍 Detecting your location...</div>
               <div id="aqi-display" class="hidden">
-                <p><strong>City:</strong> <span id="city-name">-</span></p>
-                <p><strong>AQI:</strong> <span id="aqi-value">-</span> (<span id="aqi-category">-</span>)</p>
-                <p><strong>CO₂:</strong> <span id="co2-value">-</span> ppm</p>
-                <p><strong>Temp:</strong> <span id="temp-value">-</span>°C</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+                  <span style="font-size:0.85rem;color:var(--dim);">📍 <span id="city-name">-</span></span>
+                  <span id="aqi-badge" style="padding:0.25rem 0.75rem;border-radius:999px;font-size:0.8rem;font-weight:600;">-</span>
+                </div>
+                <div style="margin-bottom:0.75rem;">
+                  <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:0.25rem;">
+                    <span>AQI</span><span id="aqi-value">-</span>
+                  </div>
+                  <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+                    <div id="aqi-bar" style="height:100%;width:0%;border-radius:3px;transition:width 1s ease;"></div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.8rem;">
+                  <div style="background:rgba(255,255,255,0.04);border-radius:0.375rem;padding:0.5rem;text-align:center;">
+                    <div style="color:var(--dim);margin-bottom:0.2rem;">CO₂</div>
+                    <div><span id="co2-value">-</span> ppm</div>
+                  </div>
+                  <div style="background:rgba(255,255,255,0.04);border-radius:0.375rem;padding:0.5rem;text-align:center;">
+                    <div style="color:var(--dim);margin-bottom:0.2rem;">Temp</div>
+                    <div><span id="temp-value">-</span>°C</div>
+                  </div>
+                </div>
               </div>
               <p style="font-size: 0.75rem; color: var(--dim); margin-top: 0.5rem; text-align: center;">
                 📊 Data powered by <a href="https://www.iqair.com/air-pollution-data-api" target="_blank" style="color: var(--accent);">IQAir API</a>.
@@ -367,13 +385,31 @@
           .then(r => r.json())
           .then(d => {
             if (d.status === 'success') {
+              const aqi = d.data.current.pollution.aqius;
+              const levels = [
+                { max: 50,  label: 'Good',                    color: '#00b64c', bg: 'rgba(0,182,76,0.15)'   },
+                { max: 100, label: 'Moderate',                color: '#f5c518', bg: 'rgba(245,197,24,0.15)' },
+                { max: 150, label: 'Unhealthy (Sensitive)',   color: '#ff8c00', bg: 'rgba(255,140,0,0.15)'  },
+                { max: 200, label: 'Unhealthy',               color: '#e53935', bg: 'rgba(229,57,53,0.15)'  },
+                { max: 300, label: 'Very Unhealthy',          color: '#9c27b0', bg: 'rgba(156,39,176,0.15)' },
+                { max: Infinity, label: 'Hazardous',          color: '#7b1fa2', bg: 'rgba(123,31,162,0.15)' },
+              ];
+              const level = levels.find(l => aqi <= l.max);
+
               document.getElementById('city-name').textContent = d.data.city;
-              document.getElementById('aqi-value').textContent = d.data.current.pollution.aqius;
-              document.getElementById('co2-value').textContent = Math.round(400 + d.data.current.pollution.aqius * 0.5);
+              document.getElementById('aqi-value').textContent = aqi;
+              document.getElementById('co2-value').textContent = Math.round(400 + aqi * 0.5);
               document.getElementById('temp-value').textContent = d.data.current.weather.tp;
-              const cats = ['Good','Moderate','Unhealthy for Sensitive','Unhealthy','Very Unhealthy','Hazardous'];
-              const idx = Math.min(5, Math.floor(d.data.current.pollution.aqius / 50));
-              document.getElementById('aqi-category').textContent = cats[idx];
+
+              const badge = document.getElementById('aqi-badge');
+              badge.textContent = level.label;
+              badge.style.color = level.color;
+              badge.style.background = level.bg;
+
+              const bar = document.getElementById('aqi-bar');
+              bar.style.background = level.color;
+              bar.style.width = Math.min(100, (aqi / 300) * 100) + '%';
+
               locEl.classList.add('hidden');
               dispEl.classList.remove('hidden');
             }

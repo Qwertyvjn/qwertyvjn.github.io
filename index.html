@@ -60,7 +60,7 @@
   <div class="layout">
     <aside class="sidebar">
       <div class="profile">
-        <div class="avatar"></div>
+        <div class="avatar" style="background:linear-gradient(135deg,#00b64c,#007a33);display:flex;align-items:center;justify-content:center;font-size:1.25rem;font-weight:600;color:#fff;letter-spacing:0.05em;">GA</div>
         <div class="cut-text">BrainFart</div>
         <p class="name">Glenn Alvin</p>
         <p class="bio">Environmental Engineering · Indonesia</p>
@@ -75,7 +75,7 @@
         <h3 class="section-title">connect</h3>
         <a href="https://www.linkedin.com/in/glenn-alvin-ab1533255/" target="_blank" class="link glow">linkedin</a>
         <a href="mailto:glennalvin17@gmail.com" class="link">email</a>
-        <a href="#" class="link">resume</a>
+        <a href="https://glennalvin.lovable.app/" target="_blank" class="link">resume</a>
       </div>
       <button id="theme-toggle" class="theme-toggle">
         <div class="toggle-track"><div class="toggle-thumb"></div></div>
@@ -87,7 +87,7 @@
       <div class="content-columns">
         <div class="left-column">
           <header>
-            <h1>Interactive Projects.</h1>
+            <h1 id="typed-headline" aria-label="Interactive Projects."></h1>
             <p>Hi, I'm <strong>Glenn Alvin</strong>, an Indonesian Environmental Engineering student and enthusiastic knowledge-sharer. This site is my personal challenge to simplify complex environmental concepts—like <strong>air pollution</strong> and <strong>unconventional energy</strong>—through interactive models. Hope it's useful!</p>
           </header>
 
@@ -108,6 +108,7 @@
                     <a href="ipcc-simulator.html" class="btn-simulation" target="_blank">▶️ Simulation</a>
                   </div>
                 </div>
+                <!-- COMING SOON: hidden until ready
                 <div class="card" id="simulation-red">
                   <h3>🧪 Salinity Gradient Model (RED)</h3>
                   <p><strong>The Chemical Waterfall:</strong> Explore how the cost and efficiency of <strong>Reverse Electrodialysis (RED)</strong> membranes affect the viability of drawing energy from mixing fresh and salt water.</p>
@@ -120,9 +121,11 @@
                   <div class="embed-placeholder" id="embed-gpe">Paste Looker Studio or Custom Embed Here</div>
                   <div class="coming-soon-text">COMING SOON</div>
                 </div>
+                -->
               </div>
             </section>
 
+            <!-- DATA SECTION: hidden until dashboard is ready
             <section id="data">
               <h2>📊 The Global Carbon Pulse</h2>
               <p>Tracking real-time indicators...</p>
@@ -130,6 +133,7 @@
                 <div class="embed-placeholder large" id="embed-data">Paste Dashboard Here</div>
               </div>
             </section>
+            -->
 
             <section id="tools">
               <h2>🔧 Tools</h2>
@@ -328,6 +332,29 @@
       document.getElementById('carbon-value').textContent = co2;
       document.getElementById('equivalent').textContent = (co2 / 1.8).toFixed(3) + ' g of rice';
     }, 1000);
+
+    // TYPING ANIMATION
+    (function() {
+      const el = document.getElementById('typed-headline');
+      const text = 'Interactive Projects.';
+      const cursor = document.createElement('span');
+      cursor.textContent = '|';
+      cursor.style.cssText = 'color:var(--accent);animation:blink 0.7s step-end infinite;';
+      const style = document.createElement('style');
+      style.textContent = '@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}';
+      document.head.appendChild(style);
+      el.appendChild(cursor);
+      let i = 0;
+      const type = () => {
+        if (i < text.length) {
+          el.insertBefore(document.createTextNode(text[i++]), cursor);
+          setTimeout(type, i === 1 ? 300 : 55 + Math.random() * 40);
+        } else {
+          setTimeout(() => cursor.remove(), 1200);
+        }
+      };
+      setTimeout(type, 400);
+    })();
 
     // IQAIR
     const KEY = 'YOUR_API_KEY_HERE';

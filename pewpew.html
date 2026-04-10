@@ -264,6 +264,7 @@
     <span>🔵 click to place</span>
     <span id="game-timer">1:30</span>
     <span>next wave: <span class="hud-accent" id="wave-timer">5s</span></span>
+    <a onclick="restartGame()" style="font-size:0.65rem;color:#333;cursor:pointer;text-decoration:none;user-select:none">← menu</a>
   </div>
 
   <!-- Online lobby -->
@@ -307,8 +308,7 @@
     <div style="color:#444;font-size:0.75rem;letter-spacing:0.12em;margin-top:-0.75rem">CHOOSE YOUR BATTLE</div>
     <div style="display:flex;gap:1rem;margin-top:0.5rem">
       <button class="mode-btn" onclick="startMode('bot')">🤖 vs Bot</button>
-      <button class="mode-btn" onclick="startMode('pvp')">👥 Local PvP</button>
-      <button class="mode-btn" onclick="startMode('online')">🌐 Online</button>
+      <button class="mode-btn" onclick="startMode('online')">🌐 Multiplayer</button>
     </div>
     <a href="index.html" style="font-size:0.7rem;color:#333;text-decoration:none;margin-top:0.5rem">← back to brainfart</a>
   </div>
@@ -324,7 +324,7 @@
   <div id="overtime-banner">SUDDEN PEW</div>
 
   <script>
-  let gameMode = 'bot'; // 'bot' | 'pvp'
+  let gameMode = 'bot'; // 'bot' | 'online'
 
   // ═══════════════════════════════════════════
   // CONFIG
@@ -470,7 +470,7 @@
       // Notify opponent that a wave started (so guest shows their own select)
       if (isHost && !isStart && conn && conn.open) conn.send({ type: 'wave_start' });
       overlay.classList.add('active');
-      let s = isStart ? 15 : 5;
+      let s = isStart ? 15 : 8;
       document.getElementById('select-timer').textContent = `${s}s`;
       clearInterval(selectInterval);
       selectInterval = setInterval(() => {
@@ -481,36 +481,19 @@
       return;
     }
 
-    if (gameMode === 'pvp') {
-      const ro = [...TOWER_KEYS].sort(() => Math.random() - 0.5).slice(0, 3);
-      const bo = [...TOWER_KEYS].sort(() => Math.random() - 0.5).slice(0, 3);
-      document.getElementById('select-title').textContent = isStart ? 'EACH PLAYER PICKS A TOWER' : 'PICK YOUR TOWERS';
-      document.getElementById('tower-options').innerHTML = `
-        <div style="display:flex;gap:2.5rem;justify-content:center;width:100%">
-          <div class="pvp-col">
-            <div class="pvp-label" style="color:#ff6666">🔴 RED — click top half to place</div>
-            <div style="display:flex;gap:0.5rem">${ro.map(k => towerCard(k, `selectTowerPvp('red','${k}')`, 'red')).join('')}</div>
-          </div>
-          <div class="pvp-col">
-            <div class="pvp-label" style="color:#4a9eff">🔵 BLUE — click bottom half to place</div>
-            <div style="display:flex;gap:0.5rem">${bo.map(k => towerCard(k, `selectTowerPvp('blue','${k}')`, 'blue')).join('')}</div>
-          </div>
-        </div>`;
-    } else {
-      const options = [...TOWER_KEYS].sort(() => Math.random() - 0.5).slice(0, 3);
-      document.getElementById('select-title').textContent = isStart ? 'PICK YOUR FIRST TOWER' : 'PICK A TOWER';
-      document.getElementById('tower-options').innerHTML = options.map(k => {
-        const d = TOWER_DEFS[k];
-        return `<div class="tower-card" onclick="selectTower('${k}')">
-          <div class="tower-icon">${d.icon}</div>
-          <div class="tower-name">${d.name}</div>
-          <div class="tower-desc">${d.desc}</div>
-        </div>`;
-      }).join('');
-    }
+    const options = [...TOWER_KEYS].sort(() => Math.random() - 0.5).slice(0, 3);
+    document.getElementById('select-title').textContent = isStart ? 'PICK YOUR FIRST TOWER' : 'PICK A TOWER';
+    document.getElementById('tower-options').innerHTML = options.map(k => {
+      const d = TOWER_DEFS[k];
+      return `<div class="tower-card" onclick="selectTower('${k}')">
+        <div class="tower-icon">${d.icon}</div>
+        <div class="tower-name">${d.name}</div>
+        <div class="tower-desc">${d.desc}</div>
+      </div>`;
+    }).join('');
 
     overlay.classList.add('active');
-    let s = isStart ? 15 : 5;
+    let s = isStart ? 15 : 8;
     document.getElementById('select-timer').textContent = `${s}s`;
     clearInterval(selectInterval);
     selectInterval = setInterval(() => {
@@ -528,33 +511,8 @@
     state.phase = isStart ? 'placing_start' : 'playing';
   };
 
-  window.selectTowerPvp = function(team, key) {
-    const accent = team === 'red' ? '#ff4a4a' : '#4a9eff';
-    // Highlight chosen card, dim others in the same section
-    document.querySelectorAll(`[id^="tc-${team}-"]`).forEach(el => {
-      el.style.opacity = '0.35';
-      el.style.borderColor = team === 'red' ? '#3a1a1a' : '#1a3a6a';
-    });
-    const chosen = document.getElementById(`tc-${team}-${key}`);
-    if (chosen) { chosen.style.opacity = '1'; chosen.style.borderColor = accent; }
-
-    if (team === 'red')  { state.placingTowerRed = key; state.pvpRedPicked  = true; }
-    else                 { state.placingTower    = key; state.pvpBluePicked = true; }
-
-    if (state.pvpRedPicked && state.pvpBluePicked) {
-      clearInterval(selectInterval);
-      document.getElementById('tower-select').classList.remove('active');
-      if (state.phase === 'start') state.phase = 'placing_start';
-    }
-  };
-
   function closeSelect() {
     document.getElementById('tower-select').classList.remove('active');
-    // Auto-assign random towers for players who didn't pick in time
-    if (gameMode === 'pvp') {
-      if (!state.pvpBluePicked) state.placingTower    = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
-      if (!state.pvpRedPicked)  state.placingTowerRed = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
-    }
     if (gameMode === 'online') {
       const myOwner = myRole === 'host' ? C.BLUE : C.RED;
       if (myOwner === C.BLUE && !state.pvpBluePicked) state.placingTower    = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
@@ -617,29 +575,12 @@
       return;
     }
 
-    if (gameMode === 'pvp') {
-      let placed = false;
-      if (row < C.ROWS / 2 && state.placingTowerRed && canPlace(col, row, C.RED)) {
-        placeTower(col, row, state.placingTowerRed, C.RED);
-        state.placingTowerRed = null; placed = true;
-      } else if (row >= C.ROWS / 2 && state.placingTower && canPlace(col, row, C.BLUE)) {
-        placeTower(col, row, state.placingTower, C.BLUE);
-        state.placingTower = null; placed = true;
-      }
-      if (placed) {
-        canvas.style.cursor = 'crosshair';
-        if (state.phase === 'placing_start' && !state.placingTower && !state.placingTowerRed) {
-          state.phase = 'playing'; startGameLoop();
-        }
-      }
-    } else {
-      if (!state.placingTower) return;
-      if (canPlace(col, row, C.BLUE)) {
-        placeTower(col, row, state.placingTower, C.BLUE);
-        state.placingTower = null;
-        canvas.style.cursor = 'crosshair';
-        if (state.phase === 'placing_start') { state.phase = 'playing'; startGameLoop(); }
-      }
+    if (!state.placingTower) return;
+    if (canPlace(col, row, C.BLUE)) {
+      placeTower(col, row, state.placingTower, C.BLUE);
+      state.placingTower = null;
+      canvas.style.cursor = 'crosshair';
+      if (state.phase === 'placing_start') { state.phase = 'playing'; startGameLoop(); }
     }
   });
 
@@ -1268,26 +1209,6 @@
         ctx.globalAlpha = 1;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
-      }
-    }
-
-    // PvP: red ghost cursor for P2
-    if (gameMode === 'pvp' && state.placingTowerRed && state.hoverCol >= 0 && state.hoverRow >= 0) {
-      const hc2 = state.hoverCol, hr2 = state.hoverRow;
-      const ok2 = canPlace(hc2, hr2, C.RED);
-      ctx.fillStyle   = ok2 ? 'rgba(255,74,74,0.25)' : 'rgba(74,74,74,0.15)';
-      ctx.strokeStyle = ok2 ? '#ff4a4a' : '#555';
-      ctx.lineWidth = 2;
-      ctx.fillRect(hc2*C.TILE, hr2*C.TILE, C.TILE, C.TILE);
-      ctx.strokeRect(hc2*C.TILE, hr2*C.TILE, C.TILE, C.TILE);
-      if (state.mouseX >= 0) {
-        const def2 = TOWER_DEFS[state.placingTowerRed];
-        ctx.globalAlpha = 0.75;
-        ctx.font = `${C.TILE * 0.55}px serif`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(def2.icon, state.mouseX, state.mouseY - 14);
-        ctx.globalAlpha = 1;
-        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
       }
     }
 

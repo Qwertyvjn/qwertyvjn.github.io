@@ -264,7 +264,7 @@
     <span>🔵 click to place</span>
     <span id="game-timer">1:30</span>
     <span>next wave: <span class="hud-accent" id="wave-timer">5s</span></span>
-    <a onclick="restartGame()" style="font-size:0.65rem;color:#333;cursor:pointer;text-decoration:none;user-select:none">← menu</a>
+    <a onclick="restartGame()" style="font-size:0.65rem;color:#555;cursor:pointer;text-decoration:none;user-select:none;border:1px solid #2a2a2a;padding:2px 6px;border-radius:3px" title="Press Escape">← menu</a>
   </div>
 
   <!-- Online lobby -->
@@ -349,11 +349,11 @@
     blaster:   { name:'Blaster',   icon:'💥', desc:'Slow · 5 range · wide spread',       hp:5,  fireRate:100, range:5,  spread:5, dmg:1, speed:3.5 },
     lobber:    { name:'Lobber',    icon:'💣', desc:'Skips 5–10 tiles · 3×3 splash',      hp:5,  fireRate:120, range:0,  spread:0, dmg:2, mortar:true },
     zapper:    { name:'Zapper',    icon:'⚡', desc:'Fast · 6 range · 2 cols',            hp:3,  fireRate:25,  range:6,  spread:2, dmg:1, speed:4.5 },
-    blocker:   { name:'Blocker',   icon:'🛡️', desc:'No attack · high HP wall',           hp:15, fireRate:0,   range:0,  spread:0, dmg:0 },
+    blocker:   { name:'Blocker',   icon:'🛡️', desc:'Fortifies area · claims tiles · 20 HP', hp:20, fireRate:0,   range:0,  spread:0, dmg:0, fortify:true },
     sniper:    { name:'Sniper',    icon:'🎯', desc:'12 range · slow · high damage',      hp:3,  fireRate:180, range:12, spread:1, dmg:3, speed:6 },
     cannon:    { name:'Cannon',    icon:'🧨', desc:'6 range · slow · 3×3 splash hit',   hp:6,  fireRate:150, range:6,  spread:1, dmg:2, splash:true, speed:2 },
     freezer:   { name:'Freezer',   icon:'❄️', desc:'4 range · neutralizes enemy tiles', hp:4,  fireRate:80,  range:4,  spread:1, dmg:1, freeze:true, speed:3 },
-    amplifier: { name:'Amplifier', icon:'📡', desc:'No attack · +30% fire rate nearby', hp:4,  fireRate:0,   range:0,  spread:0, dmg:0 },
+    amplifier: { name:'Amplifier', icon:'📡', desc:'2-tile aura · +40% fire rate · +1 dmg', hp:5,  fireRate:0,   range:0,  spread:0, dmg:0 },
     splitter:  { name:'Splitter',  icon:'🪃', desc:'Diagonal fire · covers the sides',  hp:3,  fireRate:80,  range:6,  spread:2, dmg:1, diagonal:true, speed:5 },
   };
   const TOWER_KEYS = Object.keys(TOWER_DEFS);
@@ -587,7 +587,7 @@
   // ═══════════════════════════════════════════
   // BULLETS
   // ═══════════════════════════════════════════
-  function fireBullet(tower) {
+  function fireBullet(tower, amplified = false) {
     const def = TOWER_DEFS[tower.type];
     if (!def.fireRate) return;
     if (def.mortar) { fireMortar(tower); return; }
@@ -597,10 +597,11 @@
     const cy    = tower.row * C.TILE + C.TILE / 2;
     const speed = def.speed || 3.5;
     const size  = tower.type === 'cannon' ? 5 : tower.type === 'sniper' ? 2 : def.spread > 2 ? 3 : 2.5;
+    const dmg   = def.dmg + (amplified ? 1 : 0);
 
     const mkBullet = (dx, dy) => ({
       x: cx, y: cy, dx, dy,
-      owner: tower.owner, dmg: def.dmg,
+      owner: tower.owner, dmg,
       range: def.range, startRow: tower.row,
       splash: def.splash || false, freeze: def.freeze || false,
       size, lastCol: tower.col, lastRow: tower.row,
@@ -865,6 +866,12 @@
           const nr = r + dr, nc = c + dc;
           if (nr < 0 || nr >= C.ROWS || nc < 0 || nc >= C.COLS) return;
           const n = state.grid[nr][nc];
+          // Blocker guard: enemy passive spread can't convert tiles adjacent to a friendly blocker
+          const blockerGuard = state.towers.some(tb =>
+            tb.type === 'blocker' && tb.owner === n &&
+            Math.abs(tb.row - nr) <= 1 && Math.abs(tb.col - nc) <= 1
+          );
+          if (blockerGuard) return;
           // Claim adjacent neutral tiles (1.5% chance)
           if (n === C.NEUTRAL && Math.random() < 0.015) claims.push([nr, nc, tile]);
           // Very slowly push into enemy (0.25% chance)
@@ -1180,8 +1187,8 @@
           const [y, h] = clampY(hr - 4, hr);
           drawShape(hc * C.TILE, y, C.TILE, h, ...CY);
         } else if (pt === 'amplifier') {
-          const [x, w] = clampX(hc - 1, hc + 2);
-          const [y, h] = clampY(hr - 1, hr + 2);
+          const [x, w] = clampX(hc - 2, hc + 3);
+          const [y, h] = clampY(hr - 2, hr + 3);
           drawShape(x, y, w, h, ...YL);
         } else if (pt === 'lobber') {
           const r_far  = Math.max(0, hr - 10);
@@ -1232,8 +1239,8 @@
       t !== tower &&
       t.type === 'amplifier' &&
       t.owner === tower.owner &&
-      Math.abs(t.col - tower.col) <= 1 &&
-      Math.abs(t.row - tower.row) <= 1
+      Math.abs(t.col - tower.col) <= 2 &&
+      Math.abs(t.row - tower.row) <= 2
     );
   }
 
@@ -1594,14 +1601,22 @@
   }
 
   window.restartGame = function() {
-    clearInterval(timerInterval);
+    clearInterval(timerInterval); clearInterval(selectInterval);
     document.getElementById('end-screen').classList.remove('active');
+    document.getElementById('tower-select').classList.remove('active');
+    document.getElementById('online-lobby').classList.remove('active');
     document.getElementById('game-timer').textContent = '1:30';
-    document.getElementById('wave-timer').textContent = '5s';
+    document.getElementById('wave-timer').textContent = '8s';
+    if (peer) { peer.destroy(); peer = null; conn = null; }
+    gameMode = 'bot'; isHost = false; myRole = null;
     state = initState();
     countScore();
     document.getElementById('mode-select').classList.add('active');
   };
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') restartGame();
+  });
 
   // ═══════════════════════════════════════════
   // ANIMATION LOOP
@@ -1613,14 +1628,30 @@
         const def = TOWER_DEFS[t.type];
         if (!def.fireRate) return;
         t.fireTick++;
-        const effectiveRate = hasAdjacentAmplifier(t) ? Math.floor(def.fireRate * 0.7) : def.fireRate;
-        if (t.fireTick >= effectiveRate) { t.fireTick = 0; fireBullet(t); }
+        const amplified = hasAdjacentAmplifier(t);
+        const effectiveRate = amplified ? Math.floor(def.fireRate * 0.6) : def.fireRate;
+        if (t.fireTick >= effectiveRate) { t.fireTick = 0; fireBullet(t, amplified); }
       });
       updateBullets();
       updateMortars();
       updateParticles();
       // Passive territorial spread every ~45 ticks
       if (state.tick % 45 === 0) spreadTerritory();
+      // Blockers fortify: claim adjacent neutral tiles every 60 ticks
+      if (state.tick % 60 === 0) {
+        state.towers.forEach(t => {
+          if (t.type !== 'blocker') return;
+          SPREAD_DIRS.forEach(([dr, dc]) => {
+            const nr = t.row + dr, nc = t.col + dc;
+            if (nr < 0 || nr >= C.ROWS || nc < 0 || nc >= C.COLS) return;
+            if (state.grid[nr][nc] === C.NEUTRAL) {
+              state.grid[nr][nc] = t.owner;
+              flashTile(nc, nr, t.owner);
+              spawnFloater(nc, nr, '+1', t.owner);
+            }
+          });
+        });
+      }
       // Host broadcasts authoritative state to guest every 8 ticks
       if (gameMode === 'online' && isHost && conn && conn.open && state.tick % 8 === 0) sendRemoteState();
       // Decay flashes and floaters

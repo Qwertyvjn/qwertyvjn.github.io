@@ -351,6 +351,21 @@
       document.getElementById('equivalent').textContent = (co2 / 1.8).toFixed(3) + ' g of rice';
     }, 1000);
 
+    // CARD ENTRANCE ANIMATIONS
+    (function() {
+      const cards = document.querySelectorAll('.card');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+          if (entry.isIntersecting) {
+            entry.target.style.animationDelay = (i * 0.06) + 's';
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      cards.forEach(card => observer.observe(card));
+    })();
+
     // TYPING ANIMATION
     (function() {
       const el = document.getElementById('typed-headline');

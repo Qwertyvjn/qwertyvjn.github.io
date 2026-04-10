@@ -220,6 +220,19 @@ p {
   text-decoration: underline;
 }
 
+/* ===== CARD ENTRANCE ANIMATIONS ===== */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card {
+  opacity: 0;
+  animation: fadeUp 0.5s ease forwards;
+}
+.card.visible {
+  opacity: 1;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }

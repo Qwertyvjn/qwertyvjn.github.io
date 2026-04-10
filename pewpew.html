@@ -456,6 +456,16 @@
       return;
     }
 
+    // Blaster: fan 5 bullets across 5 columns — visible 22° spread
+    if (tower.type === 'blaster') {
+      const frames = (def.range * C.TILE) / speed;
+      [-2, -1, 0, 1, 2].forEach(dc => {
+        const targetX = Math.max(0, Math.min(C.COLS - 1, tower.col + dc)) * C.TILE + C.TILE / 2;
+        state.bullets.push(mkBullet((targetX - cx) / frames, dir * speed));
+      });
+      return;
+    }
+
     // Splitter: two 45° diagonal bullets
     if (def.diagonal) {
       const d = speed * 0.707;
@@ -977,7 +987,7 @@
           const [y, h] = clampY(hr - 6, hr);
           drawShape(x, y, w, h, ...G);
         } else if (pt === 'blaster') {
-          const [x, w] = clampX(hc - 1, hc + 2);
+          const [x, w] = clampX(hc - 2, hc + 3);
           const [y, h] = clampY(hr - 5, hr);
           drawShape(x, y, w, h, ...G);
         } else if (pt === 'sniper') {
@@ -1005,7 +1015,7 @@
             ctx.rotate(side * Math.PI / 4);
             ctx.fillStyle = OR[0]; ctx.strokeStyle = OR[1]; ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.roundRect(-C.TILE * 0.4, -rng * C.TILE, C.TILE * 0.8, rng * C.TILE, 3);
+            ctx.roundRect(-C.TILE * 0.4, -rng * C.TILE * Math.SQRT2, C.TILE * 0.8, rng * C.TILE * Math.SQRT2, 3);
             ctx.fill(); ctx.stroke();
             ctx.restore();
           });

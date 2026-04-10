@@ -355,13 +355,14 @@
   window.selectTower = function(key) {
     clearInterval(selectInterval);
     state.placingTower = key;
-    closeSelect();
-    if (state.phase === 'start') state.phase = 'placing_start';
+    const isStart = state.phase === 'start';
+    document.getElementById('tower-select').classList.remove('active');
+    state.phase = isStart ? 'placing_start' : 'playing';
   };
 
   function closeSelect() {
     document.getElementById('tower-select').classList.remove('active');
-    if (state.phase === 'start') state.phase = 'playing';
+    if (state.phase === 'start' || state.phase === 'selecting') state.phase = 'playing';
   }
 
   // ═══════════════════════════════════════════

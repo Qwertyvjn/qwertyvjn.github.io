@@ -30,7 +30,7 @@ html, body, .layout {
 body {
   font-family: 'Fira Code', monospace;
   background-color: var(--bg);
-  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px);
   background-size: 28px 28px;
   color: var(--text);
   transition: background-color 0.3s, color 0.3s;

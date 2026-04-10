@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pew Pew</title>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -193,6 +194,35 @@
     .pvp-col { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
     .pvp-label { font-size: 0.7rem; letter-spacing: 0.12em; margin-bottom: 0.25rem; }
 
+    /* Online lobby */
+    #online-lobby {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.92);
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 1.25rem; z-index: 200;
+    }
+    #online-lobby.active { display: flex; }
+    #ol-code-input {
+      background: #111; border: 1px solid #333; color: #e0e0e0;
+      font-family: 'Fira Code', monospace; font-size: 1rem;
+      padding: 0.5rem 1rem; border-radius: 0.375rem;
+      text-align: center; letter-spacing: 0.15em; width: 220px;
+      text-transform: uppercase;
+    }
+    #ol-code-input:focus { outline: none; border-color: #00b64c; }
+    .ol-status-badge {
+      background: #0f1f0f; border: 1px solid #1a4a1a; border-radius: 0.5rem;
+      padding: 0.75rem 1.5rem; color: #00b64c; font-size: 0.8rem;
+      letter-spacing: 0.08em; text-align: center;
+    }
+    .ol-copy-btn {
+      background: none; border: 1px solid #2a2a2a; color: #00b64c;
+      font-family: 'Fira Code', monospace; font-size: 0.75rem;
+      padding: 0.4rem 1rem; border-radius: 0.375rem; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ol-copy-btn:hover { border-color: #00b64c; background: #0f1f0f; }
+
     /* Overtime flash */
     #overtime-banner {
       display: none;
@@ -236,6 +266,34 @@
     <span>next wave: <span class="hud-accent" id="wave-timer">5s</span></span>
   </div>
 
+  <!-- Online lobby -->
+  <div id="online-lobby">
+    <div class="title" style="font-size:2rem">ONLINE MATCH</div>
+
+    <div id="ol-menu" style="display:flex;flex-direction:column;gap:0.75rem;align-items:center">
+      <button class="mode-btn" onclick="createOnlineRoom()">🎮 Create Room</button>
+      <button class="mode-btn" onclick="showOlJoin()">🔗 Join with Code</button>
+      <a onclick="backToModeSelect()" style="color:#333;font-size:0.75rem;cursor:pointer;margin-top:0.25rem">← back</a>
+    </div>
+
+    <div id="ol-join-section" style="display:none;flex-direction:column;align-items:center;gap:0.75rem">
+      <div style="color:#555;font-size:0.75rem;letter-spacing:0.1em">ENTER ROOM CODE</div>
+      <input id="ol-code-input" maxlength="20" placeholder="ABC123"
+        onkeydown="if(event.key==='Enter') joinOnlineRoom()">
+      <button class="mode-btn" onclick="joinOnlineRoom()">Connect →</button>
+      <a onclick="showOlMenu()" style="color:#333;font-size:0.75rem;cursor:pointer">← back</a>
+    </div>
+
+    <div id="ol-status-section" style="display:none;flex-direction:column;align-items:center;gap:0.75rem">
+      <div id="ol-status-msg" class="ol-status-badge">Connecting...</div>
+      <div id="ol-room-display" style="display:none;text-align:center">
+        <div style="color:#555;font-size:0.65rem;letter-spacing:0.1em;margin-bottom:0.3rem">ROOM CODE</div>
+        <div id="ol-room-code" style="font-size:1.4rem;font-weight:700;color:#00b64c;letter-spacing:0.25em"></div>
+      </div>
+      <button class="ol-copy-btn" id="ol-copy-btn" style="display:none" onclick="copyRoomLink()">📋 Copy invite link</button>
+    </div>
+  </div>
+
   <!-- Tower select overlay -->
   <div id="tower-select">
     <h2 id="select-title">PICK YOUR FIRST TOWER</h2>
@@ -250,6 +308,7 @@
     <div style="display:flex;gap:1rem;margin-top:0.5rem">
       <button class="mode-btn" onclick="startMode('bot')">🤖 vs Bot</button>
       <button class="mode-btn" onclick="startMode('pvp')">👥 Local PvP</button>
+      <button class="mode-btn" onclick="startMode('online')">🌐 Online</button>
     </div>
     <a href="index.html" style="font-size:0.7rem;color:#333;text-decoration:none;margin-top:0.5rem">← back to brainfart</a>
   </div>
@@ -396,6 +455,32 @@
     const overlay = document.getElementById('tower-select');
     state.pvpRedPicked = false; state.pvpBluePicked = false;
 
+    if (gameMode === 'online') {
+      const myColor = myRole === 'host' ? 'blue' : 'red';
+      const accent  = myColor === 'blue' ? '#4a9eff' : '#ff6666';
+      const options = [...TOWER_KEYS].sort(() => Math.random() - 0.5).slice(0, 3);
+      document.getElementById('select-title').textContent = isStart ? 'PICK YOUR FIRST TOWER' : 'PICK A TOWER';
+      document.getElementById('tower-options').innerHTML = `
+        <div style="color:${accent};font-size:0.75rem;margin-bottom:0.5rem;letter-spacing:0.1em">
+          ${myColor === 'blue' ? '🔵 YOU ARE BLUE' : '🔴 YOU ARE RED'}
+        </div>
+        <div style="display:flex;gap:0.75rem">
+          ${options.map(k => towerCard(k, `selectTowerOnline('${k}')`, myColor)).join('')}
+        </div>`;
+      // Notify opponent that a wave started (so guest shows their own select)
+      if (isHost && !isStart && conn && conn.open) conn.send({ type: 'wave_start' });
+      overlay.classList.add('active');
+      let s = isStart ? 15 : 5;
+      document.getElementById('select-timer').textContent = `${s}s`;
+      clearInterval(selectInterval);
+      selectInterval = setInterval(() => {
+        s--;
+        document.getElementById('select-timer').textContent = `${s}s`;
+        if (s <= 0) { clearInterval(selectInterval); closeSelect(); }
+      }, 1000);
+      return;
+    }
+
     if (gameMode === 'pvp') {
       const ro = [...TOWER_KEYS].sort(() => Math.random() - 0.5).slice(0, 3);
       const bo = [...TOWER_KEYS].sort(() => Math.random() - 0.5).slice(0, 3);
@@ -470,6 +555,11 @@
       if (!state.pvpBluePicked) state.placingTower    = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
       if (!state.pvpRedPicked)  state.placingTowerRed = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
     }
+    if (gameMode === 'online') {
+      const myOwner = myRole === 'host' ? C.BLUE : C.RED;
+      if (myOwner === C.BLUE && !state.pvpBluePicked) state.placingTower    = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
+      if (myOwner === C.RED  && !state.pvpRedPicked)  state.placingTowerRed = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
+    }
     if (state.phase === 'start' || state.phase === 'selecting') state.phase = 'playing';
   }
 
@@ -508,6 +598,24 @@
     const r   = canvas.getBoundingClientRect();
     const col = Math.floor((e.clientX - r.left) / C.TILE);
     const row = Math.floor((e.clientY - r.top)  / C.TILE);
+
+    if (gameMode === 'online') {
+      // Host = blue (bottom half); guest = red (top half)
+      const myOwner = myRole === 'host' ? C.BLUE : C.RED;
+      const myKey   = myRole === 'host' ? state.placingTower : state.placingTowerRed;
+      if (!myKey) return;
+      if (myOwner === C.BLUE && row < C.ROWS / 2) return; // blue must place in bottom half
+      if (myOwner === C.RED  && row >= C.ROWS / 2) return; // red must place in top half
+      if (!canPlace(col, row, myOwner)) return;
+      placeTower(col, row, myKey, myOwner);
+      if (myOwner === C.BLUE) state.placingTower    = null;
+      else                    state.placingTowerRed = null;
+      canvas.style.cursor = 'crosshair';
+      // Send placement to opponent
+      if (conn && conn.open) conn.send({ type: 'place', col, row, type: myKey, owner: myOwner });
+      if (isHost) checkOnlineStart();
+      return;
+    }
 
     if (gameMode === 'pvp') {
       let placed = false;
@@ -1252,6 +1360,8 @@
     if (gameMode === 'bot') botPlaceTower();
     timerInterval = setInterval(() => {
       if (state.phase !== 'playing') return;
+      // Only host/local drives timers; guest receives state via sync
+      if (gameMode === 'online' && !isHost) return;
 
       state.gameCountdown--;
       const m = Math.floor(state.gameCountdown / 60);
@@ -1287,6 +1397,7 @@
       const banner = document.getElementById('overtime-banner');
       banner.style.display = 'block';
       setTimeout(() => { banner.style.display = 'none'; }, 2000);
+      if (gameMode === 'online' && isHost && conn && conn.open) conn.send({ type: 'overtime' });
 
       let ot = 20;
       timerInterval = setInterval(() => {
@@ -1318,15 +1429,248 @@
       <div class="stat-box"><div class="stat-val">${state.stats.iceDestroyed}</div><div class="stat-label">ice blocks broken</div></div>
     `;
     document.getElementById('end-screen').classList.add('active');
+    if (gameMode === 'online' && isHost && conn && conn.open) {
+      conn.send({ type: 'game_end', grid: state.grid.flat(), towers: state.towers.map(t => ({ col:t.col, row:t.row, type:t.type, owner:t.owner, hp:t.hp })), score: state.score, stats: state.stats });
+    }
   }
 
   window.startMode = function(mode) {
+    if (mode === 'online') {
+      document.getElementById('mode-select').classList.remove('active');
+      document.getElementById('online-lobby').classList.add('active');
+      showOlMenu();
+      return;
+    }
     gameMode = mode;
     document.getElementById('mode-select').classList.remove('active');
-    state = initState();
-    countScore();
+    state = initState(); countScore();
     showSelect(true);
   };
+
+  // ═══════════════════════════════════════════
+  // ONLINE MULTIPLAYER (PeerJS)
+  // ═══════════════════════════════════════════
+  let peer = null, conn = null, isHost = false, myRole = null;
+
+  function showOlMenu() {
+    document.getElementById('ol-menu').style.display = 'flex';
+    document.getElementById('ol-join-section').style.display = 'none';
+    document.getElementById('ol-status-section').style.display = 'none';
+  }
+  function showOlJoin() {
+    document.getElementById('ol-menu').style.display = 'none';
+    document.getElementById('ol-join-section').style.display = 'flex';
+  }
+  function backToModeSelect() {
+    document.getElementById('online-lobby').classList.remove('active');
+    document.getElementById('mode-select').classList.add('active');
+    if (peer) { peer.destroy(); peer = null; conn = null; }
+  }
+
+  function olStatus(msg) { document.getElementById('ol-status-msg').textContent = msg; }
+
+  function createOnlineRoom() {
+    document.getElementById('ol-menu').style.display = 'none';
+    document.getElementById('ol-status-section').style.display = 'flex';
+    olStatus('Creating room...');
+    peer = new Peer(undefined, { debug: 0 });
+    peer.on('open', id => {
+      isHost = true; myRole = 'host'; gameMode = 'online';
+      history.replaceState(null, '', `?room=${id}`);
+      document.getElementById('ol-room-code').textContent = id.slice(0, 8).toUpperCase();
+      document.getElementById('ol-room-display').style.display = 'block';
+      document.getElementById('ol-copy-btn').style.display = 'inline-block';
+      olStatus('Waiting for opponent...');
+    });
+    peer.on('connection', c => {
+      conn = c;
+      conn.on('open', () => {
+        olStatus('Opponent connected! Starting...');
+        setTimeout(startOnlineGame, 800);
+      });
+      conn.on('data', handleRemoteData);
+      conn.on('close', onRemoteDisconnect);
+    });
+    peer.on('error', err => olStatus(`Error: ${err.type}. Try again.`));
+  }
+
+  function joinOnlineRoom() {
+    const code = document.getElementById('ol-code-input').value.trim();
+    if (!code) return;
+    document.getElementById('ol-join-section').style.display = 'none';
+    document.getElementById('ol-status-section').style.display = 'flex';
+    olStatus('Connecting...');
+    peer = new Peer(undefined, { debug: 0 });
+    peer.on('open', () => {
+      isHost = false; myRole = 'guest'; gameMode = 'online';
+      conn = peer.connect(code);
+      conn.on('open', () => {
+        olStatus('Connected! Waiting for host...');
+        conn.send({ type: 'guest_ready' });
+      });
+      conn.on('data', handleRemoteData);
+      conn.on('close', onRemoteDisconnect);
+    });
+    peer.on('error', () => olStatus('Could not connect. Check the room code.'));
+  }
+
+  window.copyRoomLink = function() {
+    navigator.clipboard.writeText(location.href).then(() => {
+      document.getElementById('ol-copy-btn').textContent = '✓ Copied!';
+      setTimeout(() => { document.getElementById('ol-copy-btn').textContent = '📋 Copy invite link'; }, 2000);
+    });
+  };
+
+  function startOnlineGame() {
+    document.getElementById('online-lobby').classList.remove('active');
+    state = initState(); countScore();
+    if (isHost) {
+      // Host starts game and notifies guest
+      conn.send({ type: 'game_init' });
+      showSelect(true);
+    }
+    // Guest waits for game_init
+  }
+
+  function sendRemoteState() {
+    if (!conn || !conn.open) return;
+    conn.send({
+      type: 'sync',
+      grid: state.grid.flat(),
+      towers: state.towers.map(t => ({ col:t.col, row:t.row, type:t.type, owner:t.owner, hp:t.hp })),
+      gameCountdown: state.gameCountdown,
+      waveCountdown: state.waveCountdown,
+      overtime: state.overtime,
+    });
+  }
+
+  function applyRemoteSync(data) {
+    for (let r = 0; r < C.ROWS; r++)
+      for (let c = 0; c < C.COLS; c++)
+        state.grid[r][c] = data.grid[r * C.COLS + c];
+    const prev = new Map(state.towers.map(t => [`${t.col},${t.row}`, t.fireTick]));
+    state.towers = data.towers.map(t => ({ ...t, fireTick: prev.get(`${t.col},${t.row}`) || 0 }));
+    if (data.gameCountdown != null) {
+      state.gameCountdown = data.gameCountdown;
+      const m = Math.floor(data.gameCountdown / 60);
+      const s = data.gameCountdown % 60;
+      document.getElementById('game-timer').textContent = state.overtime ? `OT` : `${m}:${s.toString().padStart(2,'0')}`;
+    }
+    if (data.waveCountdown != null) {
+      state.waveCountdown = data.waveCountdown;
+      document.getElementById('wave-timer').textContent = data.waveCountdown + 's';
+    }
+    if (data.overtime != null) state.overtime = data.overtime;
+  }
+
+  function checkOnlineStart() {
+    if (!isHost || state.phase !== 'placing_start') return;
+    const blueDone = state.towers.some(t => t.owner === C.BLUE);
+    const redDone  = state.towers.some(t => t.owner === C.RED);
+    if (blueDone && redDone) {
+      state.phase = 'playing';
+      startGameLoop();
+      if (conn && conn.open) conn.send({ type: 'game_started' });
+    }
+  }
+
+  function handleRemoteData(data) {
+    switch (data.type) {
+      case 'guest_ready': break; // handled in connection.open
+
+      case 'game_init':
+        // Guest: host said game is starting
+        document.getElementById('online-lobby').classList.remove('active');
+        state = initState(); countScore();
+        showSelect(true);
+        break;
+
+      case 'sync':
+        if (!isHost) applyRemoteSync(data);
+        break;
+
+      case 'place': {
+        // Remote player placed a tower
+        const owner = data.owner;
+        if (canPlace(data.col, data.row, owner)) {
+          placeTower(data.col, data.row, data.type, owner);
+          if (owner === C.BLUE) state.placingTower = null;
+          else state.placingTowerRed = null;
+        }
+        checkOnlineStart();
+        break;
+      }
+
+      case 'select':
+        // Opponent picked their tower (after both pick, reveal)
+        if (myRole === 'host') { state.placingTowerRed = data.key; state.pvpRedPicked = true; }
+        else                   { state.placingTower    = data.key; state.pvpBluePicked = true; }
+        const timerEl = document.getElementById('select-timer');
+        if (timerEl.textContent.includes('✓')) {
+          checkBothSelectedOnline();
+        } else {
+          timerEl.textContent = 'Opponent ready ✓ — pick your tower';
+        }
+        checkBothSelectedOnline();
+        break;
+
+      case 'wave_start':
+        if (!isHost) showSelect(false);
+        break;
+
+      case 'game_started':
+        if (!isHost) state.phase = 'playing';
+        break;
+
+      case 'overtime':
+        if (!isHost) {
+          state.overtime = true;
+          const b = document.getElementById('overtime-banner');
+          b.style.display = 'block';
+          setTimeout(() => { b.style.display = 'none'; }, 2000);
+        }
+        break;
+
+      case 'game_end':
+        if (!isHost) {
+          applyRemoteSync(data);
+          if (data.score) state.score = data.score;
+          if (data.stats) state.stats = data.stats;
+          endGame();
+        }
+        break;
+    }
+  }
+
+  function checkBothSelectedOnline() {
+    if (state.pvpBluePicked && state.pvpRedPicked) {
+      clearInterval(selectInterval);
+      document.getElementById('tower-select').classList.remove('active');
+      if (state.phase === 'start') state.phase = 'placing_start';
+    }
+  }
+
+  window.selectTowerOnline = function(key) {
+    if (myRole === 'host') { state.placingTower    = key; state.pvpBluePicked = true; }
+    else                   { state.placingTowerRed = key; state.pvpRedPicked  = true; }
+    document.querySelectorAll('#tower-options .tower-card').forEach(c => {
+      c.style.opacity = '0.35'; c.style.pointerEvents = 'none';
+    });
+    const timerEl = document.getElementById('select-timer');
+    if (timerEl.textContent.includes('ready ✓')) {
+      checkBothSelectedOnline();
+    } else {
+      timerEl.textContent = 'Waiting for opponent... ✓';
+    }
+    if (conn && conn.open) conn.send({ type: 'select', key });
+    checkBothSelectedOnline();
+  };
+
+  function onRemoteDisconnect() {
+    if (state.phase === 'playing' || state.phase === 'end') return;
+    alert('Opponent disconnected.');
+    backToModeSelect();
+  }
 
   window.restartGame = function() {
     clearInterval(timerInterval);
@@ -1356,6 +1700,8 @@
       updateParticles();
       // Passive territorial spread every ~45 ticks
       if (state.tick % 45 === 0) spreadTerritory();
+      // Host broadcasts authoritative state to guest every 8 ticks
+      if (gameMode === 'online' && isHost && conn && conn.open && state.tick % 8 === 0) sendRemoteState();
       // Decay flashes and floaters
       state.flashes  = state.flashes.filter(f  => { f.age  -= 0.06; return f.age  > 0; });
       state.floaters = state.floaters.filter(f => { f.life -= 0.03; f.y  -= 0.6;  return f.life > 0; });
@@ -1371,6 +1717,20 @@
   state = initState();
   countScore();
   requestAnimationFrame(loop);
+
+  // Auto-join if opened via invite link (?room=CODE)
+  (function checkInviteLink() {
+    const params = new URLSearchParams(location.search);
+    const roomCode = params.get('room');
+    if (!roomCode) return;
+    // Pre-fill join box and open the online lobby directly
+    document.getElementById('mode-select').classList.remove('active');
+    document.getElementById('online-lobby').classList.add('active');
+    showOlJoin();
+    document.getElementById('ol-code-input').value = roomCode;
+    // Brief delay so the UI is visible before auto-connecting
+    setTimeout(joinOnlineRoom, 400);
+  })();
   </script>
 </body>
 </html>

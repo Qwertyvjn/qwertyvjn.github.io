@@ -223,6 +223,45 @@
     }
     .ol-copy-btn:hover { border-color: #00b64c; background: #0f1f0f; }
 
+    /* ── MOBILE TOWER DECK ── */
+    #tower-deck {
+      display: none; flex-direction: column; gap: 0.4rem;
+      padding: 0.6rem 0.75rem; background: #111;
+      border: 1px solid #222; border-radius: 10px;
+      width: 100%; max-width: 865px;
+    }
+    #tower-deck.visible { display: flex; }
+    .deck-header {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.65rem; color: #555; letter-spacing: 0.1em;
+    }
+    .deck-cards-row { display: flex; gap: 0.5rem; justify-content: center; }
+    .deck-card {
+      background: #141414; border: 1px solid #2a2a2a; border-radius: 8px;
+      padding: 0.6rem 0.5rem; cursor: grab; text-align: center;
+      flex: 1; min-width: 0; touch-action: none; user-select: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .deck-card.selected { border-color: #00b64c; background: #0f1f0f; box-shadow: 0 0 8px rgba(0,182,76,0.25); }
+    .deck-card .tower-icon { font-size: 1.75rem; line-height: 1.1; }
+    .deck-card .tower-name { font-size: 0.72rem; font-weight: 600; color: #e0e0e0; margin-top: 0.2rem; }
+    .deck-card .tower-desc { font-size: 0.5rem; color: #555; margin-top: 0.1rem; }
+    #drag-ghost {
+      display: none; position: fixed; pointer-events: none;
+      font-size: 2.5rem; z-index: 9999;
+      transform: translate(-50%, -110%);
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.9));
+    }
+    /* ── RESPONSIVE ── */
+    #game-wrapper { transform-origin: top center; }
+    @media (max-width: 700px) {
+      body { gap: 0.4rem; padding: 0.5rem; }
+      .title { font-size: 2rem; }
+      .subtitle { font-size: 0.6rem; }
+      #hud { font-size: 0.6rem; }
+      #game-timer { font-size: 0.85rem !important; }
+    }
+
     /* Overtime flash */
     #overtime-banner {
       display: none;
@@ -266,6 +305,16 @@
     <span>next wave: <span class="hud-accent" id="wave-timer">5s</span></span>
     <a onclick="restartGame()" style="font-size:0.65rem;color:#555;cursor:pointer;text-decoration:none;user-select:none;border:1px solid #2a2a2a;padding:2px 6px;border-radius:3px" title="Press Escape">← menu</a>
   </div>
+
+  <!-- Mobile tower deck -->
+  <div id="tower-deck">
+    <div class="deck-header">
+      <span id="deck-title">PICK A TOWER</span>
+      <span id="deck-timer" style="color:#ff6b6b"></span>
+    </div>
+    <div id="deck-cards" class="deck-cards-row"></div>
+  </div>
+  <div id="drag-ghost"></div>
 
   <!-- Online lobby -->
   <div id="online-lobby">
@@ -367,6 +416,37 @@
   const H = C.ROWS * C.TILE;
   canvas.width  = W;
   canvas.height = H;
+
+  // ── Responsive canvas scaling ──────────────
+  function fitCanvas() {
+    const wrapper = document.getElementById('game-wrapper');
+    const totalW  = W + 42; // canvas + gap(12) + scorebar(30)
+    const avail   = window.innerWidth - 16;
+    if (avail < totalW) {
+      const s = avail / totalW;
+      wrapper.style.transform    = `scale(${s})`;
+      wrapper.style.marginBottom = `${(H + 2) * (s - 1)}px`;
+    } else {
+      wrapper.style.transform    = '';
+      wrapper.style.marginBottom = '';
+    }
+  }
+  window.addEventListener('resize', fitCanvas);
+  fitCanvas();
+
+  // Converts screen clientX/Y → grid col/row + canvas-pixel mx/my
+  // Works correctly even when the canvas wrapper is CSS-scaled
+  function gridPosFrom(clientX, clientY) {
+    const r = canvas.getBoundingClientRect();
+    const rawRow = Math.floor((clientY - r.top)  / (r.height / C.ROWS));
+    const rawMy  = (clientY - r.top) * (H / r.height);
+    return {
+      col: Math.floor((clientX - r.left) / (r.width  / C.COLS)),
+      row: viewFlip ? C.ROWS - 1 - rawRow : rawRow,
+      mx:  (clientX - r.left) * (W / r.width),
+      my:  viewFlip ? H - rawMy : rawMy,
+    };
+  }
 
   // ═══════════════════════════════════════════
   // STATE
@@ -482,6 +562,13 @@
     }
 
     const options = [...TOWER_KEYS].sort(() => Math.random() - 0.5).slice(0, 3);
+
+    // On mobile: use the bottom deck instead of the fullscreen overlay
+    if (window.innerWidth <= 700) {
+      showTowerDeck(options, isStart);
+      return;
+    }
+
     document.getElementById('select-title').textContent = isStart ? 'PICK YOUR FIRST TOWER' : 'PICK A TOWER';
     document.getElementById('tower-options').innerHTML = options.map(k => {
       const d = TOWER_DEFS[k];
@@ -513,6 +600,7 @@
 
   function closeSelect() {
     document.getElementById('tower-select').classList.remove('active');
+    hideTowerDeck();
     if (gameMode === 'online') {
       const myOwner = myRole === 'host' ? C.BLUE : C.RED;
       if (myOwner === C.BLUE && !state.pvpBluePicked) state.placingTower    = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
@@ -533,16 +621,26 @@
 
   function placeTower(col, row, type, owner) {
     state.towers.push({ col, row, type, owner, hp: TOWER_DEFS[type].hp, fireTick: 0 });
+    if (type === 'blocker') {
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const r = row + dr, c = col + dc;
+          if (r < 0 || r >= C.ROWS || c < 0 || c >= C.COLS) continue;
+          if (state.grid[r][c] !== C.ICE) {
+            state.grid[r][c] = owner;
+            flashTile(c, r, owner);
+          }
+        }
+      }
+    }
   }
 
   let isDragging = false;
 
   canvas.addEventListener('mousemove', e => {
-    const r = canvas.getBoundingClientRect();
-    state.hoverCol = Math.floor((e.clientX - r.left) / C.TILE);
-    state.hoverRow = Math.floor((e.clientY - r.top)  / C.TILE);
-    state.mouseX   = e.clientX - r.left;
-    state.mouseY   = e.clientY - r.top;
+    const p = gridPosFrom(e.clientX, e.clientY);
+    state.hoverCol = p.col; state.hoverRow = p.row;
+    state.mouseX   = p.mx;  state.mouseY   = p.my;
     if (state.placingTower || state.placingTowerRed) canvas.style.cursor = 'grabbing';
     else canvas.style.cursor = 'crosshair';
   });
@@ -552,37 +650,66 @@
     state.mouseX = -1;   state.mouseY  = -1;
   });
 
-  canvas.addEventListener('mousedown', e => {
-    const r   = canvas.getBoundingClientRect();
-    const col = Math.floor((e.clientX - r.left) / C.TILE);
-    const row = Math.floor((e.clientY - r.top)  / C.TILE);
-
+  // Shared placement logic — called from mousedown AND touch events
+  function doPlacement(col, row) {
+    if (col < 0 || col >= C.COLS || row < 0 || row >= C.ROWS) return;
     if (gameMode === 'online') {
-      // Host = blue (bottom half); guest = red (top half)
       const myOwner = myRole === 'host' ? C.BLUE : C.RED;
-      const myKey   = myRole === 'host' ? state.placingTower : state.placingTowerRed;
+      const myKey   = myOwner === C.BLUE ? state.placingTower : state.placingTowerRed;
       if (!myKey) return;
-      if (myOwner === C.BLUE && row < C.ROWS / 2) return; // blue must place in bottom half
-      if (myOwner === C.RED  && row >= C.ROWS / 2) return; // red must place in top half
+      if (myOwner === C.BLUE && row < C.ROWS / 2) return;
+      if (myOwner === C.RED  && row >= C.ROWS / 2) return;
       if (!canPlace(col, row, myOwner)) return;
       placeTower(col, row, myKey, myOwner);
       if (myOwner === C.BLUE) state.placingTower    = null;
       else                    state.placingTowerRed = null;
       canvas.style.cursor = 'crosshair';
-      // Send placement to opponent
       if (conn && conn.open) conn.send({ type: 'place', col, row, type: myKey, owner: myOwner });
-      if (isHost) checkOnlineStart();
-      return;
+      checkOnlineStart();
+      hideTowerDeck();
+    } else {
+      if (!state.placingTower) return;
+      if (canPlace(col, row, C.BLUE)) {
+        placeTower(col, row, state.placingTower, C.BLUE);
+        state.placingTower = null;
+        canvas.style.cursor = 'crosshair';
+        hideTowerDeck();
+        if (state.phase === 'placing_start') { state.phase = 'playing'; startGameLoop(); }
+      }
     }
+  }
 
-    if (!state.placingTower) return;
-    if (canPlace(col, row, C.BLUE)) {
-      placeTower(col, row, state.placingTower, C.BLUE);
-      state.placingTower = null;
-      canvas.style.cursor = 'crosshair';
-      if (state.phase === 'placing_start') { state.phase = 'playing'; startGameLoop(); }
-    }
+  canvas.addEventListener('mousedown', e => {
+    const p = gridPosFrom(e.clientX, e.clientY);
+    doPlacement(p.col, p.row);
   });
+
+  // ── TOUCH: drag finger over canvas to preview, lift to place ──
+  let touchDragKey = null;
+  const dragGhostEl = document.getElementById('drag-ghost');
+
+  canvas.addEventListener('touchstart', e => {
+    const p = gridPosFrom(e.touches[0].clientX, e.touches[0].clientY);
+    state.hoverCol = p.col; state.hoverRow = p.row;
+    state.mouseX = p.mx;   state.mouseY = p.my;
+    e.preventDefault();
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', e => {
+    const p = gridPosFrom(e.touches[0].clientX, e.touches[0].clientY);
+    state.hoverCol = p.col; state.hoverRow = p.row;
+    state.mouseX = p.mx;   state.mouseY = p.my;
+    e.preventDefault();
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', e => {
+    if (touchDragKey) return; // handled by document-level touchend
+    const t = e.changedTouches[0];
+    const p = gridPosFrom(t.clientX, t.clientY);
+    doPlacement(p.col, p.row);
+    state.hoverCol = -1; state.hoverRow = -1;
+    e.preventDefault();
+  }, { passive: false });
 
   // ═══════════════════════════════════════════
   // BULLETS
@@ -685,7 +812,7 @@
           state.iceHP[key] = (state.iceHP[key] ?? 3) - 2;
           if (state.iceHP[key] <= 0) { state.grid[r][c] = m.owner; state.stats.iceDestroyed++; }
           spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, '#aaddee', 6);
-        } else {
+        } else if (!isShielded(c, r, tile)) {
           state.grid[r][c] = m.owner;
         }
         // Damage towers in splash radius
@@ -718,7 +845,7 @@
           state.iceHP[key] = (state.iceHP[key] ?? 3) - 2;
           if (state.iceHP[key] <= 0) { state.grid[r][c] = owner; state.stats.iceDestroyed++; }
           spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, '#aaddee', 5);
-        } else {
+        } else if (!isShielded(c, r, tile)) {
           state.grid[r][c] = owner;
         }
         const hit = state.towers.find(t => t.col === c && t.row === r && t.owner !== owner);
@@ -752,7 +879,7 @@
       if (col < 0 || col >= C.COLS || row < 0 || row >= C.ROWS) { toRemove.add(bi); return; }
 
       // Range limit
-      if (b.range > 0 && Math.abs(row - b.startRow) >= b.range) { toRemove.add(bi); return; }
+      if (b.range > 0 && Math.abs(row - b.startRow) > b.range) { toRemove.add(bi); return; }
 
       if (col === b.lastCol && row === b.lastRow) return;
       b.lastCol = col; b.lastRow = row;
@@ -810,6 +937,7 @@
       // Freezer: neutralize enemy tile, pass through friendly/neutral
       if (b.freeze) {
         if (isEnemy) {
+          if (isShielded(col, row, tile)) { toRemove.add(bi); return; } // shield absorbs
           state.grid[row][col] = C.NEUTRAL;
           spawnParticles(b.x, b.y, '#88d0ff', 10);
           flashTile(col, row, C.BLUE); // icy flash
@@ -819,8 +947,13 @@
         return; // freeze bullets never claim tiles
       }
 
-      // Regular bullets: claim tile
+      // Regular bullets: claim tile — blocked if tile is shielded by a friendly blocker
       if (tile !== b.owner) {
+        if (isShielded(col, row, tile)) {
+          // Bullet sparks off the shield and stops
+          spawnParticles(b.x, b.y, tile === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC, 4);
+          toRemove.add(bi); return;
+        }
         state.grid[row][col] = b.owner;
         flashTile(col, row, b.owner);
         beepClaim(b.owner);
@@ -829,6 +962,14 @@
     });
 
     state.bullets = state.bullets.filter((_, i) => !toRemove.has(i));
+  }
+
+  // Returns true if (col, row) is inside a friendly blocker's 3×3 shield zone
+  function isShielded(col, row, defenderOwner) {
+    return state.towers.some(tb =>
+      tb.type === 'blocker' && tb.owner === defenderOwner &&
+      Math.abs(tb.col - col) <= 1 && Math.abs(tb.row - row) <= 1
+    );
   }
 
   // ═══════════════════════════════════════════
@@ -931,6 +1072,21 @@
   // ═══════════════════════════════════════════
   // RENDER
   // ═══════════════════════════════════════════
+  // Draw text right-side-up regardless of viewFlip transform
+  function drawTextUpright(text, canvasX, canvasY, font, align, baseline) {
+    if (viewFlip) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      if (font)     ctx.font          = font;
+      if (align)    ctx.textAlign     = align;
+      if (baseline) ctx.textBaseline  = baseline;
+      ctx.fillText(text, canvasX, H - canvasY);
+      ctx.restore();
+    } else {
+      ctx.fillText(text, canvasX, canvasY);
+    }
+  }
+
   function render() {
     ctx.clearRect(0, 0, W, H);
     // Screen shake
@@ -943,6 +1099,8 @@
     }
     ctx.fillStyle = C.COL.BG;
     ctx.fillRect(0, 0, W, H);
+    // Flip canvas vertically for guest (red player sees red at bottom)
+    if (viewFlip) { ctx.save(); ctx.transform(1, 0, 0, -1, 0, H); }
 
     // Tiles
     for (let r = 0; r < C.ROWS; r++) {
@@ -989,6 +1147,57 @@
       ctx.fillRect(f.col * C.TILE + 1, f.row * C.TILE + 1, C.TILE - 2, C.TILE - 2);
     });
     ctx.globalAlpha = 1;
+
+    // Blocker dome shield overlay
+    state.towers.forEach(t => {
+      if (t.type !== 'blocker') return;
+      const pulse = 0.55 + 0.2 * Math.sin(state.tick * 0.07);
+      const [r0, g0, b0] = t.owner === C.BLUE ? [74, 158, 255] : [255, 90, 90];
+
+      // Tile tint for each cell in 3×3 zone
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const rr = t.row + dr, cc = t.col + dc;
+          if (rr < 0 || rr >= C.ROWS || cc < 0 || cc >= C.COLS) continue;
+          ctx.fillStyle = `rgba(${r0},${g0},${b0},0.10)`;
+          ctx.fillRect(cc * C.TILE + 1, rr * C.TILE + 1, C.TILE - 2, C.TILE - 2);
+        }
+      }
+
+      // Glowing border around the full 3×3 zone
+      const zx = Math.max(0, t.col - 1) * C.TILE;
+      const zy = Math.max(0, t.row - 1) * C.TILE;
+      const zw = (Math.min(C.COLS, t.col + 2) - Math.max(0, t.col - 1)) * C.TILE;
+      const zh = (Math.min(C.ROWS, t.row + 2) - Math.max(0, t.row - 1)) * C.TILE;
+
+      ctx.save();
+      ctx.globalAlpha = pulse;
+      ctx.strokeStyle = `rgba(${r0},${g0},${b0},0.8)`;
+      ctx.lineWidth = 2;
+      ctx.shadowColor = `rgba(${r0},${g0},${b0},0.9)`;
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.roundRect(zx + 1, zy + 1, zw - 2, zh - 2, 6);
+      ctx.stroke();
+
+      // Dome arc — drawn on the "enemy-facing" side of the shield
+      // BLUE fires toward row 0 (top), so dome curves over the top edge
+      // RED  fires toward row C.ROWS (bottom), so dome curves over the bottom edge
+      const domeAtTop = (t.owner === C.BLUE);
+      const domeY     = domeAtTop ? zy : zy + zh;
+      const domeCX    = zx + zw / 2;
+      const domeRx    = zw / 2 + 4;
+      const domeRy    = C.TILE * 0.7;
+      ctx.globalAlpha = pulse * 0.6;
+      ctx.strokeStyle = `rgba(${r0},${g0},${b0},1)`;
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.ellipse(domeCX, domeY, domeRx, domeRy, 0,
+        domeAtTop ? Math.PI : 0, domeAtTop ? 0 : Math.PI);
+      ctx.stroke();
+      ctx.restore();
+    });
 
     // Center divider
     ctx.save();
@@ -1089,7 +1298,7 @@
       ctx.font = `${C.TILE * 0.42}px serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(def.icon, x + C.TILE/2, y + C.TILE/2 - 2);
+      drawTextUpright(def.icon, x + C.TILE/2, y + C.TILE/2 - 2, `${C.TILE * 0.42}px serif`, 'center', 'middle');
 
       // HP bar
       ctx.fillStyle = 'rgba(0,0,0,0.6)';
@@ -1107,27 +1316,47 @@
     state.floaters.forEach(f => {
       ctx.globalAlpha = f.life * 0.9;
       ctx.fillStyle = f.color;
-      ctx.fillText(f.text, f.x, f.y);
+      drawTextUpright(f.text, f.x, f.y, 'bold 10px Fira Code', 'center', 'middle');
     });
     ctx.globalAlpha = 1;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
 
     // Range shadow + ghost tower while placing
-    if (state.placingTower && state.hoverCol >= 0 && state.hoverRow >= 0) {
+    const _placingKey   = (gameMode === 'online' && myRole === 'guest') ? state.placingTowerRed : state.placingTower;
+    const _placingOwner = (gameMode === 'online' && myRole === 'guest') ? C.RED : C.BLUE;
+    if (_placingKey && state.hoverCol >= 0 && state.hoverRow >= 0) {
       const hc  = state.hoverCol, hr = state.hoverRow;
-      const ok  = canPlace(hc, hr, C.BLUE);
-      const def = TOWER_DEFS[state.placingTower];
+      const ok  = canPlace(hc, hr, _placingOwner);
+      const def = TOWER_DEFS[_placingKey];
 
       if (ok) {
-        // Tetris-style solid range shape
         ctx.setLineDash([]);
-        const drawShape = (x, y, w, h, fill, stroke) => {
+
+        const G  = ['rgba(0,182,76,0.18)',  'rgba(0,182,76,0.70)'];
+        const OR = ['rgba(255,140,0,0.18)', 'rgba(255,140,0,0.70)'];
+        const CY = ['rgba(80,210,255,0.18)','rgba(80,210,255,0.70)'];
+        const YL = ['rgba(255,220,40,0.18)','rgba(255,220,40,0.70)'];
+        const SH = ['rgba(255,200,50,0.18)','rgba(255,200,50,0.70)'];
+
+        const clampX = (c1, c2) => [Math.max(0, c1) * C.TILE, (Math.min(C.COLS, c2) - Math.max(0, c1)) * C.TILE];
+        const clampY = (r1, r2) => [Math.max(0, r1) * C.TILE, (Math.min(C.ROWS, r2) - Math.max(0, r1)) * C.TILE];
+
+        // Draw one tile
+        const drawTile = (c, r, [fill, stroke]) => {
+          if (c < 0 || c >= C.COLS || r < 0 || r >= C.ROWS) return;
+          ctx.fillStyle = fill; ctx.strokeStyle = stroke; ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.roundRect(c * C.TILE + 2, r * C.TILE + 2, C.TILE - 4, C.TILE - 4, 3);
+          ctx.fill(); ctx.stroke();
+        };
+
+        // Draw a solid zone block (amplifier, lobber, blocker)
+        const drawBlock = (x, y, w, h, fill, stroke) => {
           if (w <= 0 || h <= 0) return;
           ctx.fillStyle = fill; ctx.strokeStyle = stroke; ctx.lineWidth = 2;
           ctx.beginPath(); ctx.roundRect(x, y, w, h, 4); ctx.fill(); ctx.stroke();
-          // subtle inner grid lines
-          ctx.save(); ctx.globalAlpha = 0.25; ctx.strokeStyle = stroke; ctx.lineWidth = 0.5;
+          ctx.save(); ctx.globalAlpha = 0.3; ctx.strokeStyle = stroke; ctx.lineWidth = 0.5;
           for (let gx = x + C.TILE; gx < x + w; gx += C.TILE) {
             ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx, y + h); ctx.stroke();
           }
@@ -1137,92 +1366,118 @@
           ctx.restore();
         };
 
-        const G  = ['rgba(0,182,76,0.14)',  'rgba(0,182,76,0.55)'];   // green (default)
-        const OR = ['rgba(255,140,0,0.14)', 'rgba(255,140,0,0.55)'];  // orange
-        const CY = ['rgba(80,210,255,0.14)','rgba(80,210,255,0.55)']; // cyan
-        const YL = ['rgba(255,220,40,0.14)','rgba(255,220,40,0.55)']; // yellow
+        // Simulate actual bullet path → returns array of [col, row] tiles hit
+        const dir = viewFlip ? 1 : -1;
+        const speed = def.speed || 3.5;
+        const cx = hc * C.TILE + C.TILE / 2;
 
-        const clampX = (c1, c2) => [Math.max(0, c1) * C.TILE, (Math.min(C.COLS, c2) - Math.max(0, c1)) * C.TILE];
-        const clampY = (r1, r2) => [Math.max(0, r1) * C.TILE, (Math.min(C.ROWS, r2) - Math.max(0, r1)) * C.TILE];
-
-        const pt = state.placingTower;
-        if (pt === 'plinker') {
-          const [y, h] = clampY(hr - 8, hr);
-          drawShape(hc * C.TILE, y, C.TILE, h, ...G);
-        } else if (pt === 'zapper') {
-          const [x, w] = clampX(hc, hc + 2);
-          const [y, h] = clampY(hr - 6, hr);
-          drawShape(x, y, w, h, ...G);
-        } else if (pt === 'blaster') {
-          const [x, w] = clampX(hc - 2, hc + 3);
-          const [y, h] = clampY(hr - 5, hr);
-          drawShape(x, y, w, h, ...G);
-        } else if (pt === 'sniper') {
-          const [y, h] = clampY(hr - 12, hr);
-          drawShape(hc * C.TILE, y, C.TILE, h, ...G);
-        } else if (pt === 'cannon') {
-          // Trajectory: 1 col straight up
-          const [y, h] = clampY(hr - 6, hr);
-          drawShape(hc * C.TILE, y, C.TILE, h, ...OR);
-          // Dashed 3×3 splash zone at max range
-          const splashR = Math.max(0, hr - 6);
-          const [sx, sw] = clampX(hc - 1, hc + 2);
-          ctx.strokeStyle = OR[1]; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
-          ctx.strokeRect(sx, splashR * C.TILE, sw, 3 * C.TILE);
-          ctx.setLineDash([]);
-        } else if (pt === 'splitter') {
-          // Highlight the exact diagonal tile path (V-shape)
-          const rng = TOWER_DEFS.splitter.range;
-          for (let step = 1; step <= rng; step++) {
-            [[-1, -1], [1, -1]].forEach(([dc, dr]) => {
-              const c = hc + dc * step, r = hr + dr * step;
-              if (r < 0 || r >= C.ROWS || c < 0 || c >= C.COLS) return;
-              ctx.fillStyle = G[0]; ctx.strokeStyle = G[1]; ctx.lineWidth = 1.5;
-              ctx.beginPath();
-              ctx.roundRect(c * C.TILE + 2, r * C.TILE + 2, C.TILE - 4, C.TILE - 4, 3);
-              ctx.fill(); ctx.stroke();
-            });
+        const traceBullet = (dx, dy, range) => {
+          const tiles = [];
+          let x = cx, y = hr * C.TILE + C.TILE / 2;
+          let lc = hc, lr = hr;
+          for (let f = 0; f < 400; f++) {
+            x += dx; y += dy;
+            const col = Math.floor(x / C.TILE);
+            const row = Math.floor(y / C.TILE);
+            if (col < 0 || col >= C.COLS || row < 0 || row >= C.ROWS) break;
+            if (range > 0 && Math.abs(row - hr) > range) break;
+            if (col === lc && row === lr) continue;
+            tiles.push([col, row]);
+            lc = col; lr = row;
           }
+          return tiles;
+        };
+
+        const pt = _placingKey;
+        // Collect unique tiles from all bullets of this tower
+        const tileMap = new Map(); // key -> [c, r, color]
+        const addTiles = (tiles, col) => tiles.forEach(([c, r]) => tileMap.set(`${c},${r}`, [c, r, col]));
+
+        if (pt === 'plinker') {
+          addTiles(traceBullet(0, dir * speed, def.range), G);
+
+        } else if (pt === 'zapper') {
+          const frames = (def.range * C.TILE) / speed;
+          [0, 1].forEach(dc => {
+            const tx = Math.min(C.COLS - 1, hc + dc) * C.TILE + C.TILE / 2;
+            addTiles(traceBullet((tx - cx) / frames, dir * speed, def.range), G);
+          });
+
+        } else if (pt === 'blaster') {
+          const frames = (def.range * C.TILE) / speed;
+          [-2, -1, 0, 1, 2].forEach(dc => {
+            const tx = Math.max(0, Math.min(C.COLS - 1, hc + dc)) * C.TILE + C.TILE / 2;
+            addTiles(traceBullet((tx - cx) / frames, dir * speed, def.range), G);
+          });
+
+        } else if (pt === 'sniper') {
+          addTiles(traceBullet(0, dir * speed, def.range), G);
+
         } else if (pt === 'freezer') {
-          const [y, h] = clampY(hr - 4, hr);
-          drawShape(hc * C.TILE, y, C.TILE, h, ...CY);
+          addTiles(traceBullet(0, dir * speed, def.range), CY);
+
+        } else if (pt === 'splitter') {
+          const d = speed * 0.707;
+          addTiles(traceBullet(-d, dir * d, def.range), G);
+          addTiles(traceBullet( d, dir * d, def.range), G);
+
+        } else if (pt === 'cannon') {
+          // Trajectory tiles
+          addTiles(traceBullet(0, dir * speed, def.range), OR);
+          // Splash zone at max range (dashed outline)
+          const splashR = hr + dir * def.range;
+          const [sx, sw] = clampX(hc - 1, hc + 2);
+          const [sy, sh] = clampY(splashR - 1, splashR + 2);
+          ctx.strokeStyle = OR[1]; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+          ctx.strokeRect(sx, sy, sw, sh);
+          ctx.setLineDash([]);
+        }
+
+        // Draw all bullet-trace tiles
+        tileMap.forEach(([c, r, col]) => drawTile(c, r, col));
+
+        // Zone towers: draw solid block
+        if (pt === 'lobber') {
+          const [x, w] = clampX(hc - 2, hc + 3);
+          const [y, h] = viewFlip ? clampY(hr + 5, hr + 11) : clampY(hr - 10, hr - 4);
+          drawBlock(x, y, w, h, ...OR);
+        } else if (pt === 'blocker') {
+          const [x, w] = clampX(hc - 1, hc + 2);
+          const [y, h] = clampY(hr - 1, hr + 2);
+          drawBlock(x, y, w, h, ...SH);
         } else if (pt === 'amplifier') {
           const [x, w] = clampX(hc - 2, hc + 3);
           const [y, h] = clampY(hr - 2, hr + 3);
-          drawShape(x, y, w, h, ...YL);
-        } else if (pt === 'lobber') {
-          const r_far  = Math.max(0, hr - 10);
-          const r_near = Math.max(0, hr - 5);
-          const [x, w] = clampX(hc - 2, hc + 3);
-          const [y, h] = clampY(r_far, r_near);
-          drawShape(x, y, w, h, ...OR);
+          drawBlock(x, y, w, h, ...YL);
         }
       }
 
-      // Placement cell highlight
+      // Placement cell highlight (ok = valid spot for this player)
       ctx.fillStyle   = ok ? 'rgba(0,182,76,0.25)' : 'rgba(255,74,74,0.15)';
       ctx.strokeStyle = ok ? '#00b64c' : '#ff4a4a';
-      ctx.lineWidth = 2;
+      ctx.lineWidth   = 2;
       ctx.fillRect(hc*C.TILE, hr*C.TILE, C.TILE, C.TILE);
       ctx.strokeRect(hc*C.TILE, hr*C.TILE, C.TILE, C.TILE);
 
       // Ghost tower icon following cursor
       if (state.mouseX >= 0) {
         ctx.globalAlpha = 0.75;
-        ctx.font = `${C.TILE * 0.55}px serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(def.icon, state.mouseX, state.mouseY - 14);
+        // Offset: appear above cursor (in viewFlip: higher canvas y = visually above)
+        const ghostY = viewFlip ? state.mouseY + 14 : state.mouseY - 14;
+        drawTextUpright(def.icon, state.mouseX, ghostY, `${C.TILE * 0.55}px serif`, 'center', 'middle');
         ctx.globalAlpha = 1;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
       }
     }
 
+    // Close viewFlip transform before shake restore (shake is outermost)
+    if (viewFlip) ctx.restore();
+
     // Restore shake transform
     if (sx || sy) ctx.restore();
 
-    // Overtime border pulse
+    // Overtime border pulse (drawn in screen space, no flip needed)
     if (state.overtime) {
       const pulse = 0.4 + 0.4 * Math.sin(state.tick * 0.1);
       ctx.strokeStyle = `rgba(255,74,74,${pulse})`;
@@ -1278,6 +1533,104 @@
     const pick = candidates[Math.floor(Math.random() * Math.min(3, candidates.length))];
     placeTower(pick.c, pick.r, type, C.RED);
   }
+
+  // ═══════════════════════════════════════════
+  // MOBILE TOWER DECK
+  // ═══════════════════════════════════════════
+  function showTowerDeck(options, isStart) {
+    const deckEl   = document.getElementById('tower-deck');
+    const cardsEl  = document.getElementById('deck-cards');
+    const timerEl  = document.getElementById('deck-timer');
+    const titleEl  = document.getElementById('deck-title');
+    titleEl.textContent = isStart ? 'PICK YOUR FIRST TOWER' : 'PICK A TOWER';
+    cardsEl.innerHTML = options.map(k => {
+      const d = TOWER_DEFS[k];
+      return `<div class="deck-card" id="dc-${k}"
+        ontouchstart="deckCardTouch(event,'${k}')"
+        onmousedown="deckCardClick(event,'${k}')">
+        <div class="tower-icon">${d.icon}</div>
+        <div class="tower-name">${d.name}</div>
+        <div class="tower-desc">${d.desc}</div>
+      </div>`;
+    }).join('');
+    deckEl.classList.add('visible');
+    let s = isStart ? 15 : 8;
+    timerEl.textContent = s + 's';
+    clearInterval(selectInterval);
+    selectInterval = setInterval(() => {
+      s--;
+      timerEl.textContent = s > 0 ? s + 's' : '';
+      if (s <= 0) {
+        clearInterval(selectInterval);
+        if (!state.placingTower) {
+          const rk = options[Math.floor(Math.random() * options.length)];
+          state.placingTower = rk;
+          document.querySelectorAll('#deck-cards .deck-card').forEach(c => c.classList.remove('selected'));
+          const el = document.getElementById(`dc-${rk}`);
+          if (el) el.classList.add('selected');
+        }
+        if (state.phase === 'start' || state.phase === 'selecting') state.phase = 'playing';
+      }
+    }, 1000);
+  }
+
+  function hideTowerDeck() {
+    document.getElementById('tower-deck').classList.remove('visible');
+  }
+
+  window.deckCardClick = function(e, key) {
+    // Desktop: click card to select, then click canvas to place
+    state.placingTower = key;
+    document.querySelectorAll('#deck-cards .deck-card').forEach(c => c.classList.remove('selected'));
+    const el = document.getElementById(`dc-${key}`);
+    if (el) el.classList.add('selected');
+    e.stopPropagation();
+  };
+
+  window.deckCardTouch = function(e, key) {
+    // Mobile: touchstart on card begins drag
+    touchDragKey = key;
+    state.placingTower = key;
+    document.querySelectorAll('#deck-cards .deck-card').forEach(c => c.classList.remove('selected'));
+    const el = document.getElementById(`dc-${key}`);
+    if (el) el.classList.add('selected');
+    dragGhostEl.textContent = TOWER_DEFS[key].icon;
+    dragGhostEl.style.left = e.touches[0].clientX + 'px';
+    dragGhostEl.style.top  = e.touches[0].clientY + 'px';
+    dragGhostEl.style.display = 'block';
+    e.preventDefault();
+  };
+
+  // Document-level drag: move ghost + update canvas shadow
+  document.addEventListener('touchmove', e => {
+    if (!touchDragKey) return;
+    const t = e.touches[0];
+    dragGhostEl.style.left = t.clientX + 'px';
+    dragGhostEl.style.top  = t.clientY + 'px';
+    const r = canvas.getBoundingClientRect();
+    if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
+      const p = gridPosFrom(t.clientX, t.clientY);
+      state.hoverCol = p.col; state.hoverRow = p.row;
+      state.mouseX = p.mx;   state.mouseY = p.my;
+    } else {
+      state.hoverCol = -1; state.hoverRow = -1;
+    }
+    e.preventDefault();
+  }, { passive: false });
+
+  // Document-level drop: place tower if released over canvas
+  document.addEventListener('touchend', e => {
+    if (!touchDragKey) return;
+    dragGhostEl.style.display = 'none';
+    const t = e.changedTouches[0];
+    const r = canvas.getBoundingClientRect();
+    if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
+      const p = gridPosFrom(t.clientX, t.clientY);
+      doPlacement(p.col, p.row);
+    }
+    touchDragKey = null;
+    state.hoverCol = -1; state.hoverRow = -1;
+  });
 
   // ═══════════════════════════════════════════
   // GAME LOOP (1s interval for timers)
@@ -1378,7 +1731,7 @@
   // ═══════════════════════════════════════════
   // ONLINE MULTIPLAYER (PeerJS)
   // ═══════════════════════════════════════════
-  let peer = null, conn = null, isHost = false, myRole = null;
+  let peer = null, conn = null, isHost = false, myRole = null, viewFlip = false;
 
   function showOlMenu() {
     document.getElementById('ol-menu').style.display = 'flex';
@@ -1451,6 +1804,7 @@
 
   function startOnlineGame() {
     document.getElementById('online-lobby').classList.remove('active');
+    viewFlip = (myRole === 'guest');
     state = initState(); countScore();
     if (isHost) {
       // Host starts game and notifies guest
@@ -1492,13 +1846,15 @@
   }
 
   function checkOnlineStart() {
-    if (!isHost || state.phase !== 'placing_start') return;
+    if (state.phase !== 'placing_start') return;
     const blueDone = state.towers.some(t => t.owner === C.BLUE);
     const redDone  = state.towers.some(t => t.owner === C.RED);
     if (blueDone && redDone) {
       state.phase = 'playing';
-      startGameLoop();
-      if (conn && conn.open) conn.send({ type: 'game_started' });
+      if (isHost) {
+        startGameLoop();
+        if (conn && conn.open) conn.send({ type: 'game_started' });
+      }
     }
   }
 
@@ -1509,6 +1865,7 @@
       case 'game_init':
         // Guest: host said game is starting
         document.getElementById('online-lobby').classList.remove('active');
+        viewFlip = true;
         state = initState(); countScore();
         showSelect(true);
         break;
@@ -1605,10 +1962,11 @@
     document.getElementById('end-screen').classList.remove('active');
     document.getElementById('tower-select').classList.remove('active');
     document.getElementById('online-lobby').classList.remove('active');
+    hideTowerDeck();
     document.getElementById('game-timer').textContent = '1:30';
     document.getElementById('wave-timer').textContent = '8s';
     if (peer) { peer.destroy(); peer = null; conn = null; }
-    gameMode = 'bot'; isHost = false; myRole = null;
+    gameMode = 'bot'; isHost = false; myRole = null; viewFlip = false;
     state = initState();
     countScore();
     document.getElementById('mode-select').classList.add('active');
@@ -1637,19 +1995,21 @@
       updateParticles();
       // Passive territorial spread every ~45 ticks
       if (state.tick % 45 === 0) spreadTerritory();
-      // Blockers fortify: claim adjacent neutral tiles every 60 ticks
-      if (state.tick % 60 === 0) {
+      // Blockers shield: reclaim full 3×3 zone every 15 ticks
+      if (state.tick % 15 === 0) {
         state.towers.forEach(t => {
           if (t.type !== 'blocker') return;
-          SPREAD_DIRS.forEach(([dr, dc]) => {
-            const nr = t.row + dr, nc = t.col + dc;
-            if (nr < 0 || nr >= C.ROWS || nc < 0 || nc >= C.COLS) return;
-            if (state.grid[nr][nc] === C.NEUTRAL) {
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              const nr = t.row + dr, nc = t.col + dc;
+              if (nr < 0 || nr >= C.ROWS || nc < 0 || nc >= C.COLS) continue;
+              const tile = state.grid[nr][nc];
+              if (tile === C.ICE || tile === t.owner) continue;
               state.grid[nr][nc] = t.owner;
               flashTile(nc, nr, t.owner);
               spawnFloater(nc, nr, '+1', t.owner);
             }
-          });
+          }
         });
       }
       // Host broadcasts authoritative state to guest every 8 ticks

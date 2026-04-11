@@ -355,8 +355,13 @@
   <div id="mode-select" class="active">
     <div class="title" style="font-size:2.2rem">PEW PEW</div>
     <div style="color:#444;font-size:0.75rem;letter-spacing:0.12em;margin-top:-0.75rem">CHOOSE YOUR BATTLE</div>
-    <div style="display:flex;gap:1rem;margin-top:0.5rem">
-      <button class="mode-btn" onclick="startMode('bot')">🤖 vs Bot</button>
+    <div style="color:#555;font-size:0.7rem;letter-spacing:0.1em;margin-top:0.75rem">VS BOT</div>
+    <div style="display:flex;gap:0.6rem;margin-top:0.4rem">
+      <button class="mode-btn" onclick="startMode('bot','easy')"   style="font-size:0.85rem;padding:0.5rem 1rem">🟢 Easy</button>
+      <button class="mode-btn" onclick="startMode('bot','medium')" style="font-size:0.85rem;padding:0.5rem 1rem">🟡 Medium</button>
+      <button class="mode-btn" onclick="startMode('bot','hard')"   style="font-size:0.85rem;padding:0.5rem 1rem">🔴 Hard</button>
+    </div>
+    <div style="margin-top:1rem">
       <button class="mode-btn" onclick="startMode('online')">🌐 Multiplayer</button>
     </div>
     <a href="index.html" style="font-size:0.7rem;color:#333;text-decoration:none;margin-top:0.5rem">← back to brainfart</a>
@@ -374,6 +379,7 @@
 
   <script>
   let gameMode = 'bot'; // 'bot' | 'online'
+  let botDifficulty = 'medium'; // 'easy' | 'medium' | 'hard'
 
   // ═══════════════════════════════════════════
   // CONFIG
@@ -396,7 +402,7 @@
   const TOWER_DEFS = {
     plinker:   { name:'Plinker',   icon:'🔫', desc:'Fast · 8 range · single col',       hp:3,  fireRate:45,  range:8,  spread:1, dmg:1, speed:3.5 },
     blaster:   { name:'Blaster',   icon:'💥', desc:'Slow · 5 range · wide spread',       hp:5,  fireRate:100, range:5,  spread:5, dmg:1, speed:3.5 },
-    lobber:    { name:'Lobber',    icon:'💣', desc:'Skips 5–10 tiles · 3×3 splash',      hp:5,  fireRate:120, range:0,  spread:0, dmg:2, mortar:true },
+    lobber:    { name:'Lobber',    icon:'💣', desc:'Skips 5–10 tiles · single tile hit',  hp:5,  fireRate:120, range:0,  spread:0, dmg:2, mortar:true },
     zapper:    { name:'Zapper',    icon:'⚡', desc:'Fast · 6 range · 2 cols',            hp:3,  fireRate:25,  range:6,  spread:2, dmg:1, speed:4.5 },
     blocker:   { name:'Blocker',   icon:'🛡️', desc:'Fortifies area · claims tiles · 20 HP', hp:20, fireRate:0,   range:0,  spread:0, dmg:0, fortify:true },
     sniper:    { name:'Sniper',    icon:'🎯', desc:'12 range · slow · high damage',      hp:3,  fireRate:180, range:12, spread:1, dmg:3, speed:6 },
@@ -777,7 +783,7 @@
     const minRange = 5, maxRange = 10;
     const range    = minRange + Math.floor(Math.random() * (maxRange - minRange + 1));
     const targetRow = Math.max(0, Math.min(C.ROWS - 1, tower.row + dir * range));
-    const colSpread = Math.floor(Math.random() * 5) - 2;
+    const colSpread = Math.floor(Math.random() * 3) - 1;
     const targetCol = Math.max(0, Math.min(C.COLS - 1, tower.col + colSpread));
 
     state.mortars.push({
@@ -801,36 +807,29 @@
 
   function landMortar(m) {
     const acc = m.owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC;
-    // 3×3 splash
-    for (let dr = -1; dr <= 1; dr++) {
-      for (let dc = -1; dc <= 1; dc++) {
-        const r = m.targetRow + dr;
-        const c = m.targetCol + dc;
-        if (r < 0 || r >= C.ROWS || c < 0 || c >= C.COLS) continue;
-        const tile = state.grid[r][c];
-        if (tile === C.ICE) {
-          const key = `${c},${r}`;
-          state.iceHP[key] = (state.iceHP[key] ?? 3) - 2;
-          if (state.iceHP[key] <= 0) { state.grid[r][c] = m.owner; state.stats.iceDestroyed++; }
-          spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, '#aaddee', 6);
-        } else {
-          state.grid[r][c] = m.owner;
+    const r = m.targetRow, c = m.targetCol;
+    if (r >= 0 && r < C.ROWS && c >= 0 && c < C.COLS) {
+      const tile = state.grid[r][c];
+      if (tile === C.ICE) {
+        const key = `${c},${r}`;
+        state.iceHP[key] = (state.iceHP[key] ?? 3) - 2;
+        if (state.iceHP[key] <= 0) { state.grid[r][c] = m.owner; state.stats.iceDestroyed++; }
+        spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, '#aaddee', 6);
+      } else {
+        state.grid[r][c] = m.owner;
+      }
+      const hit = state.towers.find(t => t.col === c && t.row === r && t.owner !== m.owner);
+      if (hit) {
+        hit.hp -= 2;
+        if (hit.hp <= 0) {
+          if (hit.owner === C.RED) state.stats.blueDestroyed++;
+          else state.stats.redDestroyed++;
+          state.towers = state.towers.filter(t => t !== hit);
         }
-        // Damage towers in splash radius
-        const hit = state.towers.find(t => t.col === c && t.row === r && t.owner !== m.owner);
-        if (hit) {
-          hit.hp -= 2;
-          if (hit.hp <= 0) {
-            if (hit.owner === C.RED) state.stats.blueDestroyed++;
-            else state.stats.redDestroyed++;
-            state.towers = state.towers.filter(t => t !== hit);
-          }
-        }
-        spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, acc, 5);
       }
     }
     spawnParticles(m.targetX, m.targetY, acc, 20);
-    state.shake = 5; // screen shake on impact
+    state.shake = 3;
   }
 
   // Cannon 3×3 direct-fire splash
@@ -1425,9 +1424,9 @@
 
         // Zone towers: draw solid block
         if (pt === 'lobber') {
-          // col spread ±2 + splash ±1 = ±3 cols; row range 5–10 ± splash 1 = 4–11 ahead
-          const [x, w] = clampX(hc - 3, hc + 4);
-          const [y, h] = viewFlip ? clampY(hr + 4, hr + 12) : clampY(hr - 11, hr - 3);
+          // col spread ±1; row range 5–10 ahead
+          const [x, w] = clampX(hc - 1, hc + 2);
+          const [y, h] = viewFlip ? clampY(hr + 5, hr + 11) : clampY(hr - 10, hr - 4);
           drawBlock(x, y, w, h, ...OR);
         } else if (pt === 'blocker') {
           const [x, w] = clampX(hc - 1, hc + 2);
@@ -1494,14 +1493,30 @@
     const { blue, red, total } = state.score;
     const redPct = total ? red / total : 0.5;
 
-    // Adaptive tower type based on score
-    let pool;
-    if (redPct < 0.38)      pool = ['blaster','sniper','lobber','cannon','splitter','blaster','sniper'];
-    else if (redPct > 0.62) pool = ['blocker','amplifier','zapper','plinker','blocker'];
-    else                    pool = TOWER_KEYS.filter(k => k !== 'amplifier');
+    // Tower pool + placement scoring by difficulty
+    let pool, randomWeight, topN;
+    if (botDifficulty === 'easy') {
+      // Dumb: small random pool, ignores score, very random placement
+      pool = ['plinker', 'blaster', 'zapper', 'blocker'];
+      randomWeight = 12;
+      topN = 8;
+    } else if (botDifficulty === 'hard') {
+      // Smart: adapts aggressively, precise placement
+      if (redPct < 0.38)      pool = ['sniper','lobber','cannon','blaster','sniper','lobber'];
+      else if (redPct > 0.62) pool = ['blocker','amplifier','blocker','amplifier','zapper'];
+      else                    pool = TOWER_KEYS;
+      randomWeight = 0.5;
+      topN = 1;
+    } else {
+      // Medium (default): current adaptive behaviour
+      if (redPct < 0.38)      pool = ['blaster','sniper','lobber','cannon','blaster','sniper'];
+      else if (redPct > 0.62) pool = ['blocker','amplifier','zapper','plinker','blocker'];
+      else                    pool = TOWER_KEYS.filter(k => k !== 'amplifier');
+      randomWeight = 2;
+      topN = 3;
+    }
     const type = pool[Math.floor(Math.random() * pool.length)];
 
-    // Column scoring: target cols with most blue tiles, avoid stacking
     const colBlue = Array(C.COLS).fill(0);
     for (let r = 0; r < C.ROWS; r++)
       for (let c = 0; c < C.COLS; c++)
@@ -1514,11 +1529,11 @@
     for (let r = 0; r < Math.floor(C.ROWS / 2); r++)
       for (let c = 0; c < C.COLS; c++)
         if (canPlace(c, r, C.RED))
-          candidates.push({ c, r, score: colBlue[c] * 3 - botCols[c] * 5 + Math.random() * 2 });
+          candidates.push({ c, r, score: colBlue[c] * 3 - botCols[c] * 5 + Math.random() * randomWeight });
 
     if (!candidates.length) return;
     candidates.sort((a, b) => b.score - a.score);
-    const pick = candidates[Math.floor(Math.random() * Math.min(3, candidates.length))];
+    const pick = candidates[Math.floor(Math.random() * Math.min(topN, candidates.length))];
     placeTower(pick.c, pick.r, type, C.RED);
   }
 
@@ -1647,9 +1662,11 @@
       if (state.waveCountdown <= 0) {
         state.waveCountdown = 5;
         if (gameMode === 'bot') {
-          // Scale bot placements: 1 → 2 → 3 over the game
           const elapsed = 90 - state.gameCountdown;
-          const botCount = Math.min(3, 1 + Math.floor(elapsed / 25));
+          let botCount;
+          if (botDifficulty === 'easy')       botCount = 1;
+          else if (botDifficulty === 'hard')  botCount = Math.min(4, 2 + Math.floor(elapsed / 20));
+          else                                botCount = Math.min(3, 1 + Math.floor(elapsed / 25));
           for (let i = 0; i < botCount; i++) botPlaceTower();
         }
         showSelect(false);
@@ -1708,7 +1725,7 @@
     }
   }
 
-  window.startMode = function(mode) {
+  window.startMode = function(mode, difficulty) {
     if (mode === 'online') {
       document.getElementById('mode-select').classList.remove('active');
       document.getElementById('online-lobby').classList.add('active');
@@ -1716,6 +1733,7 @@
       return;
     }
     gameMode = mode;
+    if (difficulty) botDifficulty = difficulty;
     document.getElementById('mode-select').classList.remove('active');
     state = initState(); countScore();
     showSelect(true);
@@ -1959,7 +1977,7 @@
     document.getElementById('game-timer').textContent = '1:30';
     document.getElementById('wave-timer').textContent = '8s';
     if (peer) { peer.destroy(); peer = null; conn = null; }
-    gameMode = 'bot'; isHost = false; myRole = null; viewFlip = false;
+    gameMode = 'bot'; botDifficulty = 'medium'; isHost = false; myRole = null; viewFlip = false;
     state = initState();
     countScore();
     document.getElementById('mode-select').classList.add('active');

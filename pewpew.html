@@ -497,7 +497,7 @@
       hoverCol: -1, hoverRow: -1,
       overtime: false,
       gameCountdown: 90,
-      waveCountdown: 5,
+      waveCountdown: 20,
     };
   }
 
@@ -1663,6 +1663,7 @@
   let timerInterval = null;
 
   function startGameLoop() {
+    if (timerInterval) clearInterval(timerInterval); // prevent duplicate intervals
     if (gameMode === 'bot') botPlaceTower();
     timerInterval = setInterval(() => {
       if (state.phase !== 'playing') return;
@@ -1677,7 +1678,7 @@
       state.waveCountdown--;
       document.getElementById('wave-timer').textContent = state.waveCountdown + 's';
       if (state.waveCountdown <= 0) {
-        state.waveCountdown = 5;
+        state.waveCountdown = 20;
         if (gameMode === 'bot') {
           const elapsed = 90 - state.gameCountdown;
           let botCount;
@@ -1852,6 +1853,7 @@
       gameCountdown: state.gameCountdown,
       waveCountdown: state.waveCountdown,
       overtime: state.overtime,
+      phase: state.phase,
     });
   }
 
@@ -1872,6 +1874,11 @@
       document.getElementById('wave-timer').textContent = data.waveCountdown + 's';
     }
     if (data.overtime != null) state.overtime = data.overtime;
+    // Guest self-starts if host's sync says game is playing (handles lost game_started message)
+    if (!isHost && data.phase === 'playing' && state.phase !== 'playing') {
+      state.phase = 'playing';
+      startGameLoop();
+    }
   }
 
   function checkOnlineStart() {
@@ -1880,10 +1887,8 @@
     const redDone  = state.towers.some(t => t.owner === C.RED);
     if (blueDone && redDone) {
       state.phase = 'playing';
-      if (isHost) {
-        startGameLoop();
-        if (conn && conn.open) conn.send({ type: 'game_started' });
-      }
+      startGameLoop(); // safe on both sides — guest's interval returns early
+      if (isHost && conn && conn.open) conn.send({ type: 'game_started' });
     }
   }
 
@@ -1996,7 +2001,7 @@
     document.getElementById('online-lobby').classList.remove('active');
     hideTowerDeck();
     document.getElementById('game-timer').textContent = '1:30';
-    document.getElementById('wave-timer').textContent = '8s';
+    document.getElementById('wave-timer').textContent = '20s';
     if (peer) { peer.destroy(); peer = null; conn = null; }
     gameMode = 'bot'; botDifficulty = 'medium'; isHost = false; myRole = null; viewFlip = false;
     state = initState();

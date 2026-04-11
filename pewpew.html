@@ -612,8 +612,10 @@
       if (myOwner === C.BLUE && !state.pvpBluePicked) state.placingTower    = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
       if (myOwner === C.RED  && !state.pvpRedPicked)  state.placingTowerRed = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
     }
-    if (state.phase === 'start') state.phase = gameMode === 'online' ? 'placing_start' : 'playing';
-    else if (state.phase === 'selecting') state.phase = 'playing';
+    if (state.phase === 'start') {
+      state.phase = gameMode === 'online' ? 'placing_start' : 'playing';
+      if (gameMode === 'online') checkOnlineStart();
+    } else if (state.phase === 'selecting') state.phase = 'playing';
   }
 
   // ═══════════════════════════════════════════
@@ -1572,8 +1574,10 @@
           const el = document.getElementById(`dc-${rk}`);
           if (el) el.classList.add('selected');
         }
-        if (state.phase === 'start') state.phase = gameMode === 'online' ? 'placing_start' : 'playing';
-        else if (state.phase === 'selecting') state.phase = 'playing';
+        if (state.phase === 'start') {
+          state.phase = gameMode === 'online' ? 'placing_start' : 'playing';
+          if (gameMode === 'online') checkOnlineStart();
+        } else if (state.phase === 'selecting') state.phase = 'playing';
       }
     }, 1000);
   }
@@ -1765,11 +1769,12 @@
     document.getElementById('ol-menu').style.display = 'none';
     document.getElementById('ol-status-section').style.display = 'flex';
     olStatus('Creating room...');
-    peer = new Peer(undefined, { debug: 0 });
+    const roomId = Math.random().toString(36).slice(2, 8).toUpperCase();
+    peer = new Peer(roomId, { debug: 0 });
     peer.on('open', id => {
       isHost = true; myRole = 'host'; gameMode = 'online';
       history.replaceState(null, '', `?room=${id}`);
-      document.getElementById('ol-room-code').textContent = id.slice(0, 8).toUpperCase();
+      document.getElementById('ol-room-code').textContent = id;
       document.getElementById('ol-room-display').style.display = 'block';
       document.getElementById('ol-copy-btn').style.display = 'inline-block';
       olStatus('Waiting for opponent...');
@@ -1787,7 +1792,7 @@
   }
 
   function joinOnlineRoom() {
-    const code = document.getElementById('ol-code-input').value.trim();
+    const code = document.getElementById('ol-code-input').value.trim().toUpperCase();
     if (!code) return;
     document.getElementById('ol-join-section').style.display = 'none';
     document.getElementById('ol-status-section').style.display = 'flex';
@@ -1942,7 +1947,10 @@
     if (state.pvpBluePicked && state.pvpRedPicked) {
       clearInterval(selectInterval);
       document.getElementById('tower-select').classList.remove('active');
-      if (state.phase === 'start') state.phase = 'placing_start';
+      if (state.phase === 'start') {
+        state.phase = 'placing_start';
+        checkOnlineStart(); // handles race where a tower was placed before select finished
+      }
     }
   }
 

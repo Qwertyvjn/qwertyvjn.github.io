@@ -813,7 +813,7 @@
           state.iceHP[key] = (state.iceHP[key] ?? 3) - 2;
           if (state.iceHP[key] <= 0) { state.grid[r][c] = m.owner; state.stats.iceDestroyed++; }
           spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, '#aaddee', 6);
-        } else if (!isShielded(c, r, tile)) {
+        } else {
           state.grid[r][c] = m.owner;
         }
         // Damage towers in splash radius
@@ -846,7 +846,7 @@
           state.iceHP[key] = (state.iceHP[key] ?? 3) - 2;
           if (state.iceHP[key] <= 0) { state.grid[r][c] = owner; state.stats.iceDestroyed++; }
           spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, '#aaddee', 5);
-        } else if (!isShielded(c, r, tile)) {
+        } else {
           state.grid[r][c] = owner;
         }
         const hit = state.towers.find(t => t.col === c && t.row === r && t.owner !== owner);
@@ -938,8 +938,7 @@
       // Freezer: neutralize enemy tile, pass through friendly/neutral
       if (b.freeze) {
         if (isEnemy) {
-          if (isShielded(col, row, tile)) { toRemove.add(bi); return; } // shield absorbs
-          state.grid[row][col] = C.NEUTRAL;
+            state.grid[row][col] = C.NEUTRAL;
           spawnParticles(b.x, b.y, '#88d0ff', 10);
           flashTile(col, row, C.BLUE); // icy flash
           beep(660, 0.08, 'sine', 0.05);
@@ -948,13 +947,8 @@
         return; // freeze bullets never claim tiles
       }
 
-      // Regular bullets: claim tile — blocked if tile is shielded by a friendly blocker
+      // Regular bullets: claim tile
       if (tile !== b.owner) {
-        if (isShielded(col, row, tile)) {
-          // Bullet sparks off the shield and stops
-          spawnParticles(b.x, b.y, tile === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC, 4);
-          toRemove.add(bi); return;
-        }
         state.grid[row][col] = b.owner;
         flashTile(col, row, b.owner);
         beepClaim(b.owner);
@@ -963,14 +957,6 @@
     });
 
     state.bullets = state.bullets.filter((_, i) => !toRemove.has(i));
-  }
-
-  // Returns true if (col, row) is inside a friendly blocker's 3×3 shield zone
-  function isShielded(col, row, defenderOwner) {
-    return state.towers.some(tb =>
-      tb.type === 'blocker' && tb.owner === defenderOwner &&
-      Math.abs(tb.col - col) <= 1 && Math.abs(tb.row - row) <= 1
-    );
   }
 
   // ═══════════════════════════════════════════
@@ -2013,6 +1999,21 @@
               spawnFloater(nc, nr, '+1', t.owner);
             }
           }
+        });
+      }
+      // Blocker heals towers in its 3×3 shield zone every 30 ticks
+      if (state.tick % 30 === 0) {
+        state.towers.forEach(blk => {
+          if (blk.type !== 'blocker') return;
+          state.towers.forEach(t => {
+            if (t === blk || t.owner !== blk.owner) return;
+            if (Math.abs(t.col - blk.col) > 1 || Math.abs(t.row - blk.row) > 1) return;
+            const maxHp = TOWER_DEFS[t.type].hp;
+            if (t.hp < maxHp) {
+              t.hp = Math.min(maxHp, t.hp + 1);
+              spawnFloater(t.col, t.row, '+♥', blk.owner);
+            }
+          });
         });
       }
       // Amplifier heals nearby friendly towers (+1 HP) every 90 ticks

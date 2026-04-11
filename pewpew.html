@@ -230,7 +230,7 @@
       border: 1px solid #222; border-radius: 10px;
       width: 100%; max-width: 865px;
     }
-    #tower-deck.visible { display: flex; }
+    @media (max-width: 700px) { #tower-deck { display: flex; } }
     .deck-header {
       display: flex; justify-content: space-between; align-items: center;
       font-size: 0.65rem; color: #555; letter-spacing: 0.1em;
@@ -402,7 +402,7 @@
   const TOWER_DEFS = {
     plinker:   { name:'Plinker',   icon:'🔫', desc:'Fast · 8 range · single col',       hp:3,  fireRate:45,  range:8,  spread:1, dmg:1, speed:3.5 },
     blaster:   { name:'Blaster',   icon:'💥', desc:'Slow · 5 range · wide spread',       hp:5,  fireRate:100, range:5,  spread:5, dmg:1, speed:3.5 },
-    lobber:    { name:'Lobber',    icon:'💣', desc:'Skips 5–10 tiles · single tile hit',  hp:5,  fireRate:120, range:0,  spread:0, dmg:2, mortar:true },
+    lobber:    { name:'Lobber',    icon:'💣', desc:'Skips 5–10 tiles · cross splash',      hp:5,  fireRate:120, range:0,  spread:0, dmg:2, mortar:true },
     zapper:    { name:'Zapper',    icon:'⚡', desc:'Fast · 6 range · 2 cols',            hp:3,  fireRate:25,  range:6,  spread:2, dmg:1, speed:4.5 },
     blocker:   { name:'Blocker',   icon:'🛡️', desc:'Fortifies area · claims tiles · 20 HP', hp:20, fireRate:0,   range:0,  spread:0, dmg:0, fortify:true },
     sniper:    { name:'Sniper',    icon:'🎯', desc:'12 range · slow · high damage',      hp:3,  fireRate:180, range:12, spread:1, dmg:3, speed:6 },
@@ -809,8 +809,11 @@
 
   function landMortar(m) {
     const acc = m.owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC;
-    const r = m.targetRow, c = m.targetCol;
-    if (r >= 0 && r < C.ROWS && c >= 0 && c < C.COLS) {
+    // Cross splash: center + 4 adjacent tiles
+    const splash = [[0,0],[0,1],[0,-1],[1,0],[-1,0]];
+    for (const [dr, dc] of splash) {
+      const r = m.targetRow + dr, c = m.targetCol + dc;
+      if (r < 0 || r >= C.ROWS || c < 0 || c >= C.COLS) continue;
       const tile = state.grid[r][c];
       if (tile === C.ICE) {
         const key = `${c},${r}`;
@@ -829,8 +832,9 @@
           state.towers = state.towers.filter(t => t !== hit);
         }
       }
+      spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, acc, 4);
     }
-    spawnParticles(m.targetX, m.targetY, acc, 20);
+    spawnParticles(m.targetX, m.targetY, acc, 16);
     state.shake = 3;
   }
 
@@ -1542,8 +1546,9 @@
   // ═══════════════════════════════════════════
   // MOBILE TOWER DECK
   // ═══════════════════════════════════════════
+  const DECK_EMPTY_SLOTS = 3; // number of placeholder slots when not selecting
+
   function showTowerDeck(options, isStart) {
-    const deckEl   = document.getElementById('tower-deck');
     const cardsEl  = document.getElementById('deck-cards');
     const timerEl  = document.getElementById('deck-timer');
     const titleEl  = document.getElementById('deck-title');
@@ -1558,7 +1563,6 @@
         <div class="tower-desc">${d.desc}</div>
       </div>`;
     }).join('');
-    deckEl.classList.add('visible');
     let s = isStart ? 15 : 8;
     timerEl.textContent = s + 's';
     clearInterval(selectInterval);
@@ -1583,7 +1587,16 @@
   }
 
   function hideTowerDeck() {
-    document.getElementById('tower-deck').classList.remove('visible');
+    const cardsEl = document.getElementById('deck-cards');
+    const timerEl = document.getElementById('deck-timer');
+    const titleEl = document.getElementById('deck-title');
+    clearInterval(selectInterval);
+    timerEl.textContent = '';
+    titleEl.textContent = '';
+    // Replace cards with empty placeholders so layout doesn't shift
+    cardsEl.innerHTML = Array(DECK_EMPTY_SLOTS).fill(
+      '<div class="deck-card" style="visibility:hidden"></div>'
+    ).join('');
   }
 
   function deckCardSelect(key) {
@@ -2031,21 +2044,6 @@
           }
         });
       }
-      // Blocker heals towers in its 3×3 shield zone every 30 ticks
-      if (state.tick % 30 === 0) {
-        state.towers.forEach(blk => {
-          if (blk.type !== 'blocker') return;
-          state.towers.forEach(t => {
-            if (t === blk || t.owner !== blk.owner) return;
-            if (Math.abs(t.col - blk.col) > 1 || Math.abs(t.row - blk.row) > 1) return;
-            const maxHp = TOWER_DEFS[t.type].hp;
-            if (t.hp < maxHp) {
-              t.hp = Math.min(maxHp, t.hp + 1);
-              spawnFloater(t.col, t.row, '+♥', blk.owner);
-            }
-          });
-        });
-      }
       // Amplifier heals nearby friendly towers (+1 HP) every 90 ticks
       if (state.tick % 90 === 0) {
         state.towers.forEach(amp => {
@@ -2077,6 +2075,7 @@
   // ═══════════════════════════════════════════
   state = initState();
   countScore();
+  hideTowerDeck(); // initialize deck with empty slots
   requestAnimationFrame(loop);
 
   // Auto-join if opened via invite link (?room=CODE)

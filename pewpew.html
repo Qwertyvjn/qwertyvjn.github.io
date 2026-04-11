@@ -606,7 +606,8 @@
       if (myOwner === C.BLUE && !state.pvpBluePicked) state.placingTower    = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
       if (myOwner === C.RED  && !state.pvpRedPicked)  state.placingTowerRed = TOWER_KEYS[Math.floor(Math.random() * TOWER_KEYS.length)];
     }
-    if (state.phase === 'start' || state.phase === 'selecting') state.phase = 'playing';
+    if (state.phase === 'start') state.phase = gameMode === 'online' ? 'placing_start' : 'playing';
+    else if (state.phase === 'selecting') state.phase = 'playing';
   }
 
   // ═══════════════════════════════════════════
@@ -1570,7 +1571,8 @@
           const el = document.getElementById(`dc-${rk}`);
           if (el) el.classList.add('selected');
         }
-        if (state.phase === 'start' || state.phase === 'selecting') state.phase = 'playing';
+        if (state.phase === 'start') state.phase = gameMode === 'online' ? 'placing_start' : 'playing';
+        else if (state.phase === 'selecting') state.phase = 'playing';
       }
     }, 1000);
   }
@@ -1905,7 +1907,7 @@
         break;
 
       case 'game_started':
-        if (!isHost) state.phase = 'playing';
+        if (!isHost) { state.phase = 'playing'; startGameLoop(); }
         break;
 
       case 'overtime':

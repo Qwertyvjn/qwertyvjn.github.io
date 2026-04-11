@@ -402,7 +402,7 @@
     sniper:    { name:'Sniper',    icon:'🎯', desc:'12 range · slow · high damage',      hp:3,  fireRate:180, range:12, spread:1, dmg:3, speed:6 },
     cannon:    { name:'Cannon',    icon:'🧨', desc:'6 range · slow · 3×3 splash hit',   hp:6,  fireRate:150, range:6,  spread:1, dmg:2, splash:true, speed:2 },
     freezer:   { name:'Freezer',   icon:'❄️', desc:'4 range · neutralizes enemy tiles', hp:4,  fireRate:80,  range:4,  spread:1, dmg:1, freeze:true, speed:3 },
-    amplifier: { name:'Amplifier', icon:'📡', desc:'2-tile aura · +40% fire rate · +1 dmg', hp:5,  fireRate:0,   range:0,  spread:0, dmg:0 },
+    amplifier: { name:'Amplifier', icon:'📡', desc:'2-tile aura · +40% rate · +1 dmg · heals', hp:5,  fireRate:0,   range:0,  spread:0, dmg:0 },
     splitter:  { name:'Splitter',  icon:'🪃', desc:'Diagonal fire · covers the sides',  hp:3,  fireRate:80,  range:6,  spread:2, dmg:1, diagonal:true, speed:5 },
   };
   const TOWER_KEYS = Object.keys(TOWER_DEFS);
@@ -1438,8 +1438,9 @@
 
         // Zone towers: draw solid block
         if (pt === 'lobber') {
-          const [x, w] = clampX(hc - 2, hc + 3);
-          const [y, h] = viewFlip ? clampY(hr + 5, hr + 11) : clampY(hr - 10, hr - 4);
+          // col spread ±2 + splash ±1 = ±3 cols; row range 5–10 ± splash 1 = 4–11 ahead
+          const [x, w] = clampX(hc - 3, hc + 4);
+          const [y, h] = viewFlip ? clampY(hr + 4, hr + 12) : clampY(hr - 11, hr - 3);
           drawBlock(x, y, w, h, ...OR);
         } else if (pt === 'blocker') {
           const [x, w] = clampX(hc - 1, hc + 2);
@@ -2010,6 +2011,21 @@
               spawnFloater(nc, nr, '+1', t.owner);
             }
           }
+        });
+      }
+      // Amplifier heals nearby friendly towers (+1 HP) every 90 ticks
+      if (state.tick % 90 === 0) {
+        state.towers.forEach(amp => {
+          if (amp.type !== 'amplifier') return;
+          state.towers.forEach(t => {
+            if (t === amp || t.owner !== amp.owner) return;
+            if (Math.abs(t.col - amp.col) > 2 || Math.abs(t.row - amp.row) > 2) return;
+            const maxHp = TOWER_DEFS[t.type].hp;
+            if (t.hp < maxHp) {
+              t.hp = Math.min(maxHp, t.hp + 1);
+              spawnFloater(t.col, t.row, '+♥', amp.owner);
+            }
+          });
         });
       }
       // Host broadcasts authoritative state to guest every 8 ticks

@@ -811,32 +811,35 @@
   }
 
   function landMortar(m) {
+    const isAuthority = gameMode !== 'online' || isHost;
     const acc = m.owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC;
     // Cross splash: center + 4 adjacent tiles
     const splash = [[0,0],[0,1],[0,-1],[1,0],[-1,0]];
     for (const [dr, dc] of splash) {
       const r = m.targetRow + dr, c = m.targetCol + dc;
       if (r < 0 || r >= C.ROWS || c < 0 || c >= C.COLS) continue;
-      const tile = state.grid[r][c];
-      if (tile === C.ICE) {
-        const key = `${c},${r}`;
-        state.iceHP[key] = (state.iceHP[key] ?? 3) - 2;
-        if (state.iceHP[key] <= 0) { state.grid[r][c] = m.owner; state.stats.iceDestroyed++; }
-        spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, '#aaddee', 6);
-      } else {
-        state.grid[r][c] = m.owner;
-      }
-      const hit = state.towers.find(t => t.col === c && t.row === r && t.owner !== m.owner);
-      if (hit) {
-        hit.hp -= 2;
-        state.floaters.push({ x: hit.col*C.TILE+C.TILE/2, y: hit.row*C.TILE+C.TILE/2, text: '-2', life: 1, color: '#ff4a4a' });
-        if (hit.hp <= 0) {
-          if (hit.owner === C.RED) state.stats.blueDestroyed++;
-          else state.stats.redDestroyed++;
-          const dx = hit.col*C.TILE+C.TILE/2, dy = hit.row*C.TILE+C.TILE/2;
-          spawnParticles(dx, dy, acc, 28);
-          state.shake = Math.max(state.shake, 6);
-          state.towers = state.towers.filter(t => t !== hit);
+      if (isAuthority) {
+        const tile = state.grid[r][c];
+        if (tile === C.ICE) {
+          const key = `${c},${r}`;
+          state.iceHP[key] = (state.iceHP[key] ?? 3) - 2;
+          if (state.iceHP[key] <= 0) { state.grid[r][c] = m.owner; state.stats.iceDestroyed++; }
+          spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, '#aaddee', 6);
+        } else {
+          state.grid[r][c] = m.owner;
+        }
+        const hit = state.towers.find(t => t.col === c && t.row === r && t.owner !== m.owner);
+        if (hit) {
+          hit.hp -= 2;
+          state.floaters.push({ x: hit.col*C.TILE+C.TILE/2, y: hit.row*C.TILE+C.TILE/2, text: '-2', life: 1, color: '#ff4a4a' });
+          if (hit.hp <= 0) {
+            if (hit.owner === C.RED) state.stats.blueDestroyed++;
+            else state.stats.redDestroyed++;
+            const dx = hit.col*C.TILE+C.TILE/2, dy = hit.row*C.TILE+C.TILE/2;
+            spawnParticles(dx, dy, acc, 28);
+            state.shake = Math.max(state.shake, 6);
+            state.towers = state.towers.filter(t => t !== hit);
+          }
         }
       }
       spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, acc, 4);
@@ -848,35 +851,38 @@
 
   // Cannon 3×3 direct-fire splash
   function landSplash(col, row, owner, dmg) {
+    const isAuthority = gameMode !== 'online' || isHost;
     const acc = owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC;
-    for (let dr = -1; dr <= 1; dr++) {
-      for (let dc = -1; dc <= 1; dc++) {
-        const r = row + dr, c = col + dc;
-        if (r < 0 || r >= C.ROWS || c < 0 || c >= C.COLS) continue;
-        const tile = state.grid[r][c];
-        if (tile === C.ICE) {
-          const key = `${c},${r}`;
-          state.iceHP[key] = (state.iceHP[key] ?? 3) - 2;
-          if (state.iceHP[key] <= 0) { state.grid[r][c] = owner; state.stats.iceDestroyed++; }
-          spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, '#aaddee', 5);
-        } else {
-          state.grid[r][c] = owner;
-        }
-        const hit = state.towers.find(t => t.col === c && t.row === r && t.owner !== owner);
-        if (hit) {
-          hit.hp -= dmg;
-          if (hit.hp <= 0) {
-            if (hit.owner === C.RED) state.stats.blueDestroyed++;
-            else state.stats.redDestroyed++;
-            const dx = hit.col*C.TILE+C.TILE/2, dy = hit.row*C.TILE+C.TILE/2;
-            spawnParticles(dx, dy, acc, 28);
-              state.shake = Math.max(state.shake, 5);
-            state.towers = state.towers.filter(t => t !== hit);
+    if (isAuthority) {
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const r = row + dr, c = col + dc;
+          if (r < 0 || r >= C.ROWS || c < 0 || c >= C.COLS) continue;
+          const tile = state.grid[r][c];
+          if (tile === C.ICE) {
+            const key = `${c},${r}`;
+            state.iceHP[key] = (state.iceHP[key] ?? 3) - 2;
+            if (state.iceHP[key] <= 0) { state.grid[r][c] = owner; state.stats.iceDestroyed++; }
+            spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, '#aaddee', 5);
           } else {
-            state.floaters.push({ x: hit.col*C.TILE+C.TILE/2, y: hit.row*C.TILE+C.TILE/2, text: `-${dmg}`, life: 1, color: '#ff4a4a' });
+            state.grid[r][c] = owner;
           }
+          const hit = state.towers.find(t => t.col === c && t.row === r && t.owner !== owner);
+          if (hit) {
+            hit.hp -= dmg;
+            if (hit.hp <= 0) {
+              if (hit.owner === C.RED) state.stats.blueDestroyed++;
+              else state.stats.redDestroyed++;
+              const dx = hit.col*C.TILE+C.TILE/2, dy = hit.row*C.TILE+C.TILE/2;
+              spawnParticles(dx, dy, acc, 28);
+              state.shake = Math.max(state.shake, 5);
+              state.towers = state.towers.filter(t => t !== hit);
+            } else {
+              state.floaters.push({ x: hit.col*C.TILE+C.TILE/2, y: hit.row*C.TILE+C.TILE/2, text: `-${dmg}`, life: 1, color: '#ff4a4a' });
+            }
+          }
+          spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, acc, 4);
         }
-        spawnParticles(c*C.TILE+C.TILE/2, r*C.TILE+C.TILE/2, acc, 4);
       }
     }
     spawnParticles(col*C.TILE+C.TILE/2, row*C.TILE+C.TILE/2, acc, 18);
@@ -886,6 +892,7 @@
   }
 
   function updateBullets() {
+    const isAuthority = gameMode !== 'online' || isHost;
     const toRemove = new Set();
     state.bullets.forEach((b, bi) => {
       if (toRemove.has(bi)) return;
@@ -907,6 +914,17 @@
       const tile = state.grid[row][col];
       const enemyOwner = b.owner === C.BLUE ? C.RED : C.BLUE;
       const isEnemy = tile === enemyOwner;
+
+      // Guest (non-authority): bullets are visual only — remove on contact, no state changes
+      if (!isAuthority) {
+        const hitsEnemy = isEnemy || tile === C.ICE ||
+          state.towers.some(t => t.col === col && t.row === row && t.owner !== b.owner);
+        if (hitsEnemy) {
+          spawnParticles(b.x, b.y, b.owner === C.BLUE ? C.COL.BLUE_ACC : C.COL.RED_ACC, 5);
+          toRemove.add(bi);
+        }
+        return;
+      }
 
       // Hit ice
       if (tile === C.ICE) {
@@ -2109,10 +2127,12 @@
       updateMortars();
       updateParticles();
       updateRings();
+      // State-modifying game logic: host-only in online mode
+      const isAuthority = gameMode !== 'online' || isHost;
       // Passive territorial spread every ~45 ticks
-      if (state.tick % 45 === 0) spreadTerritory();
+      if (state.tick % 45 === 0 && isAuthority) spreadTerritory();
       // Blockers shield: reclaim full 3×3 zone every 15 ticks
-      if (state.tick % 15 === 0) {
+      if (state.tick % 15 === 0 && isAuthority) {
         state.towers.forEach(t => {
           if (t.type !== 'blocker') return;
           for (let dr = -1; dr <= 1; dr++) {
@@ -2129,7 +2149,7 @@
         });
       }
       // Amplifier heals nearby friendly towers (+1 HP) every 90 ticks
-      if (state.tick % 90 === 0) {
+      if (state.tick % 90 === 0 && isAuthority) {
         state.towers.forEach(amp => {
           if (amp.type !== 'amplifier') return;
           state.towers.forEach(t => {

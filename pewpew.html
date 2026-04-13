@@ -497,7 +497,7 @@
       hoverCol: -1, hoverRow: -1,
       overtime: false,
       gameCountdown: 90,
-      waveCountdown: 20,
+      waveCountdown: 9,
     };
   }
 
@@ -1678,7 +1678,7 @@
       state.waveCountdown--;
       document.getElementById('wave-timer').textContent = state.waveCountdown + 's';
       if (state.waveCountdown <= 0) {
-        state.waveCountdown = 20;
+        state.waveCountdown = 9;
         if (gameMode === 'bot') {
           const elapsed = 90 - state.gameCountdown;
           let botCount;
@@ -2001,7 +2001,7 @@
     document.getElementById('online-lobby').classList.remove('active');
     hideTowerDeck();
     document.getElementById('game-timer').textContent = '1:30';
-    document.getElementById('wave-timer').textContent = '20s';
+    document.getElementById('wave-timer').textContent = '9s';
     if (peer) { peer.destroy(); peer = null; conn = null; }
     gameMode = 'bot'; botDifficulty = 'medium'; isHost = false; myRole = null; viewFlip = false;
     state = initState();

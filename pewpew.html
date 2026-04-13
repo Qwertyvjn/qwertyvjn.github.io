@@ -835,7 +835,6 @@
           else state.stats.redDestroyed++;
           const dx = hit.col*C.TILE+C.TILE/2, dy = hit.row*C.TILE+C.TILE/2;
           spawnParticles(dx, dy, acc, 28);
-          state.screenFlash = Math.max(state.screenFlash, 0.65);
           state.shake = Math.max(state.shake, 6);
           state.towers = state.towers.filter(t => t !== hit);
         }
@@ -845,7 +844,6 @@
     spawnParticles(m.targetX, m.targetY, acc, 16);
     spawnRing(m.targetX, m.targetY, acc, C.TILE * 3.5);
     state.shake = Math.max(state.shake, 5);
-    state.screenFlash = Math.max(state.screenFlash, 0.3);
   }
 
   // Cannon 3×3 direct-fire splash
@@ -872,8 +870,7 @@
             else state.stats.redDestroyed++;
             const dx = hit.col*C.TILE+C.TILE/2, dy = hit.row*C.TILE+C.TILE/2;
             spawnParticles(dx, dy, acc, 28);
-            state.screenFlash = Math.max(state.screenFlash, 0.55);
-            state.shake = Math.max(state.shake, 5);
+              state.shake = Math.max(state.shake, 5);
             state.towers = state.towers.filter(t => t !== hit);
           } else {
             state.floaters.push({ x: hit.col*C.TILE+C.TILE/2, y: hit.row*C.TILE+C.TILE/2, text: `-${dmg}`, life: 1, color: '#ff4a4a' });
@@ -886,7 +883,6 @@
     spawnRing(col*C.TILE+C.TILE/2, row*C.TILE+C.TILE/2, acc, C.TILE * 2.5);
     beep(90, 0.3, 'sawtooth', 0.1);
     state.shake = Math.max(state.shake, 4);
-    state.screenFlash = Math.max(state.screenFlash, 0.2);
   }
 
   function updateBullets() {
@@ -939,7 +935,6 @@
           const dx = hit.col*C.TILE+C.TILE/2, dy = hit.row*C.TILE+C.TILE/2;
           spawnParticles(dx, dy, bcol, 28);
           spawnRing(dx, dy, bcol, C.TILE * 2);
-          state.screenFlash = Math.max(state.screenFlash, 0.5);
           state.shake = Math.max(state.shake, 4);
           state.towers = state.towers.filter(t => t !== hit);
           beep(180, 0.25, 'sawtooth', 0.08);
@@ -1531,15 +1526,6 @@
       ctx.strokeRect(3, 3, W-6, H-6);
     }
 
-    // Screen flash on tower death
-    if (state.screenFlash > 0) {
-      ctx.globalAlpha = state.screenFlash * 0.35;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, W, H);
-      ctx.globalAlpha = 1;
-      state.screenFlash = Math.max(0, state.screenFlash - 0.07);
-    }
-
     // Territory vignette — creeps in when one side dominates >55%
     const _total = state.score.total || 1;
     const _redPct = state.score.red / _total;
@@ -1943,7 +1929,15 @@
       for (let c = 0; c < C.COLS; c++)
         state.grid[r][c] = data.grid[r * C.COLS + c];
     const prev = new Map(state.towers.map(t => [`${t.col},${t.row}`, t.fireTick]));
-    state.towers = data.towers.map(t => ({ ...t, fireTick: prev.get(`${t.col},${t.row}`) || 0 }));
+    const myOwner = myRole === 'guest' ? C.RED : C.BLUE;
+    // Preserve any locally-placed towers the host hasn't acknowledged yet
+    const localOnly = state.phase === 'placing_start'
+      ? state.towers.filter(t => t.owner === myOwner && !data.towers.some(d => d.col === t.col && d.row === t.row))
+      : [];
+    state.towers = [
+      ...data.towers.map(t => ({ ...t, fireTick: prev.get(`${t.col},${t.row}`) || 0 })),
+      ...localOnly,
+    ];
     if (data.gameCountdown != null) {
       state.gameCountdown = data.gameCountdown;
       const m = Math.floor(data.gameCountdown / 60);
@@ -1960,6 +1954,9 @@
       state.phase = 'playing';
       startGameLoop();
     }
+    // Guest re-checks start condition after every sync — handles the case where
+    // the host's tower arrives via sync before/after the guest's own placement
+    if (!isHost && state.phase === 'placing_start') checkOnlineStart();
   }
 
   function checkOnlineStart() {
@@ -2153,6 +2150,8 @@
       state.floaters = state.floaters.filter(f => { f.life -= 0.03; f.y  -= 0.6;  return f.life > 0; });
       if (state.tick % 30 === 0) countScore();
     }
+    // Host also syncs during placing_start so guest sees host's tower immediately
+    if (gameMode === 'online' && isHost && conn && conn.open && state.phase === 'placing_start' && state.tick % 15 === 0) sendRemoteState();
     render();
     requestAnimationFrame(loop);
   }

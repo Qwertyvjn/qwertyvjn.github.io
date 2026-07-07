@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Text Detector | BrainFart</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    .page { display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: start; }
+    @media (min-width: 980px) { .page { grid-template-columns: 1fr 340px; } }
+    .col-side { }
+    @media (min-width: 980px) {
+      .col-side {
+        position: sticky; top: 1rem; align-self: start;
+        max-height: calc(100vh - 2rem); overflow-y: auto; padding-right: 4px;
+      }
+      .col-side .stats { grid-template-columns: 1fr 1fr !important; }
+    }
+    .back { color: var(--dim); text-decoration: none; font-size: 0.85rem; }
+    .back:hover { color: var(--accent); }
+
+    h1 { font-size: 1.9rem; letter-spacing: -0.02em; margin: 1rem 0 0.25rem; }
+    .sub { color: var(--dim); font-size: 0.9rem; margin-bottom: 1.25rem; }
+
+    .banner {
+      border-radius: 0.5rem; padding: 0.8rem 1rem; font-size: 0.82rem;
+      margin-bottom: 1rem; display: flex; gap: 0.6rem; align-items: flex-start;
+    }
+    .banner.privacy { background: rgba(0,182,76,0.10); border: 1px solid rgba(0,182,76,0.35); }
+    .banner.privacy strong { color: var(--accent); }
+    .banner.warn { background: rgba(245,197,24,0.09); border: 1px solid rgba(245,197,24,0.4); }
+    .banner.warn strong { color: #f5c518; }
+    .banner a { color: var(--accent); }
+
+    textarea#input {
+      width: 100%; min-height: 190px; resize: vertical;
+      background: var(--card); color: var(--text);
+      border: 1px solid var(--border); border-radius: 0.5rem;
+      padding: 1rem; font-family: 'Fira Code', monospace; font-size: 0.9rem;
+      line-height: 1.6; outline: none;
+    }
+    textarea#input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,182,76,0.2); }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-top: 0.75rem; }
+    .meta { color: var(--dim); font-size: 0.78rem; margin-left: auto; }
+    .meta.warn { color: #f5c518; }
+
+    button.action, label.filebtn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: var(--card); color: var(--accent);
+      border: 1px solid var(--border); border-radius: 0.375rem;
+      padding: 0.55rem 1rem; font-family: 'Fira Code', monospace;
+      font-size: 0.85rem; cursor: pointer; transition: all 0.25s ease;
+    }
+    button.action:hover, label.filebtn:hover { background: var(--accent); color: var(--card); box-shadow: 0 0 8px rgba(0,182,76,0.6); }
+    button.action.primary { background: var(--accent); color: var(--card); }
+    button.action.primary:hover { box-shadow: 0 0 12px rgba(0,182,76,0.8); }
+    button.action:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; background: var(--card); color: var(--dim); }
+
+    .demo { margin-top: 1.25rem; padding: 1rem; background: var(--card); border: 1px dashed var(--border); border-radius: 0.5rem; }
+    .demo .label { font-size: 0.82rem; color: var(--text); margin-bottom: 0.5rem; }
+    .demo .label b { color: var(--accent); }
+    .demo .row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .demo button { font-size: 0.8rem; }
+    .demo .hint { font-size: 0.74rem; color: var(--dim); margin-top: 0.5rem; }
+
+    #loader { display: none; margin-top: 1.5rem; }
+    #loader.show { display: block; }
+    .bar-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 0.5rem; }
+    .bar-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 4px; transition: width 0.3s ease; }
+    .loader-label { font-size: 0.82rem; color: var(--dim); }
+
+    #results { display: none; margin-top: 2rem; }
+    #results.show { display: block; }
+
+    .score-card { background: var(--card); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; text-align: center; margin-bottom: 1rem; }
+    .score-num { font-size: 3rem; font-weight: 600; line-height: 1; }
+    .score-band { font-size: 1rem; margin-top: 0.5rem; font-weight: 500; }
+    .score-sub { font-size: 0.78rem; color: var(--dim); margin-top: 0.5rem; }
+
+    .demo-note { display: none; background: rgba(245,197,24,0.09); border: 1px solid rgba(245,197,24,0.4); border-radius: 0.5rem; padding: 1rem 1.1rem; margin-bottom: 1.25rem; font-size: 0.84rem; }
+    .demo-note.show { display: block; }
+    .demo-note b { color: #f5c518; }
+    .demo-note a { color: var(--accent); }
+
+    h3.section { font-size: 1rem; margin: 1.75rem 0 0.5rem; color: var(--accent); }
+    .legend { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.72rem; color: var(--dim); margin-bottom: 0.6rem; }
+    .legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+
+    #highlight { background: var(--card); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.25rem; line-height: 2; font-size: 0.92rem; white-space: pre-wrap; word-wrap: break-word; }
+    .sent { padding: 0.1rem 0.15rem; border-radius: 0.2rem; cursor: help; transition: outline 0.15s; }
+    .sent:hover { outline: 1px solid var(--accent); }
+    .sent.skip { background: transparent !important; color: var(--dim); opacity: 0.5; cursor: default; }
+    .sent.skip:hover { outline: none; }
+
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    @media (min-width: 600px) { .stats { grid-template-columns: 1fr 1fr 1fr; } }
+    .stat { background: var(--card); border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.9rem; text-align: center; }
+    .stat .v { font-size: 1.3rem; font-weight: 600; color: var(--text); }
+    .stat .k { font-size: 0.7rem; color: var(--dim); margin-top: 0.25rem; }
+
+    .disclaimer { background: rgba(245,197,24,0.08); border: 1px solid rgba(245,197,24,0.35); border-radius: 0.5rem; padding: 1.1rem 1.25rem; margin-top: 1.75rem; font-size: 0.83rem; }
+    .disclaimer h4 { color: #f5c518; margin-bottom: 0.6rem; font-size: 0.9rem; }
+    .disclaimer ul { padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.45rem; }
+    .disclaimer strong { color: var(--text); }
+    .disclaimer a { color: var(--accent); }
+
+    details.how { margin-top: 1.5rem; background: var(--card); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem 1.25rem; }
+    details.how summary { cursor: pointer; color: var(--accent); font-size: 0.9rem; font-weight: 500; }
+    details.how[open] summary { margin-bottom: 0.75rem; }
+    details.how p { font-size: 0.84rem; }
+    details.how .term { color: var(--text); font-weight: 600; }
+    details.how code { color: var(--dim); }
+
+    .error-box { display: none; margin-top: 1.5rem; background: rgba(229,57,53,0.1); border: 1px solid rgba(229,57,53,0.4); border-radius: 0.5rem; padding: 1rem; font-size: 0.85rem; }
+    .error-box.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a href="index.html" class="back">&larr; back to BrainFart</a>
+    <h1>🤖 AI-Likeness Checker</h1>
+    <p class="sub">A real AI detector running in your browser — and an honest look at why you shouldn't fully trust any of them.</p>
+
+    <div class="banner privacy">
+      🔒 <span><strong>100% in your browser.</strong> Your text is never uploaded. The model downloads once (~125&nbsp;MB) and is cached afterward.</span>
+    </div>
+    <div class="banner warn">
+      ⚠️ <span><strong>This is a signal, not a verdict.</strong> Peer-reviewed research shows detectors falsely flag over half of non-native-English essays as AI
+      (<a href="https://arxiv.org/abs/2304.02819" target="_blank">Liang et al., 2023</a>) and collapse on paraphrasing and unseen models
+      (<a href="https://aclanthology.org/2024.acl-long.674/" target="_blank">RAID, ACL 2024</a>). <strong>Never use this to accuse anyone.</strong></span>
+    </div>
+
+    <div class="page">
+      <div class="col-main">
+
+    <textarea id="input" placeholder="Paste text here… or upload a file below."></textarea>
+
+    <div class="toolbar">
+      <label class="filebtn">
+        📎 Upload .txt / .pdf / .docx
+        <input type="file" id="file" accept=".txt,.pdf,.docx" hidden />
+      </label>
+      <button class="action" id="clear">Clear</button>
+      <button class="action primary" id="analyze">Analyze</button>
+      <span class="meta" id="meta">0 words</span>
+    </div>
+
+    <!-- LIVE "DON'T TRUST ME" DEMO -->
+    <div class="demo">
+      <div class="label">🧪 <b>See it fail on purpose.</b> These are 100% human-written. Watch the detector flag them as AI anyway:</div>
+      <div class="row">
+        <button class="action" data-demo="austen">Jane Austen (1813)</button>
+        <button class="action" data-demo="esl">A non-native English essay</button>
+      </div>
+      <div class="hint">Both were written by humans — Austen two centuries before AI existed. If the detector calls them "AI," it can call your honest writing "AI" too.</div>
+    </div>
+
+    <div id="loader">
+      <div class="loader-label" id="loader-label">Loading detection model…</div>
+      <div class="bar-track"><div class="bar-fill" id="bar"></div></div>
+    </div>
+
+    <div class="error-box" id="error"></div>
+
+    <div id="results">
+      <div class="demo-note" id="info-note"></div>
+      <div class="demo-note" id="demo-note"></div>
+
+      <div class="score-card">
+        <div class="score-num" id="score-num">–</div>
+        <div class="score-band" id="score-band"></div>
+        <div class="score-sub">estimated AI-likeness — a signal, not a judgment</div>
+      </div>
+
+      <h3 class="section">Highlighted text</h3>
+      <div class="legend">
+        <span><span class="swatch" style="background:rgba(0,182,76,0.5)"></span> human-like</span>
+        <span><span class="swatch" style="background:rgba(245,197,24,0.5)"></span> uncertain</span>
+        <span><span class="swatch" style="background:rgba(229,57,53,0.55)"></span> AI-like</span>
+        <span>· faded = skipped (non-prose)</span>
+        <span>· hover a sentence for its score</span>
+      </div>
+      <div id="highlight"></div>
+        </div><!-- /#results -->
+      </div><!-- /.col-main -->
+
+      <aside class="col-side">
+        <h3 class="section" style="margin-top:0">Signals</h3>
+        <div class="stats" id="stats"><div class="stat"><div class="v">—</div><div class="k">run an analysis to see signals</div></div></div>
+
+        <div class="disclaimer">
+          <h4>⚠️ How to read this honestly</h4>
+          <ul>
+            <li><strong>Don't accuse anyone with it.</strong> No AI detector — free or paid — is reliable enough to be proof.</li>
+            <li><strong>It is biased against non-native English writers.</strong> Over 50% of TOEFL essays by real humans get flagged as AI (<a href="https://arxiv.org/abs/2304.02819" target="_blank">Liang et al., 2023, <em>Patterns</em></a>) because simpler, more predictable English reads as "machine-like."</li>
+            <li><strong>It's defeated by paraphrasing</strong> and degrades sharply on AI models it wasn't trained on (<a href="https://aclanthology.org/2024.acl-long.674/" target="_blank">Dugan et al., RAID, ACL 2024</a>).</li>
+            <li><strong>Best use:</strong> a rough self-check on your own writing, and a lesson in why "an AI detector said so" is never enough.</li>
+          </ul>
+        </div>
+
+        <details class="how">
+          <summary>How does this actually work?</summary>
+          <p>This runs a real machine-learning classifier (<span class="term">RoBERTa</span>, trained on the multi-model <span class="term">RAID</span> dataset — so it knows ChatGPT, Claude, Gemini, and more, not just one) entirely in your browser. It splits your text into sentences and scores each. Three ideas drive AI detection:</p>
+          <p><span class="term">Perplexity</span> — how "surprised" a language model is by your next word. AI picks the most predictable word, so its writing is unusually smooth. <em>So does simpler non-native English</em> — which is exactly why the bias above happens.</p>
+          <p><span class="term">Burstiness</span> — variation in sentence rhythm. Humans mix long and short sentences; AI trends uniform.</p>
+          <p><span class="term">The classifier</span> — a model that weighs these and thousands of subtler patterns into one probability. That number is a correlation, not a fact about who wrote the text.</p>
+          <p><span class="term">What it skips</span> — tables of contents, lists of tables/figures, reference lists, headings, and number-heavy rows aren't real prose. They're uniform and predictable, so a detector blindly flags them as "AI" (it'll happily call your <em>List of Tables</em> machine-generated). This tool filters those out and scores only actual sentences — shown faded in the highlight — so the result reflects your writing, not your formatting.</p>
+          <p><code>Model: onnx-community/tmr-ai-text-detector (RAID-trained) · transformers.js · nothing leaves your device.</code></p>
+        </details>
+      </aside>
+    </div><!-- /.page -->
+  </div>
+
+  <script type="module">
+    import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/dist/transformers.min.js';
+    import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.min.mjs';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.worker.min.mjs';
+    env.allowLocalModels = false;
+
+    const $ = (id) => document.getElementById(id);
+    const inputEl = $('input'), metaEl = $('meta'), analyzeBtn = $('analyze'), clearBtn = $('clear');
+    const fileEl = $('file'), loader = $('loader'), loaderLabel = $('loader-label'), bar = $('bar');
+    const errorBox = $('error'), results = $('results'), demoNote = $('demo-note');
+
+    const MODEL_ID = 'onnx-community/tmr-ai-text-detector-ONNX';
+    const MIN_WORDS = 40;
+    const MAX_SENTENCES = 150; // cap so huge files (theses, books) don't freeze the browser
+    let classifier = null;
+    let pendingDemo = null;
+
+    // demo texts — both 100% human-written
+    const DEMOS = {
+      austen: {
+        text: `It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife. However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families, that he is considered as the rightful property of some one or other of their daughters.`,
+        note: `<b>That's Jane Austen, <em>Pride and Prejudice</em>, 1813</b> — written ~140 years before the first computer, let alone AI. If the detector scored it as "AI-like," it's telling you the model is guessing from style, not truth. <a href="https://arxiv.org/abs/2304.02819" target="_blank">Research</a> confirms classic and formal prose trips these tools constantly.`
+      },
+      esl: {
+        text: `In my opinion, environment is very important for our future generation. Many people in my country do not aware about the pollution problem. If we are not taking action now, the situation will become more worse in the future. Government must to make strong regulation and also educate the society about this issue. We should protect our nature because it is our responsibility as a human.`,
+        note: `<b>This is human writing by a non-native English speaker</b> — the kind of English millions of students (and probably your friends) write every day. Detectors flag <a href="https://arxiv.org/abs/2304.02819" target="_blank">over half of non-native essays as "AI"</a> because simpler, more predictable English looks "machine-like." This is the single biggest reason never to trust a detector's verdict on a real person.`
+      }
+    };
+
+    function countWords(t) { return t.trim() ? t.trim().split(/\s+/).length : 0; }
+    function updateMeta() {
+      const w = countWords(inputEl.value);
+      metaEl.textContent = `${w} word${w === 1 ? '' : 's'}`;
+      if (w > 0 && w < MIN_WORDS) { metaEl.classList.add('warn'); metaEl.textContent += ` · short text is unreliable (aim for ${MIN_WORDS}+)`; }
+      else metaEl.classList.remove('warn');
+    }
+    inputEl.addEventListener('input', () => { updateMeta(); pendingDemo = null; });
+
+    clearBtn.addEventListener('click', () => {
+      inputEl.value = ''; updateMeta(); pendingDemo = null;
+      results.classList.remove('show'); errorBox.classList.remove('show');
+    });
+
+    // demo buttons
+    document.querySelectorAll('[data-demo]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const d = DEMOS[btn.dataset.demo];
+        inputEl.value = d.text;
+        pendingDemo = d.note;
+        updateMeta();
+        analyzeBtn.click();
+      });
+    });
+
+    // file parsing
+    fileEl.addEventListener('change', async (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      showError(''); pendingDemo = null;
+      const name = file.name.toLowerCase();
+      try {
+        let text = '';
+        if (name.endsWith('.txt')) text = await file.text();
+        else if (name.endsWith('.pdf')) text = await extractPdf(file);
+        else if (name.endsWith('.docx')) text = await extractDocx(file);
+        else throw new Error('Unsupported file type. Use .txt, .pdf, or .docx.');
+        inputEl.value = text.trim(); updateMeta();
+      } catch (err) { showError('Could not read that file: ' + err.message); }
+      finally { fileEl.value = ''; }
+    });
+
+    async function extractPdf(file) {
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+      let out = '';
+      for (let p = 1; p <= pdf.numPages; p++) {
+        const page = await pdf.getPage(p);
+        const content = await page.getTextContent();
+        out += content.items.map((i) => i.str).join(' ') + '\n';
+      }
+      return out;
+    }
+    async function extractDocx(file) {
+      if (!window.mammoth) await loadScript('https://cdn.jsdelivr.net/npm/mammoth@1/mammoth.browser.min.js');
+      const buf = await file.arrayBuffer();
+      return (await window.mammoth.extractRawText({ arrayBuffer: buf })).value;
+    }
+    function loadScript(src) {
+      return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('failed to load parser')); document.head.appendChild(s); });
+    }
+
+    async function getClassifier() {
+      if (classifier) return classifier;
+      loader.classList.add('show');
+      loaderLabel.textContent = 'Loading detection model… (first time only, ~125 MB)';
+      bar.style.width = '0%';
+      const progress = (d) => {
+        if (d.status === 'progress' && d.total) {
+          const pct = Math.round((d.loaded / d.total) * 100);
+          bar.style.width = pct + '%';
+          loaderLabel.textContent = `Loading detection model… ${pct}% (cached after this)`;
+        }
+      };
+      try { classifier = await pipeline('text-classification', MODEL_ID, { dtype: 'q8', progress_callback: progress }); }
+      catch (e) { classifier = await pipeline('text-classification', MODEL_ID, { progress_callback: progress }); }
+      loaderLabel.textContent = 'Model ready ✓'; bar.style.width = '100%';
+      return classifier;
+    }
+
+    function splitSentences(text) {
+      const clean = text.replace(/\s+/g, ' ').trim();
+      if (!clean) return [];
+      const raw = clean.match(/[^.!?]+[.!?]+["')\]]*|\S+$/g) || [clean];
+      const merged = [];
+      for (const s of raw) {
+        const t = s.trim(); if (!t) continue;
+        if (merged.length && t.split(/\s+/).length < 4) merged[merged.length - 1] += ' ' + t;
+        else merged.push(t);
+      }
+      return merged;
+    }
+
+    // decide whether a chunk is real prose worth scoring (vs TOC / lists / references / headings / data)
+    function isProse(s) {
+      const text = s.trim();
+      const words = text.split(/\s+/);
+      if (words.length < 5) return false;                         // headings & fragments
+      if (/\.{4,}|…|\.\s\.\s\.|·{2,}/.test(text)) return false;    // table-of-contents dotted leaders
+      const compact = text.replace(/\s/g, '');
+      const total = compact.length || 1;
+      const letters = (compact.match(/[A-Za-z]/g) || []).length;
+      const digits = (compact.match(/[0-9]/g) || []).length;
+      if (letters / total < 0.6) return false;                    // mostly symbols / numbers
+      if (digits / total > 0.18) return false;                    // tables, data, TOC, reference lines
+      // reference-list entry: a year plus a citation marker
+      if (/\b(19|20)\d\d\b/.test(text) && /(doi|https?:\/\/|\bpp\.|\bvol\.|\bno\.\s*\d)/i.test(text)) return false;
+      // ALL-CAPS heading
+      const alpha = text.replace(/[^A-Za-z]/g, '');
+      if (alpha.length > 0 && alpha === alpha.toUpperCase() && words.length < 12) return false;
+      return true;
+    }
+
+    function aiScoreFromResult(res) {
+      const arr = Array.isArray(res) ? res : [res];
+      const ai = arr.find((r) => /^ai$|chatgpt|\bai\b|fake|gpt|machine|generated|label_1|positive/i.test(r.label));
+      const human = arr.find((r) => /human|real|label_0|negative/i.test(r.label));
+      if (ai) return ai.score;
+      if (human) return 1 - human.score;
+      return arr.length > 1 ? arr[1].score : arr[0].score;
+    }
+
+    analyzeBtn.addEventListener('click', async () => {
+      const text = inputEl.value.trim();
+      showError('');
+      if (countWords(text) < 5) { showError('Please enter some text to analyze.'); return; }
+      analyzeBtn.disabled = true; results.classList.remove('show');
+      try {
+        const clf = await getClassifier();
+        const allChunks = splitSentences(text);
+        // keep every chunk for display, but only score real prose; cap on prose count to avoid freezing
+        const chunks = [];
+        let proseCount = 0, truncated = 0;
+        for (let k = 0; k < allChunks.length; k++) {
+          if (proseCount >= MAX_SENTENCES) { truncated = allChunks.length - k; break; }
+          const prose = isProse(allChunks[k]);
+          chunks.push({ text: allChunks[k], prose, score: null });
+          if (prose) proseCount++;
+        }
+        const proseChunks = chunks.filter((c) => c.prose);
+
+        if (proseChunks.length === 0) {
+          showError('No analyzable prose found — this looks like formatting, tables, or a reference list. Paste some actual paragraphs to check.');
+          return;
+        }
+
+        bar.style.width = '0%';
+        const BATCH = 8;
+        for (let i = 0; i < proseChunks.length; i += BATCH) {
+          const slice = proseChunks.slice(i, i + BATCH);
+          loaderLabel.textContent = `Analyzing… ${Math.min(i + BATCH, proseChunks.length)}/${proseChunks.length} prose sentences`;
+          const out = await clf(slice.map((c) => c.text), { top_k: 5 });
+          const br = Array.isArray(out[0]) ? out : [out];
+          slice.forEach((c, j) => { c.score = aiScoreFromResult(br[j]); });
+          bar.style.width = Math.round(Math.min(100, ((i + BATCH) / proseChunks.length) * 100)) + '%';
+          await new Promise((r) => setTimeout(r, 0)); // yield so the UI repaints and never freezes
+        }
+        render(chunks, truncated, chunks.length - proseChunks.length);
+      } catch (err) {
+        showError('Something went wrong during analysis: ' + err.message + '. If this was a network error, check your connection and try again.');
+      } finally { analyzeBtn.disabled = false; loader.classList.remove('show'); }
+    });
+
+    function bandFor(p) {
+      if (p >= 0.85) return { label: 'Reads very AI-like', color: '#e53935' };
+      if (p >= 0.65) return { label: 'Reads AI-like', color: '#ff8c00' };
+      if (p >= 0.45) return { label: 'Uncertain / mixed', color: '#f5c518' };
+      if (p >= 0.25) return { label: 'Reads human-like', color: '#7bc043' };
+      return { label: 'Reads very human-like', color: '#00b64c' };
+    }
+    function colorFor(p) {
+      if (p < 0.45) return `rgba(0,182,76,${0.15 + p * 0.6})`;
+      if (p < 0.65) return `rgba(245,197,24,0.40)`;
+      return `rgba(229,57,53,${0.25 + p * 0.4})`;
+    }
+    function escapeHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    function render(chunks, truncated = 0, skipped = 0) {
+      const prose = chunks.filter((c) => c.prose && c.score != null);
+      let totalW = 0, acc = 0;
+      prose.forEach((c) => { const w = c.text.split(/\s+/).length; totalW += w; acc += w * c.score; });
+      const overall = totalW ? acc / totalW : 0;
+      const band = bandFor(overall);
+
+      // info notice (skipped non-prose + truncation)
+      const infoNote = $('info-note');
+      let msg = '';
+      if (skipped > 0) msg += `Skipped <b>${skipped}</b> non-prose line${skipped === 1 ? '' : 's'} (table of contents, lists of tables/figures, references, headings, number-heavy rows) — those aren't real writing, so scoring them would only mislead. `;
+      if (truncated > 0) msg += `Long document — scored the first <b>${prose.length}</b> prose sentences and stopped so your browser doesn't freeze; paste a specific section to check it directly.`;
+      if (msg) { infoNote.innerHTML = 'ℹ️ ' + msg; infoNote.classList.add('show'); }
+      else { infoNote.classList.remove('show'); infoNote.innerHTML = ''; }
+
+      // demo explanation callout
+      if (pendingDemo) { demoNote.innerHTML = '🧪 ' + pendingDemo; demoNote.classList.add('show'); }
+      else { demoNote.classList.remove('show'); demoNote.innerHTML = ''; }
+
+      $('score-num').textContent = Math.round(overall * 100) + '%';
+      $('score-num').style.color = band.color;
+      const bandEl = $('score-band'); bandEl.textContent = band.label; bandEl.style.color = band.color;
+
+      $('highlight').innerHTML = chunks.map((c) =>
+        c.prose && c.score != null
+          ? `<span class="sent" style="background:${colorFor(c.score)}" title="AI-likeness: ${Math.round(c.score * 100)}%">${escapeHtml(c.text)}</span>`
+          : `<span class="sent skip" title="skipped — non-prose (formatting / list / reference / heading)">${escapeHtml(c.text)}</span>`
+      ).join(' ');
+
+      const wordsPer = prose.map((c) => c.text.split(/\s+/).length);
+      const avgLen = wordsPer.length ? wordsPer.reduce((a, b) => a + b, 0) / wordsPer.length : 0;
+      const variance = wordsPer.length ? wordsPer.reduce((a, b) => a + (b - avgLen) ** 2, 0) / wordsPer.length : 0;
+      const burstiness = Math.sqrt(variance);
+      const aiSents = prose.filter((c) => c.score >= 0.65).length;
+
+      $('stats').innerHTML = `
+        <div class="stat"><div class="v">${prose.length}</div><div class="k">prose sentences scored</div></div>
+        <div class="stat"><div class="v">${skipped}</div><div class="k">non-prose lines skipped</div></div>
+        <div class="stat"><div class="v">${aiSents}</div><div class="k">flagged AI-like (&ge;65%)</div></div>
+        <div class="stat"><div class="v">${avgLen.toFixed(1)}</div><div class="k">avg words / sentence</div></div>
+        <div class="stat"><div class="v">${burstiness.toFixed(1)}</div><div class="k">rhythm variation</div></div>
+        <div class="stat"><div class="v">${Math.round(overall * 100)}%</div><div class="k">overall AI-likeness</div></div>
+      `;
+      results.classList.add('show');
+      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function showError(msg) {
+      if (!msg) { errorBox.classList.remove('show'); errorBox.textContent = ''; return; }
+      errorBox.textContent = msg; errorBox.classList.add('show');
+    }
+
+    updateMeta();
+  </script>
+</body>
+</html>
